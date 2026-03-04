@@ -6,6 +6,9 @@ node_modules/
 .env.local
 .env.production
 
+# Local database storage
+server/data/
+
 # Build output
 client/dist/
 server/dist/

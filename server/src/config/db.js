@@ -1,5 +1,11 @@
 import mongoose from 'mongoose';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+import fs from 'fs';
 import env from './env.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const connectDB = async () => {
     // Try connecting to the configured MongoDB first
@@ -13,14 +19,27 @@ const connectDB = async () => {
         console.warn('⚠ Could not connect to MongoDB at', env.MONGODB_URI);
     }
 
-    // Fallback: start an in-memory MongoDB for development
+    // Fallback: start a local MongoDB with persistent storage
     try {
-        console.log('⏳ Starting in-memory MongoDB (dev mode)...');
+        console.log('⏳ Starting local MongoDB with persistent storage...');
         const { MongoMemoryServer } = await import('mongodb-memory-server');
-        const mongod = await MongoMemoryServer.create();
+
+        // Create a persistent data directory
+        const dbPath = resolve(__dirname, '../../data/mongodb');
+        if (!fs.existsSync(dbPath)) {
+            fs.mkdirSync(dbPath, { recursive: true });
+        }
+
+        const mongod = await MongoMemoryServer.create({
+            instance: {
+                dbPath,
+                storageEngine: 'wiredTiger',
+            },
+        });
+
         const uri = mongod.getUri();
         await mongoose.connect(uri);
-        console.log('✓ In-memory MongoDB started (data will not persist across restarts)');
+        console.log('✓ Local MongoDB started (data saved to server/data/mongodb)');
     } catch (error) {
         console.error('✗ MongoDB connection failed:', error.message);
         console.error('  Please install MongoDB or set a valid MONGODB_URI in .env');
