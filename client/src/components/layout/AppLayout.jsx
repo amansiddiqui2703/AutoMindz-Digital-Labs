@@ -1,6 +1,7 @@
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Sidebar from './Sidebar';
+import ChatBot from '../ChatBot';
 
 export default function AppLayout() {
     const { isAuthenticated, loading } = useAuth();
@@ -21,6 +22,7 @@ export default function AppLayout() {
             <main className="ml-64 p-8 animate-in">
                 <Outlet />
             </main>
+            <ChatBot />
         </div>
     );
 }

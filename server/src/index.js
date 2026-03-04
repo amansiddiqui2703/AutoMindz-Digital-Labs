@@ -25,6 +25,7 @@ import analyticsRoutes from './routes/analytics.js';
 import trackingRoutes from './routes/tracking.js';
 import templateRoutes from './routes/templates.js';
 import followupRoutes from './routes/followups.js';
+import chatbotRoutes from './routes/chatbot.js';
 
 // Tracking & unsubscribe (public)
 import { recordUnsubscribe } from './services/tracking.js';
@@ -58,6 +59,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/followups', followupRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // Tracking routes (public, no auth)
 app.use('/t', trackingRoutes);

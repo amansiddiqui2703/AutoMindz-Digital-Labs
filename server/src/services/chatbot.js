@@ -1,0 +1,143 @@
+import env from '../config/env.js';
+import EmailLog from '../models/EmailLog.js';
+import Campaign from '../models/Campaign.js';
+import Contact from '../models/Contact.js';
+import TrackingEvent from '../models/TrackingEvent.js';
+import FollowUpSequence from '../models/FollowUpSequence.js';
+
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
+/**
+ * Gather live stats for the authenticated user.
+ */
+const gatherUserData = async (userId) => {
+    const now = new Date();
+    const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
+    const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // --- Core email counts ---
+    const [totalSent, sentToday, sentThisWeek, sentThisMonth, totalFailed] = await Promise.all([
+        EmailLog.countDocuments({ userId, status: 'sent' }),
+        EmailLog.countDocuments({ userId, status: 'sent', sentAt: { $gte: todayStart } }),
+        EmailLog.countDocuments({ userId, status: 'sent', sentAt: { $gte: weekStart } }),
+        EmailLog.countDocuments({ userId, status: 'sent', sentAt: { $gte: monthStart } }),
+        EmailLog.countDocuments({ userId, status: 'failed' }),
+    ]);
+
+    // --- Tracking events (opens, clicks, replies) ---
+    const userLogs = await EmailLog.find({ userId }).select('trackingId').lean();
+    const trackingIds = userLogs.map(l => l.trackingId).filter(Boolean);
+
+    let totalOpened = 0, totalClicked = 0, totalReplied = 0;
+    if (trackingIds.length > 0) {
+        [totalOpened, totalClicked, totalReplied] = await Promise.all([
+            TrackingEvent.countDocuments({ trackingId: { $in: trackingIds }, type: 'open' }),
+            TrackingEvent.countDocuments({ trackingId: { $in: trackingIds }, type: 'click' }),
+            TrackingEvent.countDocuments({ trackingId: { $in: trackingIds }, type: 'reply' }),
+        ]);
+    }
+
+    // --- Campaigns ---
+    const [totalCampaigns, activeCampaigns] = await Promise.all([
+        Campaign.countDocuments({ userId }),
+        Campaign.countDocuments({ userId, status: { $in: ['running', 'scheduled'] } }),
+    ]);
+
+    // --- Contacts ---
+    const totalContacts = await Contact.countDocuments({ userId });
+
+    // --- Follow-up sequences ---
+    const [activeSequences, completedSequences, replyStoppedSequences] = await Promise.all([
+        FollowUpSequence.countDocuments({ userId, status: 'active' }),
+        FollowUpSequence.countDocuments({ userId, status: 'completed' }),
+        FollowUpSequence.countDocuments({ userId, status: 'stopped_reply' }),
+    ]);
+
+    // --- Recent replies (last 5) ---
+    let recentReplies = [];
+    if (trackingIds.length > 0) {
+        const replyEvents = await TrackingEvent.find({ trackingId: { $in: trackingIds }, type: 'reply' })
+            .sort({ createdAt: -1 }).limit(5).lean();
+        for (const re of replyEvents) {
+            const log = await EmailLog.findOne({ trackingId: re.trackingId }).select('to subject').lean();
+            if (log) recentReplies.push({ email: log.to, subject: log.subject, date: re.createdAt });
+        }
+    }
+
+    // --- Rates ---
+    const openRate = totalSent > 0 ? ((totalOpened / totalSent) * 100).toFixed(1) : '0';
+    const clickRate = totalSent > 0 ? ((totalClicked / totalSent) * 100).toFixed(1) : '0';
+    const replyRate = totalSent > 0 ? ((totalReplied / totalSent) * 100).toFixed(1) : '0';
+
+    return {
+        emails: { totalSent, sentToday, sentThisWeek, sentThisMonth, totalFailed },
+        tracking: { totalOpened, totalClicked, totalReplied, openRate, clickRate, replyRate },
+        campaigns: { total: totalCampaigns, active: activeCampaigns },
+        contacts: { total: totalContacts },
+        followUps: { active: activeSequences, completed: completedSequences, stoppedByReply: replyStoppedSequences },
+        recentReplies,
+    };
+};
+
+/**
+ * Ask the chatbot a question, powered by Gemini + live user data.
+ */
+export const askChatbot = async (userId, question) => {
+    if (!env.GEMINI_API_KEY) {
+        throw new Error('Gemini API key not configured. Add GEMINI_API_KEY to your .env file.');
+    }
+
+    // 1. Gather live data
+    const data = await gatherUserData(userId);
+
+    // 2. Build prompt with system context + data + user question
+    const prompt = `You are **AutoMindz Assistant**, a friendly and expert AI assistant built into the AutoMindz email outreach platform. You help users understand their outreach performance and guide them on using the system.
+
+## Your Capabilities
+- Answer questions about the user's email outreach stats (sent, opens, clicks, replies, bounces)
+- Provide insights on campaign performance
+- Explain how to use features (Compose, Campaigns, Follow-Ups, Email Finder, Analytics, Contacts)
+- Give email marketing best practices and tips
+- Help troubleshoot issues
+
+## User's Live Data (as of right now)
+\`\`\`json
+${JSON.stringify(data, null, 2)}
+\`\`\`
+
+## Rules
+- Always use the live data above when answering questions about stats or performance
+- Be concise but helpful — use bullet points and bold numbers
+- If the user asks about a feature, give step-by-step instructions
+- If you don't know something specific to the system, say so honestly
+- Keep responses under 300 words
+- Use emoji sparingly for friendliness
+
+## User's Question
+${question}`;
+
+    // 3. Call Gemini
+    const response = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 1024,
+            },
+        }),
+    });
+
+    if (!response.ok) {
+        const err = await response.text();
+        throw new Error(`AI service error: ${err}`);
+    }
+
+    const result = await response.json();
+    const answer = result.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I couldn\'t generate a response. Please try again.';
+
+    return { answer, data };
+};
