@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import {
     LayoutDashboard, Send, Users, Search, Mail, BarChart3,
-    Settings, LogOut, Moon, Sun, Zap, Timer, CreditCard
+    Settings, LogOut, Moon, Sun, Zap, CreditCard
 } from 'lucide-react';
 
 const navItems = [
@@ -11,7 +11,6 @@ const navItems = [
     { to: '/campaigns', icon: Send, label: 'Campaigns' },
     { to: '/contacts', icon: Users, label: 'Contacts' },
     { to: '/compose', icon: Mail, label: 'Compose' },
-    { to: '/followups', icon: Timer, label: 'Follow-Ups' },
     { to: '/finder', icon: Search, label: 'Email Finder' },
     { to: '/analytics', icon: BarChart3, label: 'Analytics' },
     { to: '/accounts', icon: Mail, label: 'Accounts' },

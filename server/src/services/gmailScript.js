@@ -103,17 +103,18 @@ export const replyViaScript = async (scriptUrl, { to, originalSubject, htmlBody,
 };
 
 /**
- * Select an available Gmail account with remaining quota
+ * Select an available Gmail account with remaining quota (round-robin)
  */
 export const selectAccount = async (userId, accountIds) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // Sort by dailySentCount ascending for round-robin distribution
     const accounts = await GmailAccount.find({
         _id: { $in: accountIds },
         userId,
         isActive: true,
-    });
+    }).sort({ dailySentCount: 1 });
 
     for (const account of accounts) {
         // Reset daily count if new day

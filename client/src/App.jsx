@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Campaigns from './pages/Campaigns';
+import CampaignDetail from './pages/CampaignDetail';
 import Compose from './pages/Compose';
 import Contacts from './pages/Contacts';
 import ContactDetail from './pages/ContactDetail';
@@ -14,7 +15,6 @@ import EmailFinder from './pages/EmailFinder';
 import Analytics from './pages/Analytics';
 import Accounts from './pages/Accounts';
 import Settings from './pages/Settings';
-import FollowUps from './pages/FollowUps';
 import Billing from './pages/Billing';
 import Landing from './pages/Landing';
 
@@ -29,8 +29,8 @@ export default function App() {
             <Route element={<AppLayout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/campaigns" element={<Campaigns />} />
+              <Route path="/campaigns/:id" element={<CampaignDetail />} />
               <Route path="/compose" element={<Compose />} />
-              <Route path="/followups" element={<FollowUps />} />
               <Route path="/contacts" element={<Contacts />} />
               <Route path="/contacts/:id" element={<ContactDetail />} />
               <Route path="/finder" element={<EmailFinder />} />

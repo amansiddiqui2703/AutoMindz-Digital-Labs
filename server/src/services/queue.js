@@ -29,11 +29,6 @@ export const initQueue = () => {
                 console.warn('⚠ Email queue error:', err.message);
             });
 
-            emailQueue.on('error', (err) => {
-                console.warn('⚠ Email queue error:', err.message);
-            });
-
-
             emailQueue.process(async (job) => {
                 const { campaignId, recipient, userId, accountIds, subject, htmlBody, plainBody, cc, bcc, attachments } = job.data;
 
@@ -43,7 +38,7 @@ export const initQueue = () => {
                     return { skipped: true, reason: 'suppressed', email: recipient.email };
                 }
 
-                // Select account with available quota
+                // Select account with available quota (round-robin)
                 const account = await selectAccount(userId, accountIds);
                 if (!account) {
                     throw new Error('No available Gmail accounts (quota exhausted)');
@@ -70,11 +65,50 @@ export const initQueue = () => {
                     attachments,
                 });
 
-                // Update campaign stats
+                // Update campaign stats and schedule follow-ups
                 if (result.success) {
                     await Campaign.findByIdAndUpdate(campaignId, {
                         $inc: { 'stats.sent': 1 },
                     });
+
+                    // Update recipient sentAt
+                    await Campaign.updateOne(
+                        { _id: campaignId, 'recipients.email': recipient.email },
+                        { $set: { 'recipients.$.sentAt': new Date(), 'recipients.$.status': 'sent' } }
+                    );
+
+                    // Schedule first follow-up if campaign has follow-up steps
+                    const campaign = await Campaign.findById(campaignId);
+                    if (campaign?.followUps?.length > 0) {
+                        const firstFollowUp = campaign.followUps
+                            .sort((a, b) => a.stepNumber - b.stepNumber)
+                            .find(f => f.stepNumber === 1);
+                        if (firstFollowUp) {
+                            const nextDate = new Date();
+                            nextDate.setDate(nextDate.getDate() + firstFollowUp.delayDays);
+                            await Campaign.updateOne(
+                                { _id: campaignId, 'recipients.email': recipient.email },
+                                {
+                                    $set: {
+                                        'recipients.$.nextFollowUpAt': nextDate,
+                                        'recipients.$.sequenceStatus': 'active',
+                                        'recipients.$.currentStep': 0,
+                                    }
+                                }
+                            );
+                        }
+                    }
+
+                    // Check if all recipients are processed — mark campaign completed
+                    const updatedCampaign = await Campaign.findById(campaignId);
+                    if (updatedCampaign) {
+                        const pendingCount = updatedCampaign.recipients.filter(r => r.status === 'pending').length;
+                        if (pendingCount === 0 && updatedCampaign.followUps.length === 0) {
+                            updatedCampaign.status = 'completed';
+                            await updatedCampaign.save();
+                            console.log(`✅ Campaign "${updatedCampaign.name}" completed`);
+                        }
+                    }
                 } else {
                     await Campaign.findByIdAndUpdate(campaignId, {
                         $inc: { 'stats.failed': 1 },
@@ -95,7 +129,7 @@ export const initQueue = () => {
             console.log('✓ Email queue initialized');
         });
 
-        return emailQueue; // Returns null initially or the instance if it was fast enough
+        return emailQueue;
     } catch (error) {
         console.warn('⚠ Queue initialization failed:', error.message);
         return null;
@@ -162,3 +196,4 @@ export const getQueueStats = async () => {
 };
 
 export { emailQueue };
+

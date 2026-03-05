@@ -155,4 +155,40 @@ router.get('/:id/queue-stats', auth, async (req, res) => {
     }
 });
 
+// Sequence stats — per-recipient follow-up progress
+router.get('/:id/sequence-stats', auth, async (req, res) => {
+    try {
+        const campaign = await Campaign.findOne({ _id: req.params.id, userId: req.user.id });
+        if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
+
+        const totalSteps = campaign.followUps?.length || 0;
+        const recipients = campaign.recipients.map(r => ({
+            email: r.email,
+            name: r.name,
+            status: r.status,
+            currentStep: r.currentStep || 0,
+            totalSteps,
+            sequenceStatus: r.sequenceStatus || 'active',
+            nextFollowUpAt: r.nextFollowUpAt,
+            sentAt: r.sentAt,
+            openedAt: r.openedAt,
+            clickedAt: r.clickedAt,
+            repliedAt: r.repliedAt,
+        }));
+
+        const summary = {
+            totalRecipients: recipients.length,
+            activeSequences: recipients.filter(r => r.sequenceStatus === 'active').length,
+            completedSequences: recipients.filter(r => r.sequenceStatus === 'completed').length,
+            stoppedByReply: recipients.filter(r => r.sequenceStatus === 'stopped_reply').length,
+            stoppedByUnsubscribe: recipients.filter(r => r.sequenceStatus === 'stopped_unsubscribe').length,
+            totalSteps,
+        };
+
+        res.json({ recipients, summary });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to get sequence stats' });
+    }
+});
+
 export default router;

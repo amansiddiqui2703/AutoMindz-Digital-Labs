@@ -4,10 +4,19 @@ const recipientSchema = new mongoose.Schema({
     contactId: { type: mongoose.Schema.Types.ObjectId, ref: 'Contact' },
     email: { type: String, required: true },
     name: String,
+    company: String,
+    customFields: { type: Map, of: String },
     status: {
         type: String,
-        enum: ['pending', 'sent', 'failed', 'bounced', 'opened', 'clicked', 'replied'],
+        enum: ['pending', 'sent', 'failed', 'bounced', 'opened', 'clicked', 'replied', 'unsubscribed'],
         default: 'pending',
+    },
+    currentStep: { type: Number, default: 0 },
+    nextFollowUpAt: Date,
+    sequenceStatus: {
+        type: String,
+        enum: ['active', 'completed', 'stopped_reply', 'stopped_unsubscribe', 'paused'],
+        default: 'active',
     },
     sentAt: Date,
     openedAt: Date,
@@ -16,7 +25,7 @@ const recipientSchema = new mongoose.Schema({
 }, { _id: true });
 
 const followUpSchema = new mongoose.Schema({
-    subject: String,
+    subject: { type: String, default: '' },
     htmlBody: String,
     plainBody: String,
     delayDays: { type: Number, default: 3 },
@@ -25,6 +34,7 @@ const followUpSchema = new mongoose.Schema({
         enum: ['no_open', 'no_reply', 'no_click', 'all'],
         default: 'no_reply',
     },
+    stepNumber: { type: Number, required: true },
 }, { _id: true });
 
 const campaignSchema = new mongoose.Schema({

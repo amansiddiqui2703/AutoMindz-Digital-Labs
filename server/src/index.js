@@ -24,7 +24,6 @@ import aiRoutes from './routes/ai.js';
 import analyticsRoutes from './routes/analytics.js';
 import trackingRoutes from './routes/tracking.js';
 import templateRoutes from './routes/templates.js';
-import followupRoutes from './routes/followups.js';
 import chatbotRoutes from './routes/chatbot.js';
 import billingRoutes from './routes/billing.js';
 import { handleStripeWebhook } from './services/stripeWebhook.js';
@@ -63,7 +62,6 @@ app.use('/api/finder', finderRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/templates', templateRoutes);
-app.use('/api/followups', followupRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/billing', billingRoutes);
 
