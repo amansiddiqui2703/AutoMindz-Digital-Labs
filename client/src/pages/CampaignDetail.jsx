@@ -13,7 +13,8 @@ import {
     Mail, Users, Settings as SettingsIcon, Zap, Clock, Send, Eye,
     Bold, Italic, Underline as UIcon, Link2, AlignLeft, AlignCenter, AlignRight,
     List, ListOrdered, Type, Code, Loader2, BarChart3, CheckCircle, XCircle,
-    StopCircle, Timer, Sparkles, Wand2, X, GripVertical, Copy
+    StopCircle, Timer, Sparkles, Wand2, X, GripVertical, Copy, FlaskConical,
+    CalendarClock, Flame, FileText
 } from 'lucide-react';
 
 const conditionLabels = {
@@ -61,6 +62,8 @@ export default function CampaignDetail() {
     const [name, setName] = useState('');
     const [subject, setSubject] = useState('');
     const [subjectB, setSubjectB] = useState('');
+    const [abTestEnabled, setAbTestEnabled] = useState(false);
+    const [abStats, setAbStats] = useState(null);
     const [cc, setCc] = useState('');
     const [bcc, setBcc] = useState('');
     const [delay, setDelay] = useState(5);
@@ -68,6 +71,11 @@ export default function CampaignDetail() {
     const [selectedAccounts, setSelectedAccounts] = useState([]);
     const [recipients, setRecipients] = useState([]);
     const [followUps, setFollowUps] = useState([]);
+    const [warmupMode, setWarmupMode] = useState(false);
+    const [warmupDailyIncrease, setWarmupDailyIncrease] = useState(10);
+    const [scheduledAt, setScheduledAt] = useState('');
+    const [templates, setTemplates] = useState([]);
+    const [showTemplates, setShowTemplates] = useState(false);
 
     // Follow-up editor state
     const [editingStep, setEditingStep] = useState(null);
@@ -110,8 +118,11 @@ export default function CampaignDetail() {
             setName(c.name);
             setSubject(c.subject || '');
             setSubjectB(c.subjectB || '');
+            setAbTestEnabled(!!c.subjectB);
             setCc(c.cc || '');
             setBcc(c.bcc || '');
+            setWarmupMode(c.warmupMode || false);
+            setWarmupDailyIncrease(c.warmupDailyIncrease || 10);
             setDelay(c.delay || 5);
             setDailyLimit(c.dailyLimit || 200);
             setSelectedAccounts(c.accountIds || []);
@@ -153,15 +164,33 @@ export default function CampaignDetail() {
         } catch { }
     };
 
+    const fetchAbStats = async () => {
+        try {
+            const res = await api.get(`/campaigns/${id}/ab-stats`);
+            if (res.data.abTest) setAbStats(res.data);
+        } catch { }
+    };
+
+    const fetchTemplates = async () => {
+        try {
+            const res = await api.get('/templates');
+            setTemplates(res.data.templates || []);
+        } catch { }
+    };
+
     useEffect(() => {
         fetchCampaign();
         fetchAccounts();
         fetchContacts();
+        fetchTemplates();
     }, [fetchCampaign]);
 
     useEffect(() => {
         if (activeTab === 'sequence' && campaign?.followUps?.length > 0) {
             fetchSequenceStats();
+        }
+        if (activeTab === 'content' && campaign?.status !== 'draft') {
+            fetchAbStats();
         }
     }, [activeTab]);
 
@@ -171,7 +200,8 @@ export default function CampaignDetail() {
         try {
             const htmlBody = editor?.getHTML() || '';
             const payload = {
-                name, subject, subjectB, htmlBody, cc, bcc, delay, dailyLimit,
+                name, subject, subjectB: abTestEnabled ? subjectB : '', htmlBody, cc, bcc, delay, dailyLimit,
+                warmupMode, warmupDailyIncrease,
                 accountIds: selectedAccounts,
                 recipients,
                 followUps: followUps.map((f, i) => ({
@@ -203,6 +233,17 @@ export default function CampaignDetail() {
         }
     };
 
+    const handleSchedule = async () => {
+        if (!scheduledAt) return toast.error('Please select a date and time');
+        try {
+            await api.post(`/campaigns/${id}/schedule`, { scheduledAt });
+            toast.success('Campaign scheduled!');
+            fetchCampaign();
+        } catch (e) {
+            toast.error(e.response?.data?.error || 'Failed to schedule');
+        }
+    };
+
     const handlePause = async () => {
         try {
             await api.post(`/campaigns/${id}/pause`);
@@ -211,6 +252,15 @@ export default function CampaignDetail() {
         } catch {
             toast.error('Failed to pause');
         }
+    };
+
+    const loadTemplate = (template) => {
+        setSubject(template.subject || subject);
+        if (editor && template.htmlBody) {
+            editor.commands.setContent(template.htmlBody);
+        }
+        setShowTemplates(false);
+        toast.success(`Template "${template.name}" loaded`);
     };
 
     // --- Follow-up management ---
@@ -320,12 +370,17 @@ export default function CampaignDetail() {
                             disabled={!isEditable}
                         />
                         <div className="flex items-center gap-3 mt-1">
-                            <span className={`badge ${campaign?.status === 'draft' ? 'badge-purple' : campaign?.status === 'running' ? 'badge-success' : campaign?.status === 'paused' ? 'badge-warning' : 'badge-info'}`}>
+                            <span className={`badge ${campaign?.status === 'draft' ? 'badge-purple' : campaign?.status === 'running' ? 'badge-success' : campaign?.status === 'paused' ? 'badge-warning' : campaign?.status === 'scheduled' ? 'badge-info' : 'badge-info'}`}>
                                 {campaign?.status}
                             </span>
                             <span className="text-sm text-surface-500">{recipients.length} recipients</span>
                             {followUps.length > 0 && (
                                 <span className="text-sm text-surface-500">• {followUps.length} follow-up{followUps.length > 1 ? 's' : ''}</span>
+                            )}
+                            {abTestEnabled && <span className="badge badge-info">A/B Test</span>}
+                            {warmupMode && <span className="badge badge-warning">🔥 Warmup</span>}
+                            {campaign?.status === 'scheduled' && campaign?.scheduledAt && (
+                                <span className="text-sm text-surface-500">📅 {new Date(campaign.scheduledAt).toLocaleString()}</span>
                             )}
                         </div>
                     </div>
@@ -338,9 +393,21 @@ export default function CampaignDetail() {
                         </button>
                     )}
                     {campaign?.status === 'draft' && (
-                        <button onClick={handleSend} className="btn-primary" id="send-campaign">
-                            <Play className="w-4 h-4" /> Start Campaign
-                        </button>
+                        <>
+                            <div className="flex items-center gap-2">
+                                <input type="datetime-local" value={scheduledAt} onChange={e => setScheduledAt(e.target.value)}
+                                    className="input !py-1.5 !text-xs !w-44" />
+                                <button onClick={handleSchedule} className="btn-secondary !py-1.5" title="Schedule for later">
+                                    <CalendarClock className="w-4 h-4" /> Schedule
+                                </button>
+                            </div>
+                            <button onClick={handleSend} className="btn-primary" id="send-campaign">
+                                <Play className="w-4 h-4" /> Send Now
+                            </button>
+                        </>
+                    )}
+                    {campaign?.status === 'scheduled' && (
+                        <span className="badge badge-info text-sm">📅 Scheduled for {new Date(campaign.scheduledAt).toLocaleString()}</span>
                     )}
                     {campaign?.status === 'running' && (
                         <button onClick={handlePause} className="btn-warning">
@@ -394,49 +461,123 @@ export default function CampaignDetail() {
 
             {/* === TAB: Email Content === */}
             {activeTab === 'content' && (
-                <div className="glass-card overflow-hidden">
-                    <div className="border-b border-surface-200 dark:border-surface-700">
-                        <div className="flex items-center px-5 py-2.5">
-                            <span className="text-sm font-medium text-surface-500 w-20">Subject</span>
-                            <input value={subject} onChange={e => setSubject(e.target.value)}
-                                className="flex-1 bg-transparent border-none outline-none text-sm text-surface-900 dark:text-white font-medium"
-                                placeholder="Email subject — use {{name}}, {{company}} etc."
-                                disabled={!isEditable} />
+                <div className="space-y-4">
+                    <div className="glass-card overflow-hidden">
+                        <div className="border-b border-surface-200 dark:border-surface-700">
+                            <div className="flex items-center px-5 py-2.5">
+                                <span className="text-sm font-medium text-surface-500 w-20">Subject</span>
+                                <input value={subject} onChange={e => setSubject(e.target.value)}
+                                    className="flex-1 bg-transparent border-none outline-none text-sm text-surface-900 dark:text-white font-medium"
+                                    placeholder="Email subject — use {{name}}, {{company}} etc."
+                                    disabled={!isEditable} />
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Toolbar */}
-                    {isEditable && editor && (
-                        <div className="flex items-center gap-1 px-4 py-2 border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50 flex-wrap">
-                            <ToolBtn icon={Bold} active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} title="Bold" />
-                            <ToolBtn icon={Italic} active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic" />
-                            <ToolBtn icon={UIcon} active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline" />
-                            <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
-                            <ToolBtn icon={AlignLeft} active={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} title="Left" />
-                            <ToolBtn icon={AlignCenter} active={editor.isActive({ textAlign: 'center' })} onClick={() => editor.chain().focus().setTextAlign('center').run()} title="Center" />
-                            <ToolBtn icon={AlignRight} active={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} title="Right" />
-                            <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
-                            <ToolBtn icon={List} active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Bullets" />
-                            <ToolBtn icon={ListOrdered} active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Numbered" />
-                            <ToolBtn icon={Link2} onClick={() => { const url = prompt('URL:'); if (url) editor.chain().focus().setLink({ href: url }).run(); }} title="Link" />
-                            <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
-                            <div className="relative group">
-                                <button className="btn-secondary !py-1.5 !px-3 !text-xs">{'{{ }}'} Merge Tags</button>
-                                <div className="hidden group-hover:block absolute top-full left-0 mt-1 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl shadow-xl z-20 py-2 min-w-[150px]">
-                                    {['name', 'first_name', 'email', 'company'].map(tag => (
-                                        <button key={tag} onClick={() => editor.commands.insertContent(`{{${tag}}}`)}
-                                            className="block w-full text-left px-4 py-1.5 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700">
-                                            {`{{${tag}}}`}
+                        {/* A/B Test Subject */}
+                        <div className="border-b border-surface-200 dark:border-surface-700">
+                            <div className="flex items-center px-5 py-2">
+                                <button onClick={() => setAbTestEnabled(!abTestEnabled)} disabled={!isEditable}
+                                    className={`flex items-center gap-2 text-xs font-medium mr-3 px-3 py-1.5 rounded-lg transition-all ${abTestEnabled ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400' : 'text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800'
+                                        }`}>
+                                    <FlaskConical className="w-3.5 h-3.5" />
+                                    A/B Test {abTestEnabled ? 'ON' : 'OFF'}
+                                </button>
+                                {abTestEnabled && (
+                                    <>
+                                        <span className="text-xs font-medium text-purple-500 w-16">Subject B</span>
+                                        <input value={subjectB} onChange={e => setSubjectB(e.target.value)}
+                                            className="flex-1 bg-transparent border-none outline-none text-sm text-surface-900 dark:text-white"
+                                            placeholder="Alternative subject for 50% of recipients"
+                                            disabled={!isEditable} />
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Load Template */}
+                        <div className="border-b border-surface-200 dark:border-surface-700">
+                            <div className="flex items-center px-5 py-2">
+                                <button onClick={() => setShowTemplates(!showTemplates)} className="flex items-center gap-2 text-xs font-medium text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 px-3 py-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-all">
+                                    <FileText className="w-3.5 h-3.5" /> Load Template
+                                </button>
+                            </div>
+                            {showTemplates && (
+                                <div className="px-5 pb-3 max-h-40 overflow-y-auto">
+                                    {templates.length === 0 ? (
+                                        <p className="text-xs text-surface-400">No templates saved yet. Go to Templates page to create one.</p>
+                                    ) : templates.map(t => (
+                                        <button key={t._id} onClick={() => loadTemplate(t)}
+                                            className="block w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-surface-100 dark:hover:bg-surface-800 transition-all">
+                                            <span className="font-medium text-surface-900 dark:text-white">{t.name}</span>
+                                            {t.subject && <span className="text-xs text-surface-400 ml-2">— {t.subject}</span>}
                                         </button>
                                     ))}
                                 </div>
+                            )}
+                        </div>
+
+                        {/* Toolbar */}
+                        {isEditable && editor && (
+                            <div className="flex items-center gap-1 px-4 py-2 border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50 flex-wrap">
+                                <ToolBtn icon={Bold} active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} title="Bold" />
+                                <ToolBtn icon={Italic} active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic" />
+                                <ToolBtn icon={UIcon} active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline" />
+                                <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
+                                <ToolBtn icon={AlignLeft} active={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} title="Left" />
+                                <ToolBtn icon={AlignCenter} active={editor.isActive({ textAlign: 'center' })} onClick={() => editor.chain().focus().setTextAlign('center').run()} title="Center" />
+                                <ToolBtn icon={AlignRight} active={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} title="Right" />
+                                <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
+                                <ToolBtn icon={List} active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Bullets" />
+                                <ToolBtn icon={ListOrdered} active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Numbered" />
+                                <ToolBtn icon={Link2} onClick={() => { const url = prompt('URL:'); if (url) editor.chain().focus().setLink({ href: url }).run(); }} title="Link" />
+                                <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
+                                <div className="relative group">
+                                    <button className="btn-secondary !py-1.5 !px-3 !text-xs">{'{{ }}'} Merge Tags</button>
+                                    <div className="hidden group-hover:block absolute top-full left-0 mt-1 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl shadow-xl z-20 py-2 min-w-[150px]">
+                                        {['name', 'first_name', 'email', 'company'].map(tag => (
+                                            <button key={tag} onClick={() => editor.commands.insertContent(`{{${tag}}}`)}
+                                                className="block w-full text-left px-4 py-1.5 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700">
+                                                {`{{${tag}}}`}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="tiptap-editor">
+                            <EditorContent editor={editor} className="min-h-[300px]" />
+                        </div>
+                    </div>
+
+                    {/* A/B Test Results (shown after campaign runs) */}
+                    {abStats && (
+                        <div className="glass-card p-5">
+                            <h3 className="text-lg font-semibold text-surface-900 dark:text-white mb-4 flex items-center gap-2">
+                                <FlaskConical className="w-5 h-5 text-purple-500" /> A/B Test Results
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                {[{ label: 'A', subject: abStats.subjectA, stats: abStats.variantA, color: 'blue' },
+                                { label: 'B', subject: abStats.subjectB, stats: abStats.variantB, color: 'purple' }].map(v => (
+                                    <div key={v.label} className={`p-4 rounded-xl border-2 ${v.stats.openRate > (v.label === 'A' ? abStats.variantB : abStats.variantA).openRate ? 'border-green-500 bg-green-50 dark:bg-green-500/10' : 'border-surface-200 dark:border-surface-700'}`}>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className={`badge badge-${v.color === 'blue' ? 'info' : 'purple'}`}>Variant {v.label}</span>
+                                            {v.stats.openRate > (v.label === 'A' ? abStats.variantB : abStats.variantA).openRate && (
+                                                <span className="text-xs text-green-600 font-medium">⭐ Winner</span>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-surface-600 dark:text-surface-400 mb-3 truncate" title={v.subject}>"{v.subject}"</p>
+                                        <div className="grid grid-cols-3 gap-2 text-center">
+                                            <div><div className="text-lg font-bold text-surface-900 dark:text-white">{v.stats.openRate}%</div><div className="text-xs text-surface-500">Opens</div></div>
+                                            <div><div className="text-lg font-bold text-surface-900 dark:text-white">{v.stats.clickRate}%</div><div className="text-xs text-surface-500">Clicks</div></div>
+                                            <div><div className="text-lg font-bold text-surface-900 dark:text-white">{v.stats.replyRate}%</div><div className="text-xs text-surface-500">Replies</div></div>
+                                        </div>
+                                        <p className="text-xs text-surface-400 mt-2">{v.stats.sent} sent</p>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
-
-                    <div className="tiptap-editor">
-                        <EditorContent editor={editor} className="min-h-[300px]" />
-                    </div>
                 </div>
             )}
 
@@ -817,6 +958,34 @@ export default function CampaignDetail() {
                                 <p className="text-xs text-surface-400 mt-1">Max emails per account per day</p>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Warmup Mode */}
+                    <div className="glass-card p-5">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="text-lg font-semibold text-surface-900 dark:text-white flex items-center gap-2">
+                                    <Flame className="w-5 h-5 text-orange-500" /> Warmup Mode
+                                </h3>
+                                <p className="text-sm text-surface-500 mt-0.5">Gradually increase sending volume to build domain reputation</p>
+                            </div>
+                            <button onClick={() => setWarmupMode(!warmupMode)} disabled={!isEditable}
+                                className={`relative w-12 h-6 rounded-full transition-colors ${warmupMode ? 'bg-orange-500' : 'bg-surface-300 dark:bg-surface-600'}`}>
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${warmupMode ? 'translate-x-6' : ''}`} />
+                            </button>
+                        </div>
+                        {warmupMode && (
+                            <div className="ml-0 sm:ml-7">
+                                <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
+                                    Daily Increase (emails per day)
+                                </label>
+                                <input type="number" value={warmupDailyIncrease} onChange={e => setWarmupDailyIncrease(Number(e.target.value))}
+                                    min="1" max="100" className="input !w-32" disabled={!isEditable} />
+                                <p className="text-xs text-surface-400 mt-1">
+                                    Day 1: {warmupDailyIncrease} emails, Day 2: {warmupDailyIncrease * 2}, Day 3: {warmupDailyIncrease * 3}...
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {/* CC/BCC */}

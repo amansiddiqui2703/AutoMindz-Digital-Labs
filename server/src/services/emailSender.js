@@ -32,7 +32,7 @@ const generatePlainText = (html) => {
         .trim();
 };
 
-export const sendEmail = async (account, { to, subject, htmlBody, plainBody, contact, campaignId, userId, cc, bcc, attachments }) => {
+export const sendEmail = async (account, { to, subject, htmlBody, plainBody, contact, campaignId, userId, cc, bcc, attachments, abVariant }) => {
     const trackingId = uuidv4();
 
     // Merge tags
@@ -59,6 +59,7 @@ export const sendEmail = async (account, { to, subject, htmlBody, plainBody, con
         subject: mergedSubject,
         trackingId,
         status: 'queued',
+        abVariant: abVariant || 'A',
     });
     await emailLog.save();
 

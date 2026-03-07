@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import {
     LayoutDashboard, Send, Users, Search, Mail, BarChart3,
-    Settings, LogOut, Moon, Sun, Zap, CreditCard
+    Settings, LogOut, Moon, Sun, Zap, CreditCard, FileText
 } from 'lucide-react';
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
     { to: '/contacts', icon: Users, label: 'Contacts' },
     { to: '/compose', icon: Mail, label: 'Compose' },
     { to: '/finder', icon: Search, label: 'Email Finder' },
+    { to: '/templates', icon: FileText, label: 'Templates' },
     { to: '/analytics', icon: BarChart3, label: 'Analytics' },
     { to: '/accounts', icon: Mail, label: 'Accounts' },
     { to: '/billing', icon: CreditCard, label: 'Billing' },

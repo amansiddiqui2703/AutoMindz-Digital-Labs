@@ -4,6 +4,16 @@ import Template from '../models/Template.js';
 
 const router = Router();
 
+// Allowed fields for template create/update
+const TEMPLATE_FIELDS = ['name', 'subject', 'htmlBody', 'plainBody', 'category'];
+const pickFields = (body, fields) => {
+    const picked = {};
+    for (const f of fields) {
+        if (body[f] !== undefined) picked[f] = body[f];
+    }
+    return picked;
+};
+
 // List templates
 router.get('/', auth, async (req, res) => {
     try {
@@ -32,7 +42,10 @@ router.get('/:id', auth, async (req, res) => {
 // Create template
 router.post('/', auth, async (req, res) => {
     try {
-        const template = new Template({ ...req.body, userId: req.user.id });
+        const data = pickFields(req.body, TEMPLATE_FIELDS);
+        if (data.name && data.name.length > 200) return res.status(400).json({ error: 'Template name too long (max 200)' });
+        if (data.subject && data.subject.length > 500) return res.status(400).json({ error: 'Subject too long (max 500)' });
+        const template = new Template({ ...data, userId: req.user.id });
         await template.save();
         res.status(201).json({ template });
     } catch (error) {
@@ -43,9 +56,12 @@ router.post('/', auth, async (req, res) => {
 // Update template
 router.put('/:id', auth, async (req, res) => {
     try {
+        const data = pickFields(req.body, TEMPLATE_FIELDS);
+        if (data.name && data.name.length > 200) return res.status(400).json({ error: 'Template name too long (max 200)' });
+        if (data.subject && data.subject.length > 500) return res.status(400).json({ error: 'Subject too long (max 500)' });
         const template = await Template.findOneAndUpdate(
             { _id: req.params.id, userId: req.user.id },
-            req.body,
+            data,
             { new: true }
         );
         if (!template) return res.status(404).json({ error: 'Template not found' });

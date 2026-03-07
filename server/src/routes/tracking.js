@@ -24,16 +24,34 @@ router.get('/:trackingId/open', async (req, res) => {
 // Click tracking redirect
 router.get('/:trackingId/click', async (req, res) => {
     const { url } = req.query;
+
+    // SECURITY: Validate URL to prevent open redirect attacks
+    let safeUrl = '/';
     try {
-        await recordClick(req.params.trackingId, url, req.ip, req.headers['user-agent']);
+        if (url) {
+            const parsed = new URL(url);
+            if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                safeUrl = url;
+            }
+        }
+    } catch { /* invalid URL, redirect to home */ }
+
+    try {
+        await recordClick(req.params.trackingId, safeUrl, req.ip, req.headers['user-agent']);
     } catch { /* silent */ }
 
-    res.redirect(url || '/');
+    res.redirect(safeUrl);
 });
 
-// Bounce webhook
+// Bounce webhook (requires shared secret)
 router.post('/webhook/bounce', async (req, res) => {
     try {
+        // SECURITY: Validate webhook secret to prevent unauthenticated access
+        const webhookSecret = req.headers['x-webhook-secret'];
+        if (!webhookSecret || webhookSecret !== (process.env.BOUNCE_WEBHOOK_SECRET || 'bounce-secret-change-me')) {
+            return res.status(401).json({ ok: false, error: 'Unauthorized' });
+        }
+
         const { trackingId } = req.body;
         if (trackingId) await recordBounce(trackingId);
         res.json({ ok: true });

@@ -13,11 +13,15 @@ router.get('/', auth, async (req, res) => {
     try {
         const { page = 1, limit = 50, search, tag, source } = req.query;
         const filter = { userId: req.user.id };
-        if (search) filter.$or = [
-            { email: { $regex: search, $options: 'i' } },
-            { name: { $regex: search, $options: 'i' } },
-            { company: { $regex: search, $options: 'i' } },
-        ];
+        // SECURITY: Escape regex special characters to prevent ReDoS/NoSQL injection
+        if (search) {
+            const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            filter.$or = [
+                { email: { $regex: escapedSearch, $options: 'i' } },
+                { name: { $regex: escapedSearch, $options: 'i' } },
+                { company: { $regex: escapedSearch, $options: 'i' } },
+            ];
+        }
         if (tag) filter.tags = tag;
         if (source) filter.source = source;
 
@@ -46,8 +50,19 @@ router.get('/export', auth, async (req, res) => {
             tags: (c.tags || []).join(';'),
         }));
 
+        // SECURITY: Escape CSV values to prevent formula injection
+        const escapeCSV = (val) => {
+            const str = String(val || '');
+            if (/[,"\n\r]/.test(str) || /^[=+\-@\t\r]/.test(str)) {
+                return '"' + str.replace(/"/g, '""').replace(/^([=+\-@\t\r])/, "'$1") + '"';
+            }
+            return str;
+        };
+
         const headers = 'email,name,company,source,tags\n';
-        const rows = csvData.map(c => `${c.email},${c.name},${c.company},${c.source},${c.tags}`).join('\n');
+        const rows = csvData.map(c =>
+            `${escapeCSV(c.email)},${escapeCSV(c.name)},${escapeCSV(c.company)},${escapeCSV(c.source)},${escapeCSV(c.tags)}`
+        ).join('\n');
 
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename=contacts.csv');
@@ -226,9 +241,17 @@ router.get('/:id', auth, async (req, res) => {
 // Update contact
 router.put('/:id', auth, async (req, res) => {
     try {
+        // SECURITY: Whitelist allowed fields instead of passing raw req.body
+        const { name, company, tags, customFields } = req.body;
+        const update = {};
+        if (name !== undefined) update.name = name;
+        if (company !== undefined) update.company = company;
+        if (tags !== undefined) update.tags = tags;
+        if (customFields !== undefined) update.customFields = customFields;
+
         const contact = await Contact.findOneAndUpdate(
             { _id: req.params.id, userId: req.user.id },
-            req.body,
+            update,
             { new: true }
         );
         if (!contact) return res.status(404).json({ error: 'Contact not found' });

@@ -30,7 +30,7 @@ export const initQueue = () => {
             });
 
             emailQueue.process(async (job) => {
-                const { campaignId, recipient, userId, accountIds, subject, htmlBody, plainBody, cc, bcc, attachments } = job.data;
+                const { campaignId, recipient, userId, accountIds, subject, htmlBody, plainBody, cc, bcc, attachments, abVariant } = job.data;
 
                 // Check suppression
                 const suppressed = await Suppression.findOne({ userId, email: recipient.email.toLowerCase() });
@@ -63,6 +63,7 @@ export const initQueue = () => {
                     cc,
                     bcc,
                     attachments,
+                    abVariant: abVariant || 'A',
                 });
 
                 // Update campaign stats and schedule follow-ups
@@ -142,10 +143,24 @@ export const enqueueCampaign = async (campaign) => {
     }
 
     const delay = (campaign.delay || 5) * 1000;
+    const hasABTest = !!campaign.subjectB;
 
+    // Warmup mode: limit how many emails to send today
+    let maxToday = Infinity;
+    if (campaign.warmupMode && campaign.warmupDailyIncrease > 0) {
+        const daysSinceCreation = Math.max(1, Math.ceil((Date.now() - new Date(campaign.createdAt).getTime()) / (1000 * 60 * 60 * 24)));
+        maxToday = campaign.warmupDailyIncrease * daysSinceCreation;
+    }
+
+    let enqueued = 0;
     for (let i = 0; i < campaign.recipients.length; i++) {
         const recipient = campaign.recipients[i];
         if (recipient.status !== 'pending') continue;
+        if (enqueued >= maxToday) break;
+
+        // A/B test: randomly pick subject B for ~50% of recipients
+        const useVariantB = hasABTest && Math.random() < 0.5;
+        const selectedSubject = useVariantB ? campaign.subjectB : campaign.subject;
 
         await emailQueue.add(
             {
@@ -159,20 +174,26 @@ export const enqueueCampaign = async (campaign) => {
                 },
                 userId: campaign.userId,
                 accountIds: campaign.accountIds,
-                subject: campaign.subject,
+                subject: selectedSubject,
                 htmlBody: campaign.htmlBody,
                 plainBody: campaign.plainBody,
                 cc: campaign.cc,
                 bcc: campaign.bcc,
                 attachments: campaign.attachments,
+                abVariant: useVariantB ? 'B' : 'A',
             },
-            { delay: i * delay }
+            { delay: enqueued * delay }
         );
+        enqueued++;
     }
 
     campaign.status = 'running';
     campaign.stats.total = campaign.recipients.length;
     await campaign.save();
+
+    if (campaign.warmupMode && enqueued < campaign.recipients.filter(r => r.status === 'pending').length) {
+        console.log(`🔥 Warmup mode: enqueued ${enqueued} of ${campaign.recipients.length} recipients today`);
+    }
 };
 
 export const pauseQueue = async () => {

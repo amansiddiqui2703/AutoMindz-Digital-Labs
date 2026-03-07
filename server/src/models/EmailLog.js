@@ -31,6 +31,7 @@ const emailLogSchema = new mongoose.Schema({
     error: String,
     isFollowUp: { type: Boolean, default: false },
     followUpIndex: Number,
+    abVariant: { type: String, enum: ['A', 'B'], default: 'A' },
 }, {
     timestamps: true,
 });

@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import env from '../config/env.js';
+import { signState } from '../utils/crypto.js';
 
 /**
  * Create an OAuth2 client using app credentials.
@@ -14,7 +15,7 @@ export const createOAuth2Client = () => {
 
 /**
  * Generate the Google OAuth2 authorization URL.
- * The `state` parameter carries the userId so we know who to link the account to after callback.
+ * The `state` parameter carries a signed userId so we know who to link the account to after callback.
  */
 export const getAuthUrl = (userId) => {
     const oauth2Client = createOAuth2Client();
@@ -27,7 +28,7 @@ export const getAuthUrl = (userId) => {
             'https://www.googleapis.com/auth/userinfo.email',
             'https://www.googleapis.com/auth/userinfo.profile',
         ],
-        state: userId,  // pass userId so callback knows who this is for
+        state: signState(userId),  // HMAC-signed state to prevent spoofing
     });
 };
 

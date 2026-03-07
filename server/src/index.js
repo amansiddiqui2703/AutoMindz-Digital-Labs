@@ -12,6 +12,7 @@ import { connectRedis } from './config/redis.js';
 import { initQueue } from './services/queue.js';
 import { apiLimiter } from './middleware/rateLimit.js';
 import { startFollowUpScheduler } from './services/followUpScheduler.js';
+import { startCampaignScheduler } from './services/campaignScheduler.js';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -41,7 +42,19 @@ app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), hand
 
 // Middleware
 app.use(cors({ origin: env.APP_URL, credentials: true }));
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],   // inline script on unsubscribe page
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+    },
+  },
+}));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -132,6 +145,7 @@ const start = async () => {
   connectRedis();
   initQueue();
   startFollowUpScheduler();
+  startCampaignScheduler();
 
   app.listen(env.PORT, () => {
     console.log(`\n🚀 AutoMindz server running on port ${env.PORT}`);

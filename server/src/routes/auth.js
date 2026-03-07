@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
+import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import auth from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimit.js';
@@ -7,14 +8,24 @@ import env from '../config/env.js';
 
 const router = Router();
 
+// Validation middleware helper
+const validate = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array()[0].msg });
+    }
+    next();
+};
+
 // Register
-router.post('/register', authLimiter, async (req, res) => {
+router.post('/register', authLimiter, [
+    body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+    body('password').isLength({ min: 6, max: 128 }).withMessage('Password must be 6-128 characters'),
+    body('name').trim().isLength({ min: 1, max: 100 }).withMessage('Name is required (max 100 chars)'),
+    validate,
+], async (req, res) => {
     try {
         const { email, password, name } = req.body;
-
-        if (!email || !password || !name) {
-            return res.status(400).json({ error: 'All fields are required' });
-        }
 
         const existingUser = await User.findOne({ email: email.toLowerCase() });
         if (existingUser) {
@@ -37,13 +48,13 @@ router.post('/register', authLimiter, async (req, res) => {
 });
 
 // Login
-router.post('/login', authLimiter, async (req, res) => {
+router.post('/login', authLimiter, [
+    body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+    body('password').notEmpty().withMessage('Password is required'),
+    validate,
+], async (req, res) => {
     try {
         const { email, password } = req.body;
-
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required' });
-        }
 
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user || !(await user.comparePassword(password))) {

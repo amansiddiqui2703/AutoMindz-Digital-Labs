@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import auth from '../middleware/auth.js';
 import Campaign from '../models/Campaign.js';
+import EmailLog from '../models/EmailLog.js';
+import TrackingEvent from '../models/TrackingEvent.js';
 import { enqueueCampaign, pauseQueue, resumeQueue, getQueueStats } from '../services/queue.js';
 
 const router = Router();
@@ -37,10 +39,24 @@ router.get('/:id', auth, async (req, res) => {
     }
 });
 
+// Allowed fields for campaign create/update
+const CAMPAIGN_FIELDS = ['name', 'subject', 'subjectB', 'htmlBody', 'plainBody', 'accountIds', 'recipients', 'followUps', 'warmupMode', 'warmupDailyIncrease', 'delaySeconds'];
+
+const pickFields = (body, fields) => {
+    const picked = {};
+    for (const f of fields) {
+        if (body[f] !== undefined) picked[f] = body[f];
+    }
+    return picked;
+};
+
 // Create campaign
 router.post('/', auth, async (req, res) => {
     try {
-        const campaign = new Campaign({ ...req.body, userId: req.user.id });
+        const data = pickFields(req.body, CAMPAIGN_FIELDS);
+        if (data.name && data.name.length > 200) return res.status(400).json({ error: 'Campaign name too long (max 200)' });
+        if (data.subject && data.subject.length > 500) return res.status(400).json({ error: 'Subject too long (max 500)' });
+        const campaign = new Campaign({ ...data, userId: req.user.id });
         await campaign.save();
         res.status(201).json({ campaign });
     } catch (error) {
@@ -55,7 +71,16 @@ router.put('/:id', auth, async (req, res) => {
         if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
         if (campaign.status === 'running') return res.status(400).json({ error: 'Cannot edit a running campaign' });
 
-        Object.assign(campaign, req.body);
+        const data = pickFields(req.body, CAMPAIGN_FIELDS);
+        if (data.name && data.name.length > 200) return res.status(400).json({ error: 'Campaign name too long (max 200)' });
+        if (data.subject && data.subject.length > 500) return res.status(400).json({ error: 'Subject too long (max 500)' });
+        Object.assign(campaign, data);
+
+        // Keep stats.total in sync with actual recipients count
+        if (campaign.recipients) {
+            campaign.stats.total = campaign.recipients.length;
+        }
+
         await campaign.save();
         res.json({ campaign });
     } catch (error) {
@@ -198,6 +223,75 @@ router.get('/:id/sequence-stats', auth, async (req, res) => {
         res.json({ recipients, summary });
     } catch (error) {
         res.status(500).json({ error: 'Failed to get sequence stats' });
+    }
+});
+
+// A/B test stats — compare variant performance
+router.get('/:id/ab-stats', auth, async (req, res) => {
+    try {
+        const campaign = await Campaign.findOne({ _id: req.params.id, userId: req.user.id });
+        if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
+        if (!campaign.subjectB) return res.json({ abTest: false });
+
+        const logs = await EmailLog.find({ campaignId: campaign._id }).lean();
+        const variantA = logs.filter(l => l.abVariant === 'A' || !l.abVariant);
+        const variantB = logs.filter(l => l.abVariant === 'B');
+
+        const getStats = async (variantLogs) => {
+            const sent = variantLogs.filter(l => l.status === 'sent').length;
+            const trackingIds = variantLogs.map(l => l.trackingId).filter(Boolean);
+            let opened = 0, clicked = 0, replied = 0;
+            if (trackingIds.length > 0) {
+                [opened, clicked, replied] = await Promise.all([
+                    TrackingEvent.countDocuments({ trackingId: { $in: trackingIds }, type: 'open' }),
+                    TrackingEvent.countDocuments({ trackingId: { $in: trackingIds }, type: 'click' }),
+                    TrackingEvent.countDocuments({ trackingId: { $in: trackingIds }, type: 'reply' }),
+                ]);
+            }
+            return {
+                sent, opened, clicked, replied,
+                openRate: sent ? ((opened / sent) * 100).toFixed(1) : '0',
+                clickRate: sent ? ((clicked / sent) * 100).toFixed(1) : '0',
+                replyRate: sent ? ((replied / sent) * 100).toFixed(1) : '0',
+            };
+        };
+
+        const [statsA, statsB] = await Promise.all([getStats(variantA), getStats(variantB)]);
+
+        res.json({
+            abTest: true,
+            subjectA: campaign.subject,
+            subjectB: campaign.subjectB,
+            variantA: statsA,
+            variantB: statsB,
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to get A/B stats' });
+    }
+});
+
+// Schedule campaign for future send
+router.post('/:id/schedule', auth, async (req, res) => {
+    try {
+        const { scheduledAt } = req.body;
+        if (!scheduledAt) return res.status(400).json({ error: 'scheduledAt is required' });
+
+        const campaign = await Campaign.findOne({ _id: req.params.id, userId: req.user.id });
+        if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
+        if (campaign.status !== 'draft') return res.status(400).json({ error: 'Only draft campaigns can be scheduled' });
+        if (!campaign.recipients.length) return res.status(400).json({ error: 'No recipients in campaign' });
+        if (!campaign.accountIds.length) return res.status(400).json({ error: 'No Gmail accounts selected' });
+
+        const scheduleDate = new Date(scheduledAt);
+        if (scheduleDate <= new Date()) return res.status(400).json({ error: 'Schedule time must be in the future' });
+
+        campaign.scheduledAt = scheduleDate;
+        campaign.status = 'scheduled';
+        await campaign.save();
+
+        res.json({ message: `Campaign scheduled for ${scheduleDate.toISOString()}`, campaign });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to schedule campaign' });
     }
 });
 

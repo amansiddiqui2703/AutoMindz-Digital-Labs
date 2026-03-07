@@ -3,6 +3,7 @@ import auth from '../middleware/auth.js';
 import GmailAccount from '../models/GmailAccount.js';
 import { testScriptConnection } from '../services/gmailScript.js';
 import { getAuthUrl, getTokensFromCode, getGmailProfile } from '../services/gmailOAuth.js';
+import { verifyState } from '../utils/crypto.js';
 import env from '../config/env.js';
 
 const router = Router();
@@ -24,9 +25,15 @@ router.get('/oauth/connect', auth, async (req, res) => {
 // Google OAuth2 callback (user is redirected here by Google)
 router.get('/oauth/callback', async (req, res) => {
     try {
-        const { code, state: userId } = req.query;
-        if (!code || !userId) {
+        const { code, state } = req.query;
+        if (!code || !state) {
             return res.redirect(`${env.APP_URL}/accounts?error=missing_params`);
+        }
+
+        // SECURITY: Verify HMAC-signed state parameter
+        const userId = verifyState(state);
+        if (!userId) {
+            return res.redirect(`${env.APP_URL}/accounts?error=invalid_state`);
         }
 
         // Exchange code for tokens

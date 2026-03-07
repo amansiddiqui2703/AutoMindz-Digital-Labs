@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { encrypt, decrypt } from '../utils/crypto.js';
 
 const gmailAccountSchema = new mongoose.Schema({
     userId: {
@@ -21,7 +22,7 @@ const gmailAccountSchema = new mongoose.Schema({
         enum: ['script', 'oauth'],
         default: 'script',
     },
-    // OAuth2 tokens (encrypted at rest)
+    // OAuth2 tokens (encrypted at rest via pre-save hook)
     accessToken: { type: String, default: '' },
     refreshToken: { type: String, default: '' },
     tokenExpiresAt: { type: Date },
@@ -51,6 +52,37 @@ const gmailAccountSchema = new mongoose.Schema({
 }, {
     timestamps: true,
 });
+
+// --- Auto-encrypt tokens before saving ---
+gmailAccountSchema.pre('save', function (next) {
+    if (this.isModified('accessToken') && this.accessToken && !this.accessToken.startsWith('enc:')) {
+        this.accessToken = encrypt(this.accessToken);
+    }
+    if (this.isModified('refreshToken') && this.refreshToken && !this.refreshToken.startsWith('enc:')) {
+        this.refreshToken = encrypt(this.refreshToken);
+    }
+    next();
+});
+
+// --- Auto-decrypt tokens after reading ---
+const decryptTokens = (doc) => {
+    if (!doc) return;
+    if (doc.accessToken) doc.accessToken = decrypt(doc.accessToken);
+    if (doc.refreshToken) doc.refreshToken = decrypt(doc.refreshToken);
+};
+
+gmailAccountSchema.post('findOne', decryptTokens);
+gmailAccountSchema.post('find', (docs) => { docs.forEach(decryptTokens); });
+gmailAccountSchema.post('save', decryptTokens);
+
+// Strip sensitive fields from API responses
+gmailAccountSchema.methods.toJSON = function () {
+    const obj = this.toObject();
+    delete obj.accessToken;
+    delete obj.refreshToken;
+    delete obj.scriptUrl;
+    return obj;
+};
 
 gmailAccountSchema.index({ userId: 1, email: 1 }, { unique: true });
 
