@@ -6,6 +6,7 @@ import {
     ArrowUpRight, Mail, Zap, AlertTriangle
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import OnboardingModal from '../components/OnboardingModal';
 
 const StatCard = ({ icon: Icon, label, value, trend, color }) => (
     <div className="stat-card group">
@@ -58,6 +59,7 @@ export default function Dashboard() {
 
     return (
         <div className="space-y-8">
+            <OnboardingModal />
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-bold text-surface-900 dark:text-white">Dashboard</h1>

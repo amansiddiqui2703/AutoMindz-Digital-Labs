@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@sentry/browser": "^10.42.0",
+    "@sentry/react": "^10.42.0",
     "@tailwindcss/vite": "^4.2.1",
     "@tiptap/extension-bullet-list": "^3.20.0",
     "@tiptap/extension-color": "^3.20.0",

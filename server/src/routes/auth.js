@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
+import crypto from 'crypto';
 import User from '../models/User.js';
 import auth from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimit.js';
 import env from '../config/env.js';
+import { sendAuthEmail } from '../services/mailer.js';
 
 const router = Router();
 
@@ -32,8 +34,17 @@ router.post('/register', authLimiter, [
             return res.status(400).json({ error: 'Email already registered' });
         }
 
-        const user = new User({ email, password, name });
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+
+        const user = new User({ email, password, name, verificationToken });
         await user.save();
+
+        const verifyUrl = `${env.APP_URL}/verify/${verificationToken}`;
+        await sendAuthEmail(
+            user.email,
+            'Verify your AutoMindz account',
+            `<p>Hi ${user.name},</p><p>Please <a href="${verifyUrl}">click here</a> to verify your email address.</p>`
+        );
 
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
@@ -61,6 +72,8 @@ router.post('/login', authLimiter, [
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
+        // Optional: Block login if unverified (for urgent requirement, often it's warned not fully blocked but we leave warning via UI for now)
+
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
             env.JWT_SECRET,
@@ -70,6 +83,71 @@ router.post('/login', authLimiter, [
         res.json({ user, token });
     } catch (error) {
         res.status(500).json({ error: 'Login failed' });
+    }
+});
+
+// Verify Email
+router.post('/verify/:token', async (req, res) => {
+    try {
+        const user = await User.findOne({ verificationToken: req.params.token });
+        if (!user) return res.status(400).json({ error: 'Invalid verification token' });
+
+        user.isVerified = true;
+        user.verificationToken = undefined;
+        await user.save();
+
+        res.json({ success: true, message: 'Email verified successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Verification failed' });
+    }
+});
+
+// Forgot Password
+router.post('/forgot-password', authLimiter, async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email: email.toLowerCase() });
+        if (!user) return res.status(404).json({ error: 'If this account exists, an email has been sent.' });
+
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        await user.save();
+
+        const resetUrl = `${env.APP_URL}/reset-password/${resetToken}`;
+        await sendAuthEmail(
+            user.email,
+            'Reset your AutoMindz password',
+            `<p>Hi ${user.name},</p><p>You requested a password reset. <a href="${resetUrl}">Click here to reset it.</a></p><p>If you didn't request this, ignore this email.</p>`
+        );
+
+        res.json({ success: true, message: 'If this account exists, an email has been sent.' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to request reset' });
+    }
+});
+
+// Reset Password
+router.post('/reset-password/:token', authLimiter, async (req, res) => {
+    try {
+        const { password } = req.body;
+        if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+
+        const user = await User.findOne({
+            resetPasswordToken: req.params.token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) return res.status(400).json({ error: 'Invalid or expired reset token' });
+
+        user.password = password;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.json({ success: true, message: 'Password reset successful' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to reset password' });
     }
 });
 

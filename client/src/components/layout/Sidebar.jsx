@@ -3,11 +3,11 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import {
     LayoutDashboard, Send, Users, Search, Mail, BarChart3,
-    Settings, LogOut, Moon, Sun, Zap, CreditCard, FileText
+    Settings, LogOut, Moon, Sun, Zap, CreditCard, FileText, ShieldCheck
 } from 'lucide-react';
 
 const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/campaigns', icon: Send, label: 'Campaigns' },
     { to: '/contacts', icon: Users, label: 'Contacts' },
     { to: '/compose', icon: Mail, label: 'Compose' },
@@ -61,6 +61,22 @@ export default function Sidebar() {
                         {label}
                     </NavLink>
                 ))}
+
+                {user?.role === 'admin' && (
+                    <NavLink
+                        to="/admin"
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group mt-4 border-t border-surface-200 dark:border-surface-800 pt-4
+              ${isActive
+                                ? 'bg-gradient-to-r from-primary-500/10 to-accent-500/10 text-primary-600 dark:text-primary-400'
+                                : 'text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800'
+                            }`
+                        }
+                    >
+                        <ShieldCheck className="w-[18px] h-[18px] text-primary-500 transition-transform group-hover:scale-110" />
+                        Admin Panel
+                    </NavLink>
+                )}
             </nav>
 
             {/* Footer */}

@@ -17,7 +17,7 @@ export default function Login() {
         setLoading(true);
         try {
             await login(email, password);
-            navigate('/');
+            navigate('/dashboard');
         } catch (err) {
             setError(err.response?.data?.error || 'Login failed');
         } finally {
@@ -86,7 +86,10 @@ export default function Login() {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Password</label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-medium text-surface-700 dark:text-surface-300">Password</label>
+                                <Link to="/forgot-password" className="text-xs font-semibold text-primary-500 hover:underline">Forgot password?</Link>
+                            </div>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
                                 <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"

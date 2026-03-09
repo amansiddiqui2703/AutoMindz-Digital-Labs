@@ -9,6 +9,8 @@
     "dev": "node --watch src/index.js"
   },
   "dependencies": {
+    "@sentry/node": "^10.42.0",
+    "@sentry/profiling-node": "^10.42.0",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "bull": "^4.16.0",
@@ -26,11 +28,12 @@
     "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
     "mongodb-memory-server": "^11.0.1",
-    "mongoose": "^8.23.0",
+    "mongoose": "^8.5.0",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^8.0.1",
+    "resend": "^6.9.3",
     "stripe": "^20.4.0",
     "uuid": "^10.0.0"
   }

@@ -6,6 +6,9 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import fs from 'fs';
 
+import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
+
 import env from './config/env.js';
 import connectDB from './config/db.js';
 import { connectRedis } from './config/redis.js';
@@ -27,6 +30,7 @@ import trackingRoutes from './routes/tracking.js';
 import templateRoutes from './routes/templates.js';
 import chatbotRoutes from './routes/chatbot.js';
 import billingRoutes from './routes/billing.js';
+import adminRoutes from './routes/admin.js';
 import { handleStripeWebhook } from './services/stripeWebhook.js';
 
 // Tracking & unsubscribe (public)
@@ -36,6 +40,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN || '',
+  integrations: [
+    nodeProfilingIntegration(),
+  ],
+  tracesSampleRate: 1.0,
+  profilesSampleRate: 1.0,
+});
 
 // Stripe webhook needs raw body — must come BEFORE express.json()
 app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
@@ -77,6 +90,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Tracking routes (public, no auth)
 app.use('/t', trackingRoutes);
@@ -138,6 +152,9 @@ if (fs.existsSync(distPath)) {
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Sentry error handler should be established before other error handlers
+Sentry.setupExpressErrorHandler(app);
 
 // Start server
 const start = async () => {
