@@ -11,7 +11,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 // List contacts
 router.get('/', auth, async (req, res) => {
     try {
-        const { page = 1, limit = 50, search, tag, source } = req.query;
+        const { page = 1, limit = 50, search, tag, source, projectId, pipelineStage } = req.query;
         const filter = { userId: req.user.id };
         // SECURITY: Escape regex special characters to prevent ReDoS/NoSQL injection
         if (search) {
@@ -24,6 +24,8 @@ router.get('/', auth, async (req, res) => {
         }
         if (tag) filter.tags = tag;
         if (source) filter.source = source;
+        if (projectId) filter.projectId = projectId;
+        if (pipelineStage) filter.pipelineStage = pipelineStage;
 
         const contacts = await Contact.find(filter)
             .sort({ createdAt: -1 })
@@ -75,13 +77,17 @@ router.get('/export', auth, async (req, res) => {
 // Create contact
 router.post('/', auth, async (req, res) => {
     try {
-        const { email, name, company, customFields, tags } = req.body;
+        const { email, name, company, customFields, tags, projectId, website, phone, linkedIn, twitter, pipelineStage } = req.body;
         const cleanEmail = (email || '').trim().toLowerCase();
         if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
             return res.status(400).json({ error: 'Please enter a valid email address' });
         }
 
-        const contact = new Contact({ userId: req.user.id, email: cleanEmail, name, company, customFields, tags, source: 'manual' });
+        const contact = new Contact({
+            userId: req.user.id, email: cleanEmail, name, company, customFields, tags,
+            source: 'manual', projectId, website, phone, linkedIn, twitter,
+            pipelineStage: pipelineStage || 'Identified',
+        });
         await contact.save();
         res.status(201).json({ contact });
     } catch (error) {
@@ -184,7 +190,9 @@ router.get('/:id', auth, async (req, res) => {
             return { EmailLog: el.default, TrackingEvent: te.default };
         });
 
-        const emails = await EmailLog.find({ userId: req.user.id, to: contact.email }).lean();
+        const emails = await EmailLog.find({ userId: req.user.id, to: contact.email })
+            .populate('campaignId', 'name status')
+            .lean();
 
         // Fetch all tracking events related to these emails
         const trackingIds = emails.map(e => e.trackingId).filter(Boolean);
@@ -206,25 +214,39 @@ router.get('/:id', auth, async (req, res) => {
 
         // Add email send events
         for (const email of emails) {
+            const campaignName = email.campaignId?.name || 'Direct Send';
             timeline.push({
                 id: `email-${email._id}`,
                 type: 'email_sent',
                 title: `Sent: ${email.subject || 'No Subject'}`,
                 timestamp: email.sentAt || email.createdAt,
                 data: email,
-                trackingId: email.trackingId
+                trackingId: email.trackingId,
+                campaignName,
+                campaignStatus: email.campaignId?.status,
+                isFollowUp: email.isFollowUp,
+                followUpStep: email.followUpIndex,
             });
         }
 
         // Add tracking events (opens, clicks, bounces, etc)
+        // Also link them to the campaign name
+        const emailByTrackingId = {};
+        for (const email of emails) {
+            if (email.trackingId) emailByTrackingId[email.trackingId] = email;
+        }
+
         for (const event of trackingEvents) {
+            const relatedEmail = emailByTrackingId[event.trackingId];
+            const campaignName = relatedEmail?.campaignId?.name || '';
             timeline.push({
                 id: `track-${event._id}`,
-                type: `tracking_${event.type}`, // tracking_open, tracking_click, etc.
+                type: `tracking_${event.type}`,
                 title: `${event.type.charAt(0).toUpperCase() + event.type.slice(1)} tracked`,
                 timestamp: event.createdAt,
                 data: event,
-                trackingId: event.trackingId
+                trackingId: event.trackingId,
+                campaignName,
             });
         }
 
@@ -242,12 +264,22 @@ router.get('/:id', auth, async (req, res) => {
 router.put('/:id', auth, async (req, res) => {
     try {
         // SECURITY: Whitelist allowed fields instead of passing raw req.body
-        const { name, company, tags, customFields } = req.body;
+        const { name, company, tags, customFields, projectId, pipelineStage, website, phone, linkedIn, twitter, assignedTo } = req.body;
         const update = {};
         if (name !== undefined) update.name = name;
         if (company !== undefined) update.company = company;
         if (tags !== undefined) update.tags = tags;
         if (customFields !== undefined) update.customFields = customFields;
+        if (projectId !== undefined) update.projectId = projectId || null;
+        if (website !== undefined) update.website = website;
+        if (phone !== undefined) update.phone = phone;
+        if (linkedIn !== undefined) update.linkedIn = linkedIn;
+        if (twitter !== undefined) update.twitter = twitter;
+        if (assignedTo !== undefined) update.assignedTo = assignedTo || null;
+        if (pipelineStage !== undefined) {
+            update.pipelineStage = pipelineStage;
+            update.pipelineStageMovedAt = new Date();
+        }
 
         const contact = await Contact.findOneAndUpdate(
             { _id: req.params.id, userId: req.user.id },

@@ -4,10 +4,10 @@ import User from '../models/User.js';
  * Plan limits configuration
  */
 const PLAN_LIMITS = {
-    free: { emailsPerDay: 50, contacts: 200, accounts: 1, ai: false, followUpSteps: 0 },
-    starter: { emailsPerDay: 200, contacts: 2000, accounts: 2, ai: 'basic', followUpSteps: 2 },
-    growth: { emailsPerDay: 1000, contacts: 10000, accounts: 5, ai: 'full', followUpSteps: 5 },
-    pro: { emailsPerDay: 5000, contacts: 50000, accounts: 15, ai: 'full', followUpSteps: 999 },
+    free: { emailsPerDay: 50, contacts: 200, accounts: 1, ai: false, aiCallsPerDay: 0, followUpSteps: 0 },
+    starter: { emailsPerDay: 200, contacts: 2000, accounts: 2, ai: 'basic', aiCallsPerDay: 50, followUpSteps: 2 },
+    growth: { emailsPerDay: 1000, contacts: 10000, accounts: 5, ai: 'full', aiCallsPerDay: 200, followUpSteps: 5 },
+    pro: { emailsPerDay: 5000, contacts: 50000, accounts: 15, ai: 'full', aiCallsPerDay: 999999, followUpSteps: 999 },
 };
 
 export { PLAN_LIMITS };

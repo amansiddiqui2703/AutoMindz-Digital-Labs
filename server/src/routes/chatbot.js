@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import auth from '../middleware/auth.js';
+import aiRateLimit from '../middleware/aiRateLimit.js';
 import { askChatbot } from '../services/chatbot.js';
 
 const router = Router();
 
 // Ask the chatbot a question
-router.post('/ask', auth, async (req, res) => {
+router.post('/ask', auth, aiRateLimit, async (req, res) => {
     try {
         const { question } = req.body;
         if (!question || !question.trim()) {

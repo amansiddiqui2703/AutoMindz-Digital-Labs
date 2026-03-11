@@ -37,6 +37,8 @@ const userSchema = new mongoose.Schema({
     stripeCustomerId: { type: String, default: '' },
     stripeSubscriptionId: { type: String, default: '' },
     planExpiresAt: { type: Date },
+    aiCallsToday: { type: Number, default: 0 },
+    aiCallsResetAt: { type: Date, default: Date.now },
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String },
     resetPasswordToken: { type: String },

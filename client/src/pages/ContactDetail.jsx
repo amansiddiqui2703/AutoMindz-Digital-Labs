@@ -237,13 +237,23 @@ export default function ContactDetail() {
                                                 {/* Email specifics */}
                                                 {event.type === 'email_sent' && event.data && (
                                                     <div className="mt-3">
-                                                        {event.data.status && (
-                                                            <div className="mb-2">
+                                                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                                                            {event.data.status && (
                                                                 <span className={`badge text-[10px] ${event.data.status === 'sent' ? 'badge-success' :
-                                                                        event.data.status === 'bounced' ? 'badge-warning' : 'badge-danger'
+                                                                    event.data.status === 'bounced' ? 'badge-warning' : 'badge-danger'
                                                                     }`}>{event.data.status.toUpperCase()}</span>
-                                                            </div>
-                                                        )}
+                                                            )}
+                                                            {event.campaignName && (
+                                                                <span className="badge badge-info text-[10px]">
+                                                                    📧 {event.campaignName}
+                                                                </span>
+                                                            )}
+                                                            {event.isFollowUp && (
+                                                                <span className="badge badge-purple text-[10px]">
+                                                                    🔄 Follow-up #{(event.followUpStep || 0) + 1}
+                                                                </span>
+                                                            )}
+                                                        </div>
 
                                                         <div className="text-xs text-surface-500 bg-white dark:bg-surface-900 p-3 rounded border border-surface-200 dark:border-surface-700">
                                                             {event.data.error ? (
@@ -282,6 +292,11 @@ export default function ContactDetail() {
                                                 )}
 
                                                 {/* Tracking specifics */}
+                                                {event.campaignName && event.type.startsWith('tracking_') && (
+                                                    <p className="mt-2 text-[10px] text-surface-400">
+                                                        Campaign: <span className="font-medium text-surface-600 dark:text-surface-300">{event.campaignName}</span>
+                                                    </p>
+                                                )}
                                                 {(event.type === 'tracking_click' && event.data.url) && (
                                                     <p className="mt-2 text-xs text-primary-500 truncate bg-primary-50 dark:bg-primary-500/10 p-2 rounded">
                                                         Link: {event.data.url}

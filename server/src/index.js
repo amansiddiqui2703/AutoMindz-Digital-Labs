@@ -31,6 +31,15 @@ import templateRoutes from './routes/templates.js';
 import chatbotRoutes from './routes/chatbot.js';
 import billingRoutes from './routes/billing.js';
 import adminRoutes from './routes/admin.js';
+import projectRoutes from './routes/projects.js';
+import noteRoutes from './routes/notes.js';
+import smartListRoutes from './routes/smartLists.js';
+import linkRoutes from './routes/links.js';
+import teamRoutes from './routes/teams.js';
+import taskRoutes from './routes/tasks.js';
+import activityRoutes from './routes/activity.js';
+import inboxRoutes from './routes/inbox.js';
+import seoRoutes from './routes/seo.js';
 import { handleStripeWebhook } from './services/stripeWebhook.js';
 
 // Tracking & unsubscribe (public)
@@ -91,6 +100,15 @@ app.use('/api/templates', templateRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/notes', noteRoutes);
+app.use('/api/smart-lists', smartListRoutes);
+app.use('/api/links', linkRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/activity', activityRoutes);
+app.use('/api/inbox', inboxRoutes);
+app.use('/api/seo', seoRoutes);
 
 // Tracking routes (public, no auth)
 app.use('/t', trackingRoutes);
