@@ -4,6 +4,8 @@ import auth from '../middleware/auth.js';
 import { crawlDomain, crawlDomains } from '../services/crawler.js';
 import { parseCSV } from '../utils/csv.js';
 import Contact from '../models/Contact.js';
+import planLimits from '../middleware/planLimits.js';
+import { PLAN_LIMITS } from '../middleware/planLimits.js';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -56,13 +58,23 @@ router.post('/search-csv', auth, upload.single('file'), async (req, res) => {
 });
 
 // Add found emails to contacts
-router.post('/add-to-contacts', auth, async (req, res) => {
+router.post('/add-to-contacts', auth, planLimits, async (req, res) => {
     try {
         const { emails } = req.body; // array of { email, domain }
         if (!Array.isArray(emails)) return res.status(400).json({ error: 'Emails array required' });
 
+        // BUG-09: Check plan limits before adding contacts
+        const currentCount = await Contact.countDocuments({ userId: req.user.id });
+        const maxContacts = req.planLimits.contacts;
+        let remaining = maxContacts - currentCount;
+
+        if (remaining <= 0) {
+            return res.status(403).json({ error: `Contact limit reached (${maxContacts} on ${req.plan} plan). Please upgrade.` });
+        }
+
         let added = 0;
         for (const item of emails) {
+            if (remaining <= 0) break;
             try {
                 await Contact.findOneAndUpdate(
                     { userId: req.user.id, email: item.email.toLowerCase() },
@@ -75,6 +87,7 @@ router.post('/add-to-contacts', auth, async (req, res) => {
                     { upsert: true }
                 );
                 added++;
+                remaining--;
             } catch { /* skip duplicates */ }
         }
 

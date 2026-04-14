@@ -28,6 +28,18 @@ const env = {
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
     GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI || '',
+    // Admin
+    ADMIN_EMAILS: process.env.ADMIN_EMAILS || '',
 };
+
+// BUG-20: Enforce required secrets in production
+if (env.NODE_ENV === 'production') {
+    if (!env.JWT_SECRET || env.JWT_SECRET === 'dev-secret-change-me') {
+        throw new Error('FATAL: JWT_SECRET must be set to a secure value in production.');
+    }
+    if (!env.ENCRYPTION_KEY) {
+        throw new Error('FATAL: ENCRYPTION_KEY must be set in production.');
+    }
+}
 
 export default env;

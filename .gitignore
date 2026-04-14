@@ -29,7 +29,12 @@ npm-debug.log*
 # Test artifacts
 server/test-crawler.js
 
+# Debug/build files
+*.tsbuildinfo
+.cache/
+
 # Misc
 *.lock
 yarn.lock
 package-lock.json
+

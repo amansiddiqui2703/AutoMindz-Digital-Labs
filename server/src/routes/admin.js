@@ -35,14 +35,21 @@ router.get('/stats', async (req, res) => {
     }
 });
 
-// Get recent users
+// Get users (paginated)
 router.get('/users', async (req, res) => {
     try {
+        const { page = 1, limit = 50 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
         const users = await User.find({})
             .select('-password -__v -verificationToken -resetPasswordToken -resetPasswordExpires')
             .sort({ createdAt: -1 })
-            .limit(50);
-        res.json({ success: true, users });
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        const total = await User.countDocuments();
+
+        res.json({ success: true, users, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch users' });
     }

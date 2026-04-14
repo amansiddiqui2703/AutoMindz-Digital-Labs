@@ -3,6 +3,8 @@ import multer from 'multer';
 import auth from '../middleware/auth.js';
 import Contact from '../models/Contact.js';
 import Suppression from '../models/Suppression.js';
+import EmailLog from '../models/EmailLog.js';
+import TrackingEvent from '../models/TrackingEvent.js';
 import planLimits from '../middleware/planLimits.js';
 import { parseCSV, deduplicateByEmail } from '../utils/csv.js';
 
@@ -217,12 +219,6 @@ router.get('/:id', auth, async (req, res) => {
         if (!contact) return res.status(404).json({ error: 'Contact not found' });
 
         // Fetch all email logs for this specific email address for this user
-        const { EmailLog, TrackingEvent } = await import('../models/index.js').catch(async () => {
-            // Fallback if index.js doesn't export them correctly yet
-            const el = await import('../models/EmailLog.js');
-            const te = await import('../models/TrackingEvent.js');
-            return { EmailLog: el.default, TrackingEvent: te.default };
-        });
 
         const emails = await EmailLog.find({ userId: req.user.id, to: contact.email })
             .populate('campaignId', 'name status')

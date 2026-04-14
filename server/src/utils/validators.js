@@ -1,9 +1,18 @@
 /**
- * Basic email validation regex
+ * Stricter email validation
+ * Checks: no consecutive dots, valid local part, TLD 2-63 chars
  */
 export const isValidEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
+    if (!email || typeof email !== 'string') return false;
+    const str = email.trim().toLowerCase();
+    if (str.length > 254) return false;
+    // RFC-compliant-ish regex: local@domain.tld
+    const re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,63}$/;
+    if (!re.test(str)) return false;
+    // No consecutive dots in local part
+    const [local] = str.split('@');
+    if (local.includes('..')) return false;
+    return true;
 };
 
 /**

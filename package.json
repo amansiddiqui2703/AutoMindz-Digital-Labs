@@ -3,11 +3,11 @@
     "version": "1.0.0",
     "description": "AutoMindz — AI-powered Email Outreach + Contact Finder",
     "scripts": {
-        "install": "cd server && npm install && cd ../client && npm install",
+        "setup": "cd server && npm install && cd ../client && npm install",
         "build": "cd client && npm run build",
         "start": "cd server && npm start",
         "dev:server": "cd server && npm run dev",
         "dev:client": "cd client && npm run dev",
-        "dev": "start cmd /k \"cd server && npm run dev\" && timeout /t 3 /nobreak >nul && cd client && npm run dev"
+        "dev": "npx -y concurrently \"npm run dev:server\" \"npm run dev:client\""
     }
 }

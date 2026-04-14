@@ -36,8 +36,9 @@ router.post('/register', authLimiter, [
 
         const verificationToken = crypto.randomBytes(32).toString('hex');
 
-        // Only assign 'admin' role to YOUR specific email address
-        const role = email.toLowerCase() === 'your.email@example.com' ? 'admin' : 'user';
+        // Assign 'admin' role to emails listed in ADMIN_EMAILS env var
+        const adminEmails = (env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        const role = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'user';
 
         const user = new User({ email, password, name, verificationToken, role });
         await user.save();
@@ -110,7 +111,7 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
     try {
         const { email } = req.body;
         const user = await User.findOne({ email: email.toLowerCase() });
-        if (!user) return res.status(404).json({ error: 'If this account exists, an email has been sent.' });
+        if (!user) return res.json({ success: true, message: 'If this account exists, an email has been sent.' });
 
         const resetToken = crypto.randomBytes(32).toString('hex');
         user.resetPasswordToken = resetToken;

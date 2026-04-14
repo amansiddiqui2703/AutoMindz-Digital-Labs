@@ -4,6 +4,10 @@ import Campaign from '../models/Campaign.js';
 import Suppression from '../models/Suppression.js';
 
 export const recordOpen = async (trackingId, ip, userAgent) => {
+    // BUG-15: Prevent duplicate open tracking
+    const existing = await TrackingEvent.findOne({ trackingId, type: 'open' });
+    if (existing) return; // Already tracked
+
     const event = new TrackingEvent({ trackingId, type: 'open', ip, userAgent });
     await event.save();
 
@@ -16,6 +20,10 @@ export const recordOpen = async (trackingId, ip, userAgent) => {
 };
 
 export const recordClick = async (trackingId, url, ip, userAgent) => {
+    // BUG-15: Prevent duplicate click tracking
+    const existing = await TrackingEvent.findOne({ trackingId, type: 'click' });
+    if (existing) return; // Already tracked
+
     const event = new TrackingEvent({ trackingId, type: 'click', url, ip, userAgent });
     await event.save();
 

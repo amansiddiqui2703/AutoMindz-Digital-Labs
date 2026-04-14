@@ -48,7 +48,8 @@ router.post('/webhook/bounce', async (req, res) => {
     try {
         // SECURITY: Validate webhook secret to prevent unauthenticated access
         const webhookSecret = req.headers['x-webhook-secret'];
-        if (!webhookSecret || webhookSecret !== (process.env.BOUNCE_WEBHOOK_SECRET || 'bounce-secret-change-me')) {
+        const expectedSecret = process.env.BOUNCE_WEBHOOK_SECRET;
+        if (!expectedSecret || !webhookSecret || webhookSecret !== expectedSecret) {
             return res.status(401).json({ ok: false, error: 'Unauthorized' });
         }
 

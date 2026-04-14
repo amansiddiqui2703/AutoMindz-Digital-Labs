@@ -2,6 +2,9 @@ import { Router } from 'express';
 import Stripe from 'stripe';
 import auth from '../middleware/auth.js';
 import User from '../models/User.js';
+import EmailLog from '../models/EmailLog.js';
+import Contact from '../models/Contact.js';
+import GmailAccount from '../models/GmailAccount.js';
 import env from '../config/env.js';
 import { PLAN_LIMITS } from '../middleware/planLimits.js';
 import authorize from '../middleware/authorize.js';
@@ -28,7 +31,6 @@ router.get('/status', auth, authorize('admin', 'manager', 'user'), async (req, r
         const limits = PLAN_LIMITS[user.plan || 'free'] || PLAN_LIMITS.free;
 
         // Get current daily usage
-        const EmailLog = (await import('../models/EmailLog.js')).default;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const emailsSentToday = await EmailLog.countDocuments({
@@ -37,10 +39,8 @@ router.get('/status', auth, authorize('admin', 'manager', 'user'), async (req, r
             status: 'sent',
         });
 
-        const Contact = (await import('../models/Contact.js')).default;
         const totalContacts = await Contact.countDocuments({ userId: req.user.id });
 
-        const GmailAccount = (await import('../models/GmailAccount.js')).default;
         const totalAccounts = await GmailAccount.countDocuments({ userId: req.user.id });
 
         res.json({
@@ -142,73 +142,6 @@ router.get('/plans', async (req, res) => {
             { id: 'pro', name: 'Pro', price: 124, ...PLAN_LIMITS.pro },
         ],
     });
-});
-
-// Stripe Webhook Receiver
-// Note: In production this should use express.raw, but we parse req.body for local
-router.post('/webhook', async (req, res) => {
-    const stripe = getStripe();
-    if (!stripe) return res.status(500).send('Stripe not configured');
-
-    const sig = req.headers['stripe-signature'];
-    const endpointSecret = env.STRIPE_WEBHOOK_SECRET;
-
-    let event;
-
-    try {
-        if (endpointSecret) {
-            // Verify signature if secret provided
-            event = stripe.webhooks.constructEvent(req.rawBody || req.body, sig, endpointSecret);
-        } else {
-            console.warn(`Webhook signature verification skipped. No STRIPE_WEBHOOK_SECRET found.`);
-            event = req.body;
-        }
-    } catch (err) {
-        return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
-
-    try {
-        switch (event.type) {
-            case 'checkout.session.completed': {
-                const session = event.data.object;
-                const userId = session.metadata?.userId;
-                const planId = session.metadata?.plan || 'pro'; // default fallback
-                const subscriptionId = session.subscription;
-
-                if (userId) {
-                    await User.findByIdAndUpdate(userId, {
-                        plan: planId,
-                        stripeSubscriptionId: subscriptionId,
-                        planExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) 
-                    });
-                    console.log(`User ${userId} upgraded to ${planId}`);
-                }
-                break;
-            }
-            case 'invoice.payment_succeeded': {
-                const invoice = event.data.object;
-                if(invoice.subscription) {
-                     await User.findOneAndUpdate(
-                         { stripeSubscriptionId: invoice.subscription },
-                         { planExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }
-                     );
-                }
-                break;
-            }
-            case 'customer.subscription.deleted': {
-                const subscription = event.data.object;
-                await User.findOneAndUpdate(
-                    { stripeSubscriptionId: subscription.id },
-                    { plan: 'free', stripeSubscriptionId: null, planExpiresAt: new Date(0) }
-                );
-                break;
-            }
-        }
-        res.json({ received: true });
-    } catch (error) {
-        console.error('Webhook processing error:', error);
-        res.status(500).json({ error: 'Webhook processing failed' });
-    }
 });
 
 export default router;

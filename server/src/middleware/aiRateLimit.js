@@ -4,7 +4,7 @@ import { PLAN_LIMITS } from './planLimits.js';
 /**
  * AI Rate Limit Middleware
  * Tracks and enforces per-user daily AI call limits based on their plan.
- * Resets the counter automatically at the start of each new day.
+ * Uses atomic MongoDB update to prevent race conditions.
  */
 const aiRateLimit = async (req, res, next) => {
     try {
@@ -49,12 +49,13 @@ const aiRateLimit = async (req, res, next) => {
             });
         }
 
-        // Increment counter
-        const updateFields = { aiCallsToday: currentCalls + 1 };
-        if (isNewDay) {
-            updateFields.aiCallsResetAt = now;
-        }
-        await User.findByIdAndUpdate(req.user.id, updateFields);
+        // BUG-10: Atomic increment using findOneAndUpdate
+        const updateOp = isNewDay
+            ? { $set: { aiCallsToday: 1, aiCallsResetAt: now } }
+            : { $inc: { aiCallsToday: 1 } };
+
+        const updated = await User.findByIdAndUpdate(req.user.id, updateOp, { new: true });
+        if (!updated) return res.status(500).json({ error: 'Failed to update AI usage counter' });
 
         // Attach usage info to request for optional use downstream
         req.aiUsage = {
@@ -66,8 +67,8 @@ const aiRateLimit = async (req, res, next) => {
         next();
     } catch (error) {
         console.error('AI rate limit middleware error:', error);
-        // Don't block the request on middleware failure — just continue
-        next();
+        // BUG-13: Return error on DB failure — do NOT bypass rate limiting
+        return res.status(500).json({ error: 'AI rate limit check failed. Please try again.' });
     }
 };
 

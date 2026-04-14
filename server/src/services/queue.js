@@ -196,12 +196,23 @@ export const enqueueCampaign = async (campaign) => {
     }
 };
 
-export const pauseQueue = async () => {
-    if (emailQueue) await emailQueue.pause();
+export const pauseQueue = async (campaignId) => {
+    if (!emailQueue) return;
+    // Remove waiting/delayed jobs for this specific campaign
+    const jobs = await emailQueue.getJobs(['waiting', 'delayed']);
+    for (const job of jobs) {
+        if (job.data.campaignId?.toString() === campaignId?.toString()) {
+            await job.remove();
+        }
+    }
 };
 
-export const resumeQueue = async () => {
-    if (emailQueue) await emailQueue.resume();
+export const resumeQueue = async (campaignId) => {
+    if (!emailQueue || !campaignId) return;
+    // Re-enqueue only pending recipients for this specific campaign
+    const campaign = await Campaign.findById(campaignId);
+    if (!campaign || campaign.status !== 'running') return;
+    await enqueueCampaign(campaign);
 };
 
 export const getQueueStats = async () => {

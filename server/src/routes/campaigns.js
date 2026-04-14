@@ -165,7 +165,7 @@ router.post('/:id/pause', auth, async (req, res) => {
             { new: true }
         );
         if (!campaign) return res.status(404).json({ error: 'Running campaign not found' });
-        // await pauseQueue(); // This service might need the campaign context if it's more than one
+        await pauseQueue(req.params.id);
         res.json({ message: 'Campaign paused', campaign });
     } catch (error) {
         res.status(500).json({ error: 'Failed to pause campaign' });
@@ -196,7 +196,7 @@ router.post('/:id/resume', auth, async (req, res) => {
             { new: true }
         );
         if (!campaign) return res.status(404).json({ error: 'Paused campaign not found' });
-        await resumeQueue();
+        await resumeQueue(campaign._id);
         res.json({ message: 'Campaign resumed', campaign });
     } catch (error) {
         res.status(500).json({ error: 'Failed to resume campaign' });

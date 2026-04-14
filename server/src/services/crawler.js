@@ -2,8 +2,6 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import https from 'https';
 
-const httpsAgent = new https.Agent({ rejectUnauthorized: false });
-
 // ─── Config ─────────────────────────────────────────────────────────────
 const REQUEST_TIMEOUT = 10000;
 const DELAY_BETWEEN_PAGES = 300;
@@ -128,7 +126,6 @@ const fetchPage = async (url) => {
             timeout: REQUEST_TIMEOUT,
             headers: HEADERS,
             maxRedirects: 3,
-            httpsAgent,
             validateStatus: (status) => status < 400 || status === 403 || status === 404 || status === 500,
         });
         return { data: typeof response.data === 'string' ? response.data : '', status: response.status };
@@ -142,7 +139,7 @@ const fetchPage = async (url) => {
                         timeout: REQUEST_TIMEOUT,
                         headers: HEADERS,
                         maxRedirects: 3,
-                        httpsAgent,
+                        httpsAgent: new https.Agent({ rejectUnauthorized: false }),
                         validateStatus: (status) => status < 400 || status === 403 || status === 404 || status === 500,
                     });
                     return { data: typeof fallbackRes.data === 'string' ? fallbackRes.data : '', status: fallbackRes.status };

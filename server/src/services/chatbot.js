@@ -119,7 +119,7 @@ ${JSON.stringify(data, null, 2)}
 - Use emoji sparingly for friendliness
 
 ## User's Question
-${question}`;
+${String(question).replace(/[\r\n]+/g, ' ').replace(/[\x00-\x1f\x7f]/g, '').trim().slice(0, 2000)}`;
 
     // 3. Call Gemini
     const response = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {

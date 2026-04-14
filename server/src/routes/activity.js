@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import auth from '../middleware/auth.js';
 import Activity from '../models/Activity.js';
+import Team from '../models/Team.js';
 
 const router = Router();
 
@@ -41,7 +42,6 @@ router.get('/team', auth, async (req, res) => {
         const { page = 1, limit = 50 } = req.query;
 
         // Find user's team
-        const Team = (await import('../models/Team.js')).default;
         const team = await Team.findOne({
             $or: [
                 { ownerId: req.user.id },
