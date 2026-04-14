@@ -2,10 +2,13 @@
     "name": "automindz",
     "version": "1.0.0",
     "description": "AutoMindz — AI-powered Email Outreach + Contact Finder",
+    "engines": {
+        "node": ">=18.0.0"
+    },
     "scripts": {
         "setup": "cd server && npm install && cd ../client && npm install",
-        "build": "cd server && npm install && cd ../client && npm install && npm run build",
-        "start": "cd server && npm start",
+        "build": "npm install --prefix server && npm install --prefix client && npm run build --prefix client",
+        "start": "npm start --prefix server",
         "dev:server": "cd server && npm run dev",
         "dev:client": "cd client && npm run dev",
         "dev": "npx -y concurrently \"npm run dev:server\" \"npm run dev:client\""

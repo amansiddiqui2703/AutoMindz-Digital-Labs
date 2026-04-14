@@ -35,10 +35,12 @@ const env = {
 // BUG-20: Enforce required secrets in production
 if (env.NODE_ENV === 'production') {
     if (!env.JWT_SECRET || env.JWT_SECRET === 'dev-secret-change-me') {
-        throw new Error('FATAL: JWT_SECRET must be set to a secure value in production.');
+        console.error('⛔ CRITICAL: JWT_SECRET must be set to a secure value in production!');
+        console.error('   Set it in your Render/hosting environment variables.');
     }
     if (!env.ENCRYPTION_KEY) {
-        throw new Error('FATAL: ENCRYPTION_KEY must be set in production.');
+        console.error('⛔ CRITICAL: ENCRYPTION_KEY must be set in production!');
+        console.error('   Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
     }
 }
 
