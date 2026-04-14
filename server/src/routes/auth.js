@@ -2,6 +2,7 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import crypto from 'crypto';
+import { google } from 'googleapis';
 import User from '../models/User.js';
 import auth from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimit.js';
@@ -9,6 +10,17 @@ import env from '../config/env.js';
 import { sendAuthEmail } from '../services/mailer.js';
 
 const router = Router();
+
+/**
+ * Create a separate OAuth2 client for login (different redirect URI than Gmail connection).
+ */
+const createLoginOAuth2Client = () => {
+    return new google.auth.OAuth2(
+        env.GOOGLE_CLIENT_ID,
+        env.GOOGLE_CLIENT_SECRET,
+        `${env.SERVER_URL}/api/auth/google/callback`
+    );
+};
 
 // Validation middleware helper
 const validate = (req, res, next) => {
@@ -163,6 +175,92 @@ router.get('/me', auth, async (req, res) => {
         res.json({ user });
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch user' });
+    }
+});
+
+// ─── Google OAuth Login ──────────────────────────────────────────────
+
+// Step 1: Generate Google OAuth URL for login
+router.get('/google/url', (req, res) => {
+    try {
+        if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
+            return res.status(500).json({ error: 'Google OAuth not configured' });
+        }
+        const oauth2Client = createLoginOAuth2Client();
+        const url = oauth2Client.generateAuthUrl({
+            access_type: 'offline',
+            prompt: 'consent',
+            scope: [
+                'https://www.googleapis.com/auth/userinfo.email',
+                'https://www.googleapis.com/auth/userinfo.profile',
+            ],
+        });
+        res.json({ url });
+    } catch (error) {
+        console.error('Google URL error:', error);
+        res.status(500).json({ error: 'Failed to generate Google login URL' });
+    }
+});
+
+// Step 2: Google OAuth callback — find/create user and redirect to frontend
+router.get('/google/callback', async (req, res) => {
+    try {
+        const { code } = req.query;
+        if (!code) return res.redirect(`${env.APP_URL}/login?error=missing_code`);
+
+        const oauth2Client = createLoginOAuth2Client();
+        const { tokens } = await oauth2Client.getToken(code);
+        oauth2Client.setCredentials(tokens);
+
+        // Get Google user profile
+        const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+        const { data: profile } = await oauth2.userinfo.get();
+
+        if (!profile.email) {
+            return res.redirect(`${env.APP_URL}/login?error=no_email`);
+        }
+
+        // Find existing user by googleId or email
+        let user = await User.findOne({
+            $or: [
+                { googleId: profile.id },
+                { email: profile.email.toLowerCase() }
+            ]
+        });
+
+        if (user) {
+            // Link Google ID if not already linked
+            if (!user.googleId) {
+                user.googleId = profile.id;
+                await user.save();
+            }
+        } else {
+            // Create new user (no password — Google-only)
+            const adminEmails = (env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+            const role = adminEmails.includes(profile.email.toLowerCase()) ? 'admin' : 'user';
+
+            user = new User({
+                email: profile.email.toLowerCase(),
+                name: profile.name || profile.email,
+                googleId: profile.id,
+                isVerified: true, // Google emails are pre-verified
+                role,
+            });
+            await user.save();
+        }
+
+        // Generate JWT
+        const token = jwt.sign(
+            { id: user._id, email: user.email, role: user.role },
+            env.JWT_SECRET,
+            { expiresIn: env.JWT_EXPIRES_IN }
+        );
+
+        // Redirect to frontend with token
+        res.redirect(`${env.APP_URL}/auth/google/success?token=${token}`);
+    } catch (error) {
+        console.error('Google callback error:', error);
+        res.redirect(`${env.APP_URL}/login?error=google_auth_failed`);
     }
 });
 

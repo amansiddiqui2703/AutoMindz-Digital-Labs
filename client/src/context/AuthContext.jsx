@@ -37,6 +37,12 @@ export function AuthProvider({ children }) {
         return res.data;
     };
 
+    // For Google OAuth — receives JWT token directly
+    const setTokenAndUser = (jwtToken) => {
+        localStorage.setItem('automindz_token', jwtToken);
+        setToken(jwtToken);
+    };
+
     const logout = () => {
         localStorage.removeItem('automindz_token');
         setToken(null);
@@ -44,7 +50,7 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, loading, login, register, logout, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, token, loading, login, register, logout, setTokenAndUser, isAuthenticated: !!user }}>
             {children}
         </AuthContext.Provider>
     );

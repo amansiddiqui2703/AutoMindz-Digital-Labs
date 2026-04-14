@@ -37,6 +37,7 @@ import TeamReports from './pages/TeamReports';
 
 import Sequences from './pages/Sequences';
 import Tools from './pages/Tools';
+import GoogleAuthSuccess from './pages/GoogleAuthSuccess';
 
 function RootRoute() {
   const { isAuthenticated, loading } = useAuth();
@@ -64,6 +65,7 @@ export default function App() {
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/campaigns" element={<Campaigns />} />
