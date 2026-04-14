@@ -11,6 +11,96 @@ import { redis } from '../config/redis.js';
 
 let emailQueue = null;
 
+export const processEmailJob = async (data) => {
+    const { campaignId, recipient, userId, accountIds, subject, htmlBody, plainBody, cc, bcc, attachments, abVariant } = data;
+
+    // Check suppression
+    const suppressed = await Suppression.findOne({ userId, email: recipient.email.toLowerCase() });
+    if (suppressed) {
+        return { skipped: true, reason: 'suppressed', email: recipient.email };
+    }
+
+    // Select account with available quota (round-robin)
+    const account = await selectAccount(userId, accountIds);
+    if (!account) {
+        throw new Error('No available Gmail accounts (quota exhausted)');
+    }
+
+    const contact = {
+        _id: recipient.contactId,
+        email: recipient.email,
+        name: recipient.name || '',
+        company: recipient.company || '',
+        customFields: recipient.customFields || {},
+    };
+
+    const result = await sendEmail(account, {
+        to: recipient.email,
+        subject,
+        htmlBody,
+        plainBody,
+        contact,
+        campaignId,
+        userId,
+        cc,
+        bcc,
+        attachments,
+        abVariant: abVariant || 'A',
+    });
+
+    // Update campaign stats and schedule follow-ups
+    if (result.success) {
+        await Campaign.findByIdAndUpdate(campaignId, {
+            $inc: { 'stats.sent': 1 },
+        });
+
+        // Update recipient sentAt
+        await Campaign.updateOne(
+            { _id: campaignId, 'recipients.email': recipient.email },
+            { $set: { 'recipients.$.sentAt': new Date(), 'recipients.$.status': 'sent' } }
+        );
+
+        // Schedule first follow-up if campaign has follow-up steps
+        const campaign = await Campaign.findById(campaignId);
+        if (campaign?.followUps?.length > 0) {
+            const firstFollowUp = campaign.followUps
+                .sort((a, b) => a.stepNumber - b.stepNumber)
+                .find(f => f.stepNumber === 1);
+            if (firstFollowUp) {
+                const nextDate = new Date();
+                nextDate.setDate(nextDate.getDate() + firstFollowUp.delayDays);
+                await Campaign.updateOne(
+                    { _id: campaignId, 'recipients.email': recipient.email },
+                    {
+                        $set: {
+                            'recipients.$.nextFollowUpAt': nextDate,
+                            'recipients.$.sequenceStatus': 'active',
+                            'recipients.$.currentStep': 0,
+                        }
+                    }
+                );
+            }
+        }
+
+        // Check if all recipients are processed — mark campaign completed
+        const updatedCampaign = await Campaign.findById(campaignId);
+        if (updatedCampaign) {
+            const pendingCount = updatedCampaign.recipients.filter(r => r.status === 'pending').length;
+            if (pendingCount === 0 && updatedCampaign.followUps.length === 0) {
+                updatedCampaign.status = 'completed';
+                await updatedCampaign.save();
+                console.log(`✅ Campaign "${updatedCampaign.name}" completed`);
+            }
+        }
+    } else {
+        await Campaign.findByIdAndUpdate(campaignId, {
+            $inc: { 'stats.failed': 1 },
+        });
+    }
+
+    return result;
+};
+
 export const initQueue = () => {
     try {
         if (!redis) return null;
@@ -30,93 +120,7 @@ export const initQueue = () => {
             });
 
             emailQueue.process(async (job) => {
-                const { campaignId, recipient, userId, accountIds, subject, htmlBody, plainBody, cc, bcc, attachments, abVariant } = job.data;
-
-                // Check suppression
-                const suppressed = await Suppression.findOne({ userId, email: recipient.email.toLowerCase() });
-                if (suppressed) {
-                    return { skipped: true, reason: 'suppressed', email: recipient.email };
-                }
-
-                // Select account with available quota (round-robin)
-                const account = await selectAccount(userId, accountIds);
-                if (!account) {
-                    throw new Error('No available Gmail accounts (quota exhausted)');
-                }
-
-                const contact = {
-                    _id: recipient.contactId,
-                    email: recipient.email,
-                    name: recipient.name || '',
-                    company: recipient.company || '',
-                    customFields: recipient.customFields || {},
-                };
-
-                const result = await sendEmail(account, {
-                    to: recipient.email,
-                    subject,
-                    htmlBody,
-                    plainBody,
-                    contact,
-                    campaignId,
-                    userId,
-                    cc,
-                    bcc,
-                    attachments,
-                    abVariant: abVariant || 'A',
-                });
-
-                // Update campaign stats and schedule follow-ups
-                if (result.success) {
-                    await Campaign.findByIdAndUpdate(campaignId, {
-                        $inc: { 'stats.sent': 1 },
-                    });
-
-                    // Update recipient sentAt
-                    await Campaign.updateOne(
-                        { _id: campaignId, 'recipients.email': recipient.email },
-                        { $set: { 'recipients.$.sentAt': new Date(), 'recipients.$.status': 'sent' } }
-                    );
-
-                    // Schedule first follow-up if campaign has follow-up steps
-                    const campaign = await Campaign.findById(campaignId);
-                    if (campaign?.followUps?.length > 0) {
-                        const firstFollowUp = campaign.followUps
-                            .sort((a, b) => a.stepNumber - b.stepNumber)
-                            .find(f => f.stepNumber === 1);
-                        if (firstFollowUp) {
-                            const nextDate = new Date();
-                            nextDate.setDate(nextDate.getDate() + firstFollowUp.delayDays);
-                            await Campaign.updateOne(
-                                { _id: campaignId, 'recipients.email': recipient.email },
-                                {
-                                    $set: {
-                                        'recipients.$.nextFollowUpAt': nextDate,
-                                        'recipients.$.sequenceStatus': 'active',
-                                        'recipients.$.currentStep': 0,
-                                    }
-                                }
-                            );
-                        }
-                    }
-
-                    // Check if all recipients are processed — mark campaign completed
-                    const updatedCampaign = await Campaign.findById(campaignId);
-                    if (updatedCampaign) {
-                        const pendingCount = updatedCampaign.recipients.filter(r => r.status === 'pending').length;
-                        if (pendingCount === 0 && updatedCampaign.followUps.length === 0) {
-                            updatedCampaign.status = 'completed';
-                            await updatedCampaign.save();
-                            console.log(`✅ Campaign "${updatedCampaign.name}" completed`);
-                        }
-                    }
-                } else {
-                    await Campaign.findByIdAndUpdate(campaignId, {
-                        $inc: { 'stats.failed': 1 },
-                    });
-                }
-
-                return result;
+                return processEmailJob(job.data);
             });
 
             emailQueue.on('completed', (job, result) => {
@@ -138,10 +142,6 @@ export const initQueue = () => {
 };
 
 export const enqueueCampaign = async (campaign) => {
-    if (!emailQueue) {
-        throw new Error('Queue not available. Is Redis running?');
-    }
-
     const delay = (campaign.delay || 5) * 1000;
     const hasABTest = !!campaign.subjectB;
 
@@ -153,6 +153,8 @@ export const enqueueCampaign = async (campaign) => {
     }
 
     let enqueued = 0;
+    const inMemoryJobs = [];
+    
     for (let i = 0; i < campaign.recipients.length; i++) {
         const recipient = campaign.recipients[i];
         if (recipient.status !== 'pending') continue;
@@ -162,28 +164,31 @@ export const enqueueCampaign = async (campaign) => {
         const useVariantB = hasABTest && Math.random() < 0.5;
         const selectedSubject = useVariantB ? campaign.subjectB : campaign.subject;
 
-        await emailQueue.add(
-            {
-                campaignId: campaign._id,
-                recipient: {
-                    contactId: recipient.contactId,
-                    email: recipient.email,
-                    name: recipient.name,
-                    company: recipient.company,
-                    customFields: recipient.customFields,
-                },
-                userId: campaign.userId,
-                accountIds: campaign.accountIds,
-                subject: selectedSubject,
-                htmlBody: campaign.htmlBody,
-                plainBody: campaign.plainBody,
-                cc: campaign.cc,
-                bcc: campaign.bcc,
-                attachments: campaign.attachments,
-                abVariant: useVariantB ? 'B' : 'A',
+        const jobData = {
+            campaignId: campaign._id,
+            recipient: {
+                contactId: recipient.contactId,
+                email: recipient.email,
+                name: recipient.name,
+                company: recipient.company,
+                customFields: recipient.customFields,
             },
-            { delay: enqueued * delay }
-        );
+            userId: campaign.userId,
+            accountIds: campaign.accountIds,
+            subject: selectedSubject,
+            htmlBody: campaign.htmlBody,
+            plainBody: campaign.plainBody,
+            cc: campaign.cc,
+            bcc: campaign.bcc,
+            attachments: campaign.attachments,
+            abVariant: useVariantB ? 'B' : 'A',
+        };
+
+        if (emailQueue) {
+            await emailQueue.add(jobData, { delay: enqueued * delay });
+        } else {
+            inMemoryJobs.push({ jobData, delayMs: enqueued * delay });
+        }
         enqueued++;
     }
 
@@ -193,6 +198,34 @@ export const enqueueCampaign = async (campaign) => {
 
     if (campaign.warmupMode && enqueued < campaign.recipients.filter(r => r.status === 'pending').length) {
         console.log(`🔥 Warmup mode: enqueued ${enqueued} of ${campaign.recipients.length} recipients today`);
+    }
+
+    // If Redis is not available, process jobs in-memory in the background
+    if (!emailQueue && inMemoryJobs.length > 0) {
+        console.warn('⚠ Redis not available — falling back to in-memory email processing');
+        (async () => {
+            for (const { jobData, delayMs } of inMemoryJobs) {
+                try {
+                    if (delayMs > 0) {
+                        await new Promise(resolve => setTimeout(resolve, delayMs));
+                    }
+                    
+                    // Allow pause: check if campaign is still running before processing
+                    const checkCampaign = await Campaign.findById(campaign._id);
+                    // It can be paused, completed, or failed
+                    if (checkCampaign && checkCampaign.status !== 'running') {
+                        console.log(`⏸️ Campaign ${campaign.name || campaign._id} paused or stopped, halting in-memory queue.`);
+                        break;
+                    }
+
+                    console.log(`⏳ Processing in-memory job for ${jobData.recipient.email}`);
+                    const res = await processEmailJob(jobData);
+                    console.log(`✓ Email job completed in-memory:`, res?.success ? 'sent' : 'skipped');
+                } catch (err) {
+                    console.error(`✗ Email job failed in-memory:`, err.message);
+                }
+            }
+        })();
     }
 };
 
@@ -208,8 +241,6 @@ export const pauseQueue = async (campaignId) => {
 };
 
 export const resumeQueue = async (campaignId) => {
-    if (!emailQueue || !campaignId) return;
-    // Re-enqueue only pending recipients for this specific campaign
     const campaign = await Campaign.findById(campaignId);
     if (!campaign || campaign.status !== 'running') return;
     await enqueueCampaign(campaign);
@@ -228,4 +259,3 @@ export const getQueueStats = async () => {
 };
 
 export { emailQueue };
-
