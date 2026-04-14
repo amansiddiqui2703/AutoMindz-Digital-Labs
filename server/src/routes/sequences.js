@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import auth from '../middleware/auth.js';
 import Sequence from '../models/Sequence.js';
-import Project from '../models/Project.js';
+import Campaign from '../models/Campaign.js';
 
 const router = Router();
 
@@ -97,14 +97,14 @@ router.put('/:id', auth, async (req, res) => {
 // Delete (archive) sequence
 router.delete('/:id', auth, async (req, res) => {
     try {
-        // Check if sequence is in use by an active project/campaign
-        const activeProjects = await Project.countDocuments({ 
+        // Check if sequence is in use by an active campaign
+        const activeCampaigns = await Campaign.countDocuments({ 
             userId: req.user.id, 
             sequenceId: req.params.id,
             isArchived: false
         });
 
-        if (activeProjects > 0) {
+        if (activeCampaigns > 0) {
             return res.status(400).json({ error: 'Cannot delete sequence as it is currently attached to active campaigns.' });
         }
 
