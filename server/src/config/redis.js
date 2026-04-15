@@ -5,7 +5,7 @@ let redis = null;
 
 const connectRedis = () => {
     try {
-        redis = new Redis(env.REDIS_URL, {
+        const redisOpts = {
             maxRetriesPerRequest: null,
             enableReadyCheck: false,
             retryStrategy(times) {
@@ -15,7 +15,14 @@ const connectRedis = () => {
                 }
                 return Math.min(times * 200, 2000);
             },
-        });
+        };
+
+        // Upstash uses rediss:// (TLS) — ioredis needs explicit tls option
+        if (env.REDIS_URL.startsWith('rediss://')) {
+            redisOpts.tls = { rejectUnauthorized: false };
+        }
+
+        redis = new Redis(env.REDIS_URL, redisOpts);
 
         redis.on('connect', () => console.log('✓ Redis connected'));
         redis.on('error', (err) => console.warn('⚠ Redis error:', err.message));
