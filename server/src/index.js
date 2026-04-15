@@ -179,7 +179,25 @@ Sentry.setupExpressErrorHandler(app);
 // Start server
 const start = async () => {
   await connectDB();
-  connectRedis();
+  const redisConn = connectRedis();
+  
+  // Wait for Redis to be connected before initializing the queue
+  if (redisConn) {
+    await new Promise((resolve) => {
+      // If already connected, resolve immediately
+      if (redisConn.status === 'ready') {
+        resolve();
+        return;
+      }
+      redisConn.once('ready', resolve);
+      // Don't block startup forever if Redis fails
+      setTimeout(() => {
+        console.warn('⚠ Redis connection timed out — proceeding with in-memory fallback');
+        resolve();
+      }, 10000);
+    });
+  }
+  
   initQueue();
   startFollowUpScheduler();
   startCampaignScheduler();

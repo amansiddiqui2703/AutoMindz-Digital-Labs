@@ -64,14 +64,27 @@ export const getAuthenticatedClient = async (account) => {
         refresh_token: account.refreshToken,
     });
 
-    // Auto-refresh if token is expired
-    if (account.tokenExpiresAt && new Date(account.tokenExpiresAt) < new Date()) {
-        const { credentials } = await oauth2Client.refreshAccessToken();
-        account.accessToken = credentials.access_token;
-        if (credentials.refresh_token) account.refreshToken = credentials.refresh_token;
-        account.tokenExpiresAt = new Date(credentials.expiry_date);
-        await account.save();
-        oauth2Client.setCredentials(credentials);
+    // Auto-refresh if token is expired or about to expire (5 min buffer)
+    const bufferMs = 5 * 60 * 1000;
+    const isExpired = account.tokenExpiresAt && new Date(account.tokenExpiresAt).getTime() - bufferMs < Date.now();
+    
+    if (isExpired && account.refreshToken) {
+        try {
+            console.log(`🔄 Refreshing OAuth token for ${account.email}...`);
+            const { credentials } = await oauth2Client.refreshAccessToken();
+            account.accessToken = credentials.access_token;
+            if (credentials.refresh_token) account.refreshToken = credentials.refresh_token;
+            account.tokenExpiresAt = new Date(credentials.expiry_date);
+            await account.save();
+            oauth2Client.setCredentials(credentials);
+            console.log(`✓ Token refreshed for ${account.email}`);
+        } catch (refreshError) {
+            console.error(`✗ Token refresh failed for ${account.email}:`, refreshError.message);
+            // Mark account health as warning so user knows to reconnect
+            account.health = 'warning';
+            await account.save();
+            throw new Error(`Gmail token expired. Please reconnect your Gmail account (${account.email}): ${refreshError.message}`);
+        }
     }
 
     return oauth2Client;

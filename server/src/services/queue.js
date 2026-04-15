@@ -5,9 +5,7 @@ import { selectAccount } from './gmailScript.js';
 import Campaign from '../models/Campaign.js';
 import Suppression from '../models/Suppression.js';
 
-import Redis from 'ioredis';
-
-import { redis } from '../config/redis.js';
+import { getRedis } from '../config/redis.js';
 
 let emailQueue = null;
 
@@ -103,42 +101,47 @@ export const processEmailJob = async (data) => {
 
 export const initQueue = () => {
     try {
-        if (!redis) return null;
+        const redisInstance = getRedis();
+        if (!redisInstance) {
+            console.warn('⚠ Redis not available — email queue will use in-memory fallback');
+            return null;
+        }
 
-        redis.once('ready', () => {
-            emailQueue = new Queue('emailQueue', env.REDIS_URL, {
-                redis: {
-                    maxRetriesPerRequest: null,
-                    enableReadyCheck: false,
-                    tls: env.REDIS_URL.startsWith('rediss://') ? {} : undefined,
-                },
-                defaultJobOptions: {
-                    removeOnComplete: 100,
-                    removeOnFail: 200,
-                    attempts: 3,
-                    backoff: { type: 'exponential', delay: 5000 },
-                },
-            });
+        // Bull creates its own ioredis connections from the URL
+        // For Upstash (rediss://), we need to pass TLS options through the redis key
+        const isUpstash = env.REDIS_URL.startsWith('rediss://');
 
-            emailQueue.on('error', (err) => {
-                console.warn('⚠ Email queue error:', err.message);
-            });
-
-            emailQueue.process(async (job) => {
-                return processEmailJob(job.data);
-            });
-
-            emailQueue.on('completed', (job, result) => {
-                console.log(`✓ Email job ${job.id} completed:`, result?.success ? 'sent' : 'skipped');
-            });
-
-            emailQueue.on('failed', (job, err) => {
-                console.error(`✗ Email job ${job.id} failed:`, err.message);
-            });
-
-            console.log('✓ Email queue initialized');
+        emailQueue = new Queue('emailQueue', env.REDIS_URL, {
+            redis: {
+                maxRetriesPerRequest: null,
+                enableReadyCheck: false,
+                ...(isUpstash ? { tls: { rejectUnauthorized: false } } : {}),
+            },
+            defaultJobOptions: {
+                removeOnComplete: 100,
+                removeOnFail: 200,
+                attempts: 3,
+                backoff: { type: 'exponential', delay: 5000 },
+            },
         });
 
+        emailQueue.on('error', (err) => {
+            console.warn('⚠ Email queue error:', err.message);
+        });
+
+        emailQueue.process(async (job) => {
+            return processEmailJob(job.data);
+        });
+
+        emailQueue.on('completed', (job, result) => {
+            console.log(`✓ Email job ${job.id} completed:`, result?.success ? 'sent' : 'skipped');
+        });
+
+        emailQueue.on('failed', (job, err) => {
+            console.error(`✗ Email job ${job.id} failed:`, err.message);
+        });
+
+        console.log('✓ Email queue initialized');
         return emailQueue;
     } catch (error) {
         console.warn('⚠ Queue initialization failed:', error.message);

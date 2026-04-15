@@ -102,6 +102,10 @@ export const sendEmail = async (account, { to, subject, htmlBody, plainBody, con
 
         return { success: true, trackingId, messageId: result.messageId };
     } catch (error) {
+        console.error(`✗ Email send failed to ${to}:`, error.message);
+        if (error.response?.data) {
+            console.error('  Gmail API error details:', JSON.stringify(error.response.data));
+        }
         emailLog.status = 'failed';
         emailLog.error = error.message;
         await emailLog.save();

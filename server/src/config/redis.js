@@ -3,6 +3,11 @@ import env from './env.js';
 
 let redis = null;
 
+/**
+ * Get the current Redis instance (may be null if not connected).
+ */
+export const getRedis = () => redis;
+
 const connectRedis = () => {
     try {
         const redisOpts = {
