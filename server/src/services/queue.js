@@ -107,6 +107,11 @@ export const initQueue = () => {
 
         redis.once('ready', () => {
             emailQueue = new Queue('emailQueue', env.REDIS_URL, {
+                redis: {
+                    maxRetriesPerRequest: null,
+                    enableReadyCheck: false,
+                    tls: env.REDIS_URL.startsWith('rediss://') ? {} : undefined,
+                },
                 defaultJobOptions: {
                     removeOnComplete: 100,
                     removeOnFail: 200,
