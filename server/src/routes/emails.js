@@ -5,6 +5,7 @@ import GmailAccount from '../models/GmailAccount.js';
 import EmailLog from '../models/EmailLog.js';
 import { sendEmail } from '../services/emailSender.js';
 import { selectAccount, replyViaScript } from '../services/gmailScript.js';
+import { replyViaOAuth } from '../services/gmailOAuth.js';
 import { replaceMergeTags } from '../utils/mergetags.js';
 import env from '../config/env.js';
 
@@ -99,14 +100,17 @@ router.post('/send-followup', auth, async (req, res) => {
         await followUpLog.save();
 
         try {
-            // Send threaded reply via Google Apps Script
-            const result = await replyViaScript(account.scriptUrl, {
+            // Send threaded reply via the appropriate method
+            const replyPayload = {
                 to: originalEmail.to,
                 originalSubject: originalEmail.subject,
                 htmlBody: trackedHtml,
                 plainBody: mergedPlain,
                 displayName: account.displayName || account.email,
-            });
+            };
+            const result = account.connectionType === 'oauth'
+                ? await replyViaOAuth(account, replyPayload)
+                : await replyViaScript(account.scriptUrl, replyPayload);
 
             // Update log
             followUpLog.status = 'sent';
@@ -208,14 +212,17 @@ router.post('/send-bulk-followup', auth, async (req, res) => {
                 });
                 await followUpLog.save();
 
-                // Send threaded reply
-                const result = await replyViaScript(account.scriptUrl, {
+                // Send threaded reply via the appropriate method
+                const replyPayload = {
                     to: originalEmail.to,
                     originalSubject: originalEmail.subject,
                     htmlBody: trackedHtml,
                     plainBody: mergedPlain,
                     displayName: account.displayName || account.email,
-                });
+                };
+                const result = account.connectionType === 'oauth'
+                    ? await replyViaOAuth(account, replyPayload)
+                    : await replyViaScript(account.scriptUrl, replyPayload);
 
                 followUpLog.status = 'sent';
                 followUpLog.sentAt = new Date();
