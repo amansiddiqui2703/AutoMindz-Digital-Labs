@@ -10,17 +10,22 @@ import { Zap } from 'lucide-react';
 export default function GoogleAuthSuccess() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { setTokenAndUser } = useAuth();
+    const { setTokenAndUser, isAuthenticated } = useAuth();
 
     useEffect(() => {
         const token = searchParams.get('token');
         if (token) {
             setTokenAndUser(token);
-            navigate('/dashboard', { replace: true });
         } else {
             navigate('/login?error=google_auth_failed', { replace: true });
         }
     }, []);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-950">

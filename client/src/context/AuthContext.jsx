@@ -12,6 +12,7 @@ export function AuthProvider({ children }) {
 
     useEffect(() => {
         if (token) {
+            setLoading(true);
             api.get('/auth/me')
                 .then(res => setUser(res.data.user))
                 .catch(() => { logout(); })
