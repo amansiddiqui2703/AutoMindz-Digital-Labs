@@ -222,7 +222,6 @@ router.post('/simulate-inbound', auth, async (req, res) => {
 
 import { replyViaOAuth } from '../services/gmailOAuth.js';
 import GmailAccount from '../models/GmailAccount.js';
-import EmailLog from '../models/EmailLog.js';
 import sse from '../services/sse.js';
 import { v4 as uuidv4 } from 'uuid';
 
