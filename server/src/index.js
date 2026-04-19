@@ -42,6 +42,8 @@ import inboxRoutes from './routes/inbox.js';
 import seoRoutes from './routes/seo.js';
 import sequenceRoutes from './routes/sequences.js';
 import { handleStripeWebhook } from './services/stripeWebhook.js';
+import jwt from 'jsonwebtoken';
+import sse from './services/sse.js';
 
 // Tracking & unsubscribe (public)
 import { recordUnsubscribe } from './services/tracking.js';
@@ -84,6 +86,37 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rate limiting
 app.use('/api/', apiLimiter);
+
+// -------------------------------------------------------------
+// Real-Time Event Stream (Server-Sent Events)
+// -------------------------------------------------------------
+app.get('/api/events', (req, res) => {
+    // Note: EventSource in browser cannot reliably send Authorization header across all browsers
+    // so we pass token in URL string e.g. /api/events?token=x
+    const token = req.query.token;
+    if (!token) return res.status(401).json({ error: 'Auth token missing' });
+
+    try {
+        const decoded = jwt.verify(token, env.JWT_SECRET);
+        const userId = decoded.id;
+
+        // Establish SSE Connection Context
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        // Tell nginx to stop buffering immediately if there's a proxy between us
+        res.setHeader('X-Accel-Buffering', 'no');
+        
+        // Push initial connect handshake
+        res.write('data: {"connected": true}\n\n');
+
+        // Hand over to the manager which controls memory leakage automatically handling closing
+        sse.addClient(userId, res);
+
+    } catch (err) {
+        res.status(401).json({ error: 'Invalid token' });
+    }
+});
 
 // Static files for uploads
 app.use('/uploads', express.static(resolve(__dirname, '../uploads')));

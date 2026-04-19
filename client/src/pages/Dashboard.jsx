@@ -30,7 +30,7 @@ export default function Dashboard() {
     const [billing, setBilling] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const loadData = () => {
         Promise.all([
             api.get('/analytics/dashboard'),
             api.get('/billing/status')
@@ -41,6 +41,22 @@ export default function Dashboard() {
         })
         .catch(() => { })
         .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        loadData();
+        
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const url = import.meta.env.DEV ? `http://localhost:5000/api/events?token=${token}` : `/api/events?token=${token}`;
+        const source = new EventSource(url);
+        
+        source.addEventListener('analytics_update', () => {
+             // Silently hot reload data
+             api.get('/analytics/dashboard').then(r => setData(r.data)).catch(() => {});
+        });
+        
+        return () => source.close();
     }, []);
 
     if (loading) {

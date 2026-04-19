@@ -203,9 +203,126 @@ router.post('/simulate-inbound', auth, async (req, res) => {
             needsReply: true,
         });
 
+        // Trigger SSE
+        import('../services/sse.js').then((sseMod) => {
+            sseMod.default.sendEventToUser(req.user.id, 'notification', {
+                title: 'New Reply Received',
+                message: `${from} replied to your email!`,
+                icon: 'MessageSquare'
+            });
+            sseMod.default.sendEventToUser(req.user.id, 'inbox_update', msg);
+            sseMod.default.sendEventToUser(req.user.id, 'analytics_update', { event: 'reply' });
+        }).catch(err => console.error(err));
+
         res.json({ message: `Simulated inbound email from ${from}`, msg });
     } catch (error) {
         res.status(500).json({ error: 'Failed to simulate' });
+    }
+});
+
+import { replyViaOAuth } from '../services/gmailOAuth.js';
+import GmailAccount from '../models/GmailAccount.js';
+import EmailLog from '../models/EmailLog.js';
+import sse from '../services/sse.js';
+import { v4 as uuidv4 } from 'uuid';
+
+// Native inline reply to a thread
+router.post('/reply/:threadId', auth, async (req, res) => {
+    try {
+        const { htmlBody, plainBody } = req.body;
+        if (!htmlBody && !plainBody) return res.status(400).json({ error: 'Message body is required' });
+
+        // Find conversation details from thread
+        const threadMessages = await InboxMessage.find({
+            userId: req.user.id,
+            gmailThreadId: req.params.threadId,
+        }).populate('contactId').sort({ receivedAt: 1 });
+
+        if (!threadMessages || threadMessages.length === 0) {
+            return res.status(404).json({ error: 'Thread not found' });
+        }
+
+        const lastMsg = threadMessages[threadMessages.length - 1];
+        
+        let targetAccount;
+        if (lastMsg.accountId) {
+            targetAccount = await GmailAccount.findById(lastMsg.accountId);
+        } else {
+            // Find account via fallback query if it wasn't statically linked
+            targetAccount = await GmailAccount.findOne({ userId: req.user.id });
+        }
+
+        if (!targetAccount) return res.status(400).json({ error: 'Email Account missing' });
+
+        // Identify the exact person to reply to
+        const toEmail = lastMsg.direction === 'inbound' ? lastMsg.from : lastMsg.to;
+        const originalSubject = lastMsg.subject || 'Re: Subject';
+        const contactId = lastMsg.contactId?._id;
+        const campaignId = lastMsg.campaignId;
+
+        // Perform the OAuth Reply natively
+        const replyResult = await replyViaOAuth(targetAccount, {
+            to: toEmail,
+            originalSubject: originalSubject,
+            htmlBody: htmlBody,
+            plainBody: plainBody,
+            displayName: targetAccount.displayName || targetAccount.email,
+            previousMessageId: lastMsg.gmailMessageId
+        });
+
+        if (!replyResult.success) {
+            return res.status(500).json({ error: 'Failed dispatching reply via Gmail' });
+        }
+
+        // Generate Logging and Inbox record locally
+        const trackingId = uuidv4();
+        const emailLog = new EmailLog({
+            campaignId,
+            contactId,
+            accountId: targetAccount._id,
+            userId: req.user.id,
+            to: toEmail,
+            subject: `Re: ${originalSubject.replace(/^Re:\s*/i, '')}`,
+            trackingId,
+            status: 'sent',
+            sentAt: new Date(),
+            messageId: replyResult.messageId,
+            isFollowUp: true
+        });
+        await emailLog.save();
+
+        const inboxMsg = await InboxMessage.create({
+            userId: req.user.id,
+            accountId: targetAccount._id,
+            contactId: contactId,
+            campaignId: campaignId,
+            emailLogId: emailLog._id,
+            gmailMessageId: replyResult.messageId,
+            gmailThreadId: req.params.threadId, // maintain the thread constraint
+            direction: 'outbound',
+            from: targetAccount.email,
+            to: toEmail,
+            subject: emailLog.subject,
+            snippet: (plainBody || htmlBody).substring(0, 100),
+            htmlBody: htmlBody,
+            plainBody: plainBody,
+            receivedAt: new Date(),
+            isRead: true,
+        });
+
+        // Resolve Needs Reply globally on thread
+        await InboxMessage.updateMany(
+            { userId: req.user.id, gmailThreadId: req.params.threadId },
+            { needsReply: false }
+        );
+
+        // Send Native Broadcast Push
+        sse.sendEventToUser(req.user.id, 'inbox_update', inboxMsg);
+
+        res.json({ message: 'Reply Sent Successfully', inThread: req.params.threadId });
+    } catch (error) {
+        console.error('Thread Reply Error:', error);
+        res.status(500).json({ error: error.message || 'Failed to reply to thread' });
     }
 });
 

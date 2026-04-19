@@ -30,6 +30,8 @@ const env = {
     GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI || '',
     // Admin
     ADMIN_EMAILS: process.env.ADMIN_EMAILS || '',
+    // Sentry
+    SENTRY_DSN: process.env.SENTRY_DSN || '',
 };
 
 // BUG-20: Enforce required secrets in production

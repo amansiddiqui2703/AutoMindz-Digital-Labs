@@ -46,7 +46,35 @@ export default function InboxPage() {
 
     const PIPELINE_STAGES = ['Identified', 'Contacted', 'Replied', 'Negotiating', 'Link Secured', 'Lost'];
 
-    useEffect(() => { fetchMessages(); }, [filter, search]);
+    useEffect(() => {
+        fetchMessages();
+
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const url = import.meta.env.DEV ? `http://localhost:5000/api/events?token=${token}` : `/api/events?token=${token}`;
+        const source = new EventSource(url);
+
+        source.addEventListener('inbox_update', (e) => {
+            try {
+                const newMsg = JSON.parse(e.data);
+                // Prepend dynamically
+                setMessages(prev => {
+                    const exists = prev.find(p => p._id === newMsg._id);
+                    if (exists) return prev;
+                    // Auto open into thread if it currently is selected
+                    setThread(t => {
+                        if (t && t.length > 0 && t[0].gmailThreadId === newMsg.gmailThreadId) {
+                            return [...t, newMsg];
+                        }
+                        return t;
+                    });
+                    return [newMsg, ...prev];
+                });
+            } catch (err) { }
+        });
+
+        return () => source.close();
+    }, [filter, search]);
 
     const fetchMessages = async () => {
         setLoading(true);
@@ -144,6 +172,27 @@ export default function InboxPage() {
             toast.error(err.response?.data?.error || 'Failed');
         } finally {
             setSimulating(false);
+        }
+    };
+
+    const [replyBody, setReplyBody] = useState('');
+    const [replying, setReplying] = useState(false);
+
+    const handleInlineReply = async () => {
+        if (!replyBody.trim() || !selectedMsg?.gmailThreadId) return;
+        setReplying(true);
+        try {
+            await api.post(`/inbox/reply/${selectedMsg.gmailThreadId}`, {
+                htmlBody: `<p>${replyBody.replace(/\n/g, '<br/>')}</p>`,
+                plainBody: replyBody
+            });
+            toast.success('Reply Sent Successfully');
+            setReplyBody('');
+            // Optional: The SSE will push the new outbound msg back instantly anyway
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Failed to dispatch reply');
+        } finally {
+            setReplying(false);
         }
     };
 
@@ -355,6 +404,31 @@ export default function InboxPage() {
                                 )}
                             </div>
                         ))}
+                        
+                        {/* Inline Reply Box */}
+                        {!threadLoading && thread.length > 0 && (
+                            <div className="mt-4 border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary-500/20 transition-all">
+                                <textarea
+                                    value={replyBody}
+                                    onChange={e => setReplyBody(e.target.value)}
+                                    placeholder="Write your reply here... (Sends directly via connected Gmail account)"
+                                    className="w-full bg-transparent border-0 resize-none p-4 text-sm text-surface-900 dark:text-white placeholder:text-surface-400 focus:ring-0 min-h-[100px]"
+                                />
+                                <div className="flex justify-between items-center px-4 py-3 bg-surface-50 dark:bg-surface-800/50 border-t border-surface-100 dark:border-surface-800">
+                                    <span className="text-xs text-surface-500 flex items-center gap-1">
+                                        <MessageSquare className="w-3.5 h-3.5" /> Replies are threaded automatically
+                                    </span>
+                                    <button 
+                                        onClick={handleInlineReply} 
+                                        disabled={replying || !replyBody.trim()}
+                                        className="btn-primary py-1.5 px-4 text-sm shadow-sm flex items-center gap-2"
+                                    >
+                                        {replying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                        Send Reply
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

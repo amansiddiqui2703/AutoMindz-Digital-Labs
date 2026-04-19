@@ -76,6 +76,18 @@ export default function Analytics() {
     useEffect(() => { fetchData(); }, []);
     useEffect(() => { if (tab === 'emails') fetchEmails(); }, [tab, filterDaysAgo, filterUnreplied]);
 
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const url = import.meta.env.DEV ? `http://localhost:5000/api/events?token=${token}` : `/api/events?token=${token}`;
+        const source = new EventSource(url);
+        source.addEventListener('analytics_update', () => {
+            api.get('/analytics/dashboard').then(r => setData(r.data)).catch(() => {});
+            if (tab === 'emails') fetchEmails();
+        });
+        return () => source.close();
+    }, [tab]);
+
     const sendFollowUp = async (emailId) => {
         if (!followUpBody.trim()) return toast.error('Please write a follow-up message');
         setFollowUpSending(true);

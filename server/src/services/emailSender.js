@@ -3,6 +3,8 @@ import { sendViaScript } from './gmailScript.js';
 import { sendViaOAuth } from './gmailOAuth.js';
 import { replaceMergeTags } from '../utils/mergetags.js';
 import EmailLog from '../models/EmailLog.js';
+import InboxMessage from '../models/InboxMessage.js';
+import sse from './sse.js';
 import env from '../config/env.js';
 
 const TRACKING_PIXEL = (trackingId) =>
@@ -99,6 +101,29 @@ export const sendEmail = async (account, { to, subject, htmlBody, plainBody, con
         account.dailySentCount += 1;
         account.totalSent += 1;
         await account.save();
+
+        // INSTANTLY Inject into Unified Inbox and push over SSE
+        const inboxMsg = await InboxMessage.create({
+            userId,
+            accountId: account._id,
+            contactId: contact?._id,
+            campaignId,
+            emailLogId: emailLog._id,
+            gmailMessageId: result.messageId || `sent-${emailLog._id}`,
+            gmailThreadId: result.messageId || `thread-${emailLog._id}`,
+            direction: 'outbound',
+            from: 'me',
+            to: to,
+            subject: mergedSubject,
+            snippet: mergedSubject.substring(0, 100),
+            htmlBody: mergedHtml,
+            plainBody: mergedPlain,
+            receivedAt: emailLog.sentAt,
+            isRead: true,
+        });
+
+        // Push real-time event to connected UI clients
+        sse.sendEventToUser(userId, 'inbox_update', inboxMsg);
 
         return { success: true, trackingId, messageId: result.messageId };
     } catch (error) {
