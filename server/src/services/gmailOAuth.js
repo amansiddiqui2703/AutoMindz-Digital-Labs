@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { google } from 'googleapis';
 import env from '../config/env.js';
 import { signState } from '../utils/crypto.js';
@@ -100,12 +101,14 @@ export const sendViaOAuth = async (account, { to, subject, htmlBody, plainBody, 
     // Build the raw MIME email
     const fromHeader = displayName ? `"${displayName}" <${account.email}>` : account.email;
     const boundary = `boundary_${Date.now()}`;
+    const customMessageId = `<${uuidv4()}@automindz.local>`;
 
     let mimeHeaders = [
         `From: ${fromHeader}`,
         `To: ${to}`,
         `Subject: ${subject}`,
         `MIME-Version: 1.0`,
+        `Message-ID: ${customMessageId}`,
     ];
     if (cc) mimeHeaders.push(`Cc: ${cc}`);
     if (bcc) mimeHeaders.push(`Bcc: ${bcc}`);
@@ -139,7 +142,7 @@ export const sendViaOAuth = async (account, { to, subject, htmlBody, plainBody, 
         requestBody: { raw: encodedMessage },
     });
 
-    return { success: true, messageId: result.data.id };
+    return { success: true, messageId: customMessageId };
 };
 
 /**
@@ -153,20 +156,21 @@ export const replyViaOAuth = async (account, { to, originalSubject, htmlBody, pl
     let inReplyTo = null;
     const cleanSubject = originalSubject.replace(/^Re:\s*/i, '');
 
-    // 1. If we have the exact messageId of the previous email, fetch it directly
+    // 1. If we have the exact messageId of the previous email, we can use it directly
     if (previousMessageId) {
+        inReplyTo = previousMessageId;
         try {
-            const msg = await gmail.users.messages.get({
+            // Still try to get threadId if possible, but threading headers are primary
+            const msg = await gmail.users.messages.list({
                 userId: 'me',
-                id: previousMessageId,
-                format: 'metadata',
-                metadataHeaders: ['Message-ID'],
+                q: `rfc822msgid:${previousMessageId}`,
+                maxResults: 1,
             });
-            threadId = msg.data.threadId;
-            const msgIdHeader = msg.data.payload?.headers?.find(h => h.name === 'Message-ID');
-            if (msgIdHeader) inReplyTo = msgIdHeader.value;
+            if (msg.data.messages?.length > 0) {
+                threadId = msg.data.messages[0].threadId;
+            }
         } catch (err) {
-            console.warn(`Could not find previous message by ID ${previousMessageId}:`, err.message);
+            console.warn(`Could not find threadId by RFC Message-ID ${previousMessageId}:`, err.message);
         }
     }
 
@@ -200,11 +204,14 @@ export const replyViaOAuth = async (account, { to, originalSubject, htmlBody, pl
     const boundary = `boundary_${Date.now()}`;
     const replySubject = `Re: ${cleanSubject}`;
 
+    const customMessageId = `<${uuidv4()}@automindz.local>`;
+
     let mimeHeaders = [
         `From: ${fromHeader}`,
         `To: ${to}`,
         `Subject: ${replySubject}`,
         `MIME-Version: 1.0`,
+        `Message-ID: ${customMessageId}`,
         `Content-Type: multipart/alternative; boundary="${boundary}"`,
     ];
     if (inReplyTo) {
@@ -241,5 +248,5 @@ export const replyViaOAuth = async (account, { to, originalSubject, htmlBody, pl
         requestBody: sendPayload,
     });
 
-    return { success: true, messageId: result.data.id, threaded: !!threadId };
+    return { success: true, messageId: customMessageId, threaded: !!inReplyTo };
 };

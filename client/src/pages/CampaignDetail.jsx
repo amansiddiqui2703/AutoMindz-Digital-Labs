@@ -240,7 +240,9 @@ export default function CampaignDetail() {
     const handleSchedule = async () => {
         if (!scheduledAt) return toast.error('Please select a date and time');
         try {
-            await api.post(`/campaigns/${id}/schedule`, { scheduledAt });
+            // Convert to absolute UTC before passing to backend
+            const utcDateStr = new Date(scheduledAt).toISOString();
+            await api.post(`/campaigns/${id}/schedule`, { scheduledAt: utcDateStr });
             toast.success('Campaign scheduled!');
             fetchCampaign();
         } catch (e) {
