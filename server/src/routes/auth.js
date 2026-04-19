@@ -7,7 +7,7 @@ import User from '../models/User.js';
 import auth from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimit.js';
 import env from '../config/env.js';
-import { sendAuthEmail } from '../services/mailer.js';
+import { sendAuthEmail, sendWelcomeEmail } from '../services/mailer.js';
 
 const router = Router();
 
@@ -111,6 +111,9 @@ router.post('/verify/:token', async (req, res) => {
         user.isVerified = true;
         user.verificationToken = undefined;
         await user.save();
+
+        // Send Welcome email when successfully verified for the first time
+        await sendWelcomeEmail(user.email, user.name);
 
         res.json({ success: true, message: 'Email verified successfully' });
     } catch (err) {
@@ -247,6 +250,9 @@ router.get('/google/callback', async (req, res) => {
                 role,
             });
             await user.save();
+            
+            // Send welcome email because this is a brand new Google registration
+            await sendWelcomeEmail(user.email, user.name);
         }
 
         // Generate JWT
