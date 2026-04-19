@@ -8,7 +8,19 @@ import planLimits from '../middleware/planLimits.js';
 import { PLAN_LIMITS } from '../middleware/planLimits.js';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+// BUG FIX [BUG-7]: Add file type validation for CSV uploads
+const upload = multer({ 
+  storage: multer.memoryStorage(), 
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const isCsv = file.mimetype === 'text/csv' || file.originalname.toLowerCase().endsWith('.csv');
+    if (isCsv) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV files are allowed'), false);
+    }
+  }
+});
 
 // Search single domain
 router.post('/search', auth, async (req, res) => {

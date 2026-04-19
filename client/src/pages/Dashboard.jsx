@@ -48,15 +48,28 @@ export default function Dashboard() {
         
         const token = localStorage.getItem('token');
         if (!token) return;
-        const url = import.meta.env.DEV ? `http://localhost:5000/api/events?token=${token}` : `/api/events?token=${token}`;
-        const source = new EventSource(url);
+
+        let source;
+        const connectSSE = async () => {
+            try {
+                const { data } = await api.post('/events/ticket');
+                const url = import.meta.env.DEV ? `http://localhost:5000/api/events?ticket=${data.ticket}` : `/api/events?ticket=${data.ticket}`;
+                source = new EventSource(url);
+                
+                source.addEventListener('analytics_update', () => {
+                     // Silently hot reload data
+                     api.get('/analytics/dashboard').then(r => setData(r.data)).catch(() => {});
+                });
+            } catch (err) {
+                console.error("SSE connection failed:", err);
+            }
+        };
+
+        connectSSE();
         
-        source.addEventListener('analytics_update', () => {
-             // Silently hot reload data
-             api.get('/analytics/dashboard').then(r => setData(r.data)).catch(() => {});
-        });
-        
-        return () => source.close();
+        return () => {
+            if (source) source.close();
+        };
     }, []);
 
     if (loading) {

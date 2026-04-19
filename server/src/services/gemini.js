@@ -21,9 +21,13 @@ const callGemini = async (prompt) => {
         throw new Error('Gemini API key not configured');
     }
 
-    const response = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {
+    // SECURITY FIX [MEDIUM-4]: Move API key to headers to avoid URL leakage
+    const response = await fetch(GEMINI_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'x-goog-api-key': env.GEMINI_API_KEY 
+        },
         body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {

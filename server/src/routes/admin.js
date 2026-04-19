@@ -39,17 +39,19 @@ router.get('/stats', async (req, res) => {
 router.get('/users', async (req, res) => {
     try {
         const { page = 1, limit = 50 } = req.query;
-        const skip = (parseInt(page) - 1) * parseInt(limit);
+        // SECURITY FIX [LOW-1]: Bound query parameters for limits
+        const safeLimit = Math.min(parseInt(limit) || 50, 100);
+        const skip = (parseInt(page) - 1) * safeLimit;
 
         const users = await User.find({})
             .select('-password -__v -verificationToken -resetPasswordToken -resetPasswordExpires')
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(parseInt(limit));
+            .limit(safeLimit);
 
         const total = await User.countDocuments();
 
-        res.json({ success: true, users, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
+        res.json({ success: true, users, total, page: parseInt(page), pages: Math.ceil(total / safeLimit) });
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch users' });
     }

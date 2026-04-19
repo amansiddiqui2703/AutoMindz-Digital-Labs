@@ -1,7 +1,9 @@
 import CryptoJS from 'crypto-js';
 import env from '../config/env.js';
 
-const key = env.ENCRYPTION_KEY || 'default-dev-key-change-in-production';
+const key = env.ENCRYPTION_KEY;
+// SECURITY FIX [MEDIUM-1]: Throw error if ENCRYPTION_KEY is missing
+if (!key) throw new Error('ENCRYPTION_KEY not configured');
 
 // --- AES-256 Encryption for tokens at rest ---
 

@@ -34,15 +34,15 @@ const env = {
     SENTRY_DSN: process.env.SENTRY_DSN || '',
 };
 
-// BUG-20: Enforce required secrets in production
+// SECURITY FIX [MEDIUM-1]: Enforce required secrets in production with hard exits
 if (env.NODE_ENV === 'production') {
     if (!env.JWT_SECRET || env.JWT_SECRET === 'dev-secret-change-me') {
-        console.error('⛔ CRITICAL: JWT_SECRET must be set to a secure value in production!');
-        console.error('   Set it in your Render/hosting environment variables.');
+        console.error('⛔ FATAL: JWT_SECRET not set or using insecure default in production!');
+        process.exit(1);
     }
     if (!env.ENCRYPTION_KEY) {
-        console.error('⛔ CRITICAL: ENCRYPTION_KEY must be set in production!');
-        console.error('   Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+        console.error('⛔ FATAL: ENCRYPTION_KEY not set in production!');
+        process.exit(1);
     }
 }
 

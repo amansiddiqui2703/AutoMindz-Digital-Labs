@@ -26,17 +26,34 @@ const gatherUserData = async (userId) => {
     ]);
 
     // --- Tracking events (opens, clicks, replies) ---
-    const userLogs = await EmailLog.find({ userId }).select('trackingId').lean();
-    const trackingIds = userLogs.map(l => l.trackingId).filter(Boolean);
+    // BUG FIX [BUG-1]: Use aggregation to avoid OOM when mapping thousands of tracking IDs
+    const trackingAgg = await TrackingEvent.aggregate([
+        {
+            $lookup: {
+                from: 'emaillogs',
+                localField: 'trackingId',
+                foreignField: 'trackingId',
+                as: 'emailLog'
+            }
+        },
+        { $unwind: '$emailLog' },
+        { $match: { 'emailLog.userId': userId } },
+        {
+            $group: {
+                _id: '$type',
+                count: { $sum: 1 }
+            }
+        }
+    ]);
 
-    let totalOpened = 0, totalClicked = 0, totalReplied = 0;
-    if (trackingIds.length > 0) {
-        [totalOpened, totalClicked, totalReplied] = await Promise.all([
-            TrackingEvent.countDocuments({ trackingId: { $in: trackingIds }, type: 'open' }),
-            TrackingEvent.countDocuments({ trackingId: { $in: trackingIds }, type: 'click' }),
-            TrackingEvent.countDocuments({ trackingId: { $in: trackingIds }, type: 'reply' }),
-        ]);
-    }
+    const trackingCounts = trackingAgg.reduce((acc, curr) => {
+        if (curr._id === 'open') acc.totalOpened = curr.count;
+        if (curr._id === 'click') acc.totalClicked = curr.count;
+        if (curr._id === 'reply') acc.totalReplied = curr.count;
+        return acc;
+    }, { totalOpened: 0, totalClicked: 0, totalReplied: 0 });
+
+    const { totalOpened, totalClicked, totalReplied } = trackingCounts;
 
     // --- Campaigns ---
     const [totalCampaigns, activeCampaigns] = await Promise.all([
@@ -59,15 +76,30 @@ const gatherUserData = async (userId) => {
     }
 
     // --- Recent replies (last 5) ---
-    let recentReplies = [];
-    if (trackingIds.length > 0) {
-        const replyEvents = await TrackingEvent.find({ trackingId: { $in: trackingIds }, type: 'reply' })
-            .sort({ createdAt: -1 }).limit(5).lean();
-        for (const re of replyEvents) {
-            const log = await EmailLog.findOne({ trackingId: re.trackingId }).select('to subject').lean();
-            if (log) recentReplies.push({ email: log.to, subject: log.subject, date: re.createdAt });
+    // BUG FIX [BUG-1]: Use aggregation for recent replies
+    const recentReplies = await TrackingEvent.aggregate([
+        { $match: { type: 'reply' } },
+        {
+            $lookup: {
+                from: 'emaillogs',
+                localField: 'trackingId',
+                foreignField: 'trackingId',
+                as: 'emailLog'
+            }
+        },
+        { $unwind: '$emailLog' },
+        { $match: { 'emailLog.userId': userId } },
+        { $sort: { createdAt: -1 } },
+        { $limit: 5 },
+        {
+            $project: {
+                email: '$emailLog.to',
+                subject: '$emailLog.subject',
+                date: '$createdAt',
+                _id: 0
+            }
         }
-    }
+    ]);
 
     // --- Rates ---
     const openRate = totalSent > 0 ? ((totalOpened / totalSent) * 100).toFixed(1) : '0';
@@ -122,9 +154,13 @@ ${JSON.stringify(data, null, 2)}
 ${String(question).replace(/[\r\n]+/g, ' ').replace(/[\x00-\x1f\x7f]/g, '').trim().slice(0, 2000)}`;
 
     // 3. Call Gemini
-    const response = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {
+    // SECURITY FIX [MEDIUM-4]: Move API key to headers
+    const response = await fetch(GEMINI_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'x-goog-api-key': env.GEMINI_API_KEY
+        },
         body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {

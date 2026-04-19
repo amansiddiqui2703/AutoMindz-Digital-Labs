@@ -32,6 +32,9 @@ export async function handleStripeWebhook(req, res) {
                         planExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
                     });
                     console.log(`✅ User ${userId} upgraded to ${plan}`);
+                } else {
+                    // BUG FIX [BUG-3]: Log silent skips
+                    console.error('Stripe webhook: missing userId or plan in checkout metadata', { sessionId: session.id });
                 }
                 break;
             }
@@ -48,6 +51,9 @@ export async function handleStripeWebhook(req, res) {
                             plan: plan || 'starter',
                             planExpiresAt: new Date(sub.current_period_end * 1000),
                         });
+                    } else {
+                        // BUG FIX [BUG-3]: Log silent skips
+                        console.error('Stripe webhook: missing userId in subscription metadata for invoice.paid', { subId });
                     }
                 }
                 break;

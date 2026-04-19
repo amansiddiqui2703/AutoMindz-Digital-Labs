@@ -121,6 +121,20 @@ const categorizeEmails = (emailsSet, rootDomain) => {
 };
 
 const fetchPage = async (url) => {
+    // SECURITY FIX [CRITICAL-3]: Block SSRF by preventing internal IP access
+    try {
+        const urlObj = new URL(url);
+        const hostname = urlObj.hostname;
+        const privateIpRegex = /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|::1|0\.0\.0\.0)/i;
+        
+        if (privateIpRegex.test(hostname)) {
+            console.warn(`SSRF Blocked: ${hostname}`);
+            return { error: 'Invalid domain', status: 400 };
+        }
+    } catch {
+        return { error: 'Invalid URL', status: 400 };
+    }
+
     try {
         const response = await axios.get(url, {
             timeout: REQUEST_TIMEOUT,
@@ -130,7 +144,7 @@ const fetchPage = async (url) => {
         });
         return { data: typeof response.data === 'string' ? response.data : '', status: response.status };
     } catch (err) {
-        // Fallback to HTTP on SSL error
+        // Fallback to HTTP on SSL error (Note: rejectUnauthorized: false REMOVED for security)
         if (err.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' || err.code === 'CERT_HAS_EXPIRED' || err.message.includes('SSL')) {
             if (url.startsWith('https://')) {
                 const httpUrl = url.replace('https://', 'http://');
@@ -139,7 +153,6 @@ const fetchPage = async (url) => {
                         timeout: REQUEST_TIMEOUT,
                         headers: HEADERS,
                         maxRedirects: 3,
-                        httpsAgent: new https.Agent({ rejectUnauthorized: false }),
                         validateStatus: (status) => status < 400 || status === 403 || status === 404 || status === 500,
                     });
                     return { data: typeof fallbackRes.data === 'string' ? fallbackRes.data : '', status: fallbackRes.status };

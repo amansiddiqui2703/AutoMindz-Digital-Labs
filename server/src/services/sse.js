@@ -10,6 +10,20 @@ class SSEManager extends EventEmitter {
         this.on('broadcast', ({ userId, event, payload }) => {
             this.sendEventToUser(userId, event, payload);
         });
+
+        // BUG FIX [BUG-5]: Prevent connection leakage with heartbeat
+        setInterval(() => {
+            for (const [userId, clients] of this.userClients.entries()) {
+                for (const res of clients) {
+                    try {
+                        res.write(': heartbeat\n\n');
+                    } catch (err) {
+                        clients.delete(res);
+                        if (clients.size === 0) this.userClients.delete(userId);
+                    }
+                }
+            }
+        }, 30000);
     }
 
     addClient(userId, res) {

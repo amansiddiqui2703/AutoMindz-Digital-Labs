@@ -5,6 +5,7 @@ import EmailLog from '../models/EmailLog.js';
 import TrackingEvent from '../models/TrackingEvent.js';
 import Contact from '../models/Contact.js';
 import { enqueueCampaign, pauseQueue, resumeQueue, getQueueStats } from '../services/queue.js';
+import { isValidEmail } from '../utils/validators.js'; // BUG FIX [BUG-6]: import validator
 
 const router = Router();
 
@@ -64,6 +65,15 @@ router.post('/', auth, async (req, res) => {
         const data = pickFields(req.body, CAMPAIGN_FIELDS);
         if (data.name && data.name.length > 200) return res.status(400).json({ error: 'Campaign name too long (max 200)' });
         if (data.subject && data.subject.length > 500) return res.status(400).json({ error: 'Subject too long (max 500)' });
+        
+        // BUG FIX [BUG-6]: Validate recipients on create
+        if (data.recipients && Array.isArray(data.recipients)) {
+            const invalidEmails = data.recipients.filter(r => r.email && !isValidEmail(r.email));
+            if (invalidEmails.length > 0) {
+                return res.status(400).json({ error: `Invalid email(s): ${invalidEmails.map(r => r.email).join(', ')}` });
+            }
+        }
+
         const campaign = new Campaign({ ...data, userId: req.user.id });
         await campaign.save();
         res.status(201).json({ campaign });
@@ -82,6 +92,15 @@ router.put('/:id', auth, async (req, res) => {
         const data = pickFields(req.body, CAMPAIGN_FIELDS);
         if (data.name && data.name.length > 200) return res.status(400).json({ error: 'Campaign name too long (max 200)' });
         if (data.subject && data.subject.length > 500) return res.status(400).json({ error: 'Subject too long (max 500)' });
+
+        // BUG FIX [BUG-6]: Validate recipients on update
+        if (data.recipients && Array.isArray(data.recipients)) {
+            const invalidEmails = data.recipients.filter(r => r.email && !isValidEmail(r.email));
+            if (invalidEmails.length > 0) {
+                return res.status(400).json({ error: `Invalid email(s): ${invalidEmails.map(r => r.email).join(', ')}` });
+            }
+        }
+
         Object.assign(campaign, data);
 
         // Keep stats.total in sync with actual recipients count

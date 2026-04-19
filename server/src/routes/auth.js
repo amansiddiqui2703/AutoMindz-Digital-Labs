@@ -8,6 +8,7 @@ import auth from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimit.js';
 import env from '../config/env.js';
 import { sendAuthEmail, sendWelcomeEmail } from '../services/mailer.js';
+import { getRedis } from '../config/redis.js';
 
 const router = Router();
 
@@ -88,7 +89,10 @@ router.post('/login', authLimiter, [
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        // Optional: Block login if unverified (for urgent requirement, often it's warned not fully blocked but we leave warning via UI for now)
+        // SECURITY FIX [HIGH-1]: Block login if unverified
+        if (!user.isVerified) {
+            return res.status(403).json({ error: 'Please verify your email before logging in.' });
+        }
 
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
@@ -184,15 +188,24 @@ router.get('/me', auth, async (req, res) => {
 // ─── Google OAuth Login ──────────────────────────────────────────────
 
 // Step 1: Generate Google OAuth URL for login
-router.get('/google/url', (req, res) => {
+router.get('/google/url', async (req, res) => {
     try {
         if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
             return res.status(500).json({ error: 'Google OAuth not configured' });
         }
+        
+        // SECURITY FIX [HIGH-2]: Prevent CSRF with state parameter
+        const state = crypto.randomBytes(16).toString('hex');
+        const redis = getRedis();
+        if (redis) {
+            await redis.set(`oauth_state:${state}`, '1', 'EX', 300);
+        }
+
         const oauth2Client = createLoginOAuth2Client();
         const url = oauth2Client.generateAuthUrl({
             access_type: 'offline',
             prompt: 'consent',
+            state, // SECURITY FIX [HIGH-2]
             scope: [
                 'https://www.googleapis.com/auth/userinfo.email',
                 'https://www.googleapis.com/auth/userinfo.profile',
@@ -208,8 +221,19 @@ router.get('/google/url', (req, res) => {
 // Step 2: Google OAuth callback — find/create user and redirect to frontend
 router.get('/google/callback', async (req, res) => {
     try {
-        const { code } = req.query;
+        const { code, state } = req.query;
         if (!code) return res.redirect(`${env.APP_URL}/login?error=missing_code`);
+
+        // SECURITY FIX [HIGH-2]: Validate state parameter
+        const redis = getRedis();
+        if (redis) {
+            const valid = await redis.get(`oauth_state:${state}`);
+            if (!valid) {
+                console.warn('Invalid OAuth state received');
+                return res.redirect(`${env.APP_URL}/login?error=invalid_state`);
+            }
+            await redis.del(`oauth_state:${state}`);
+        }
 
         const oauth2Client = createLoginOAuth2Client();
         const { tokens } = await oauth2Client.getToken(code);
@@ -262,11 +286,37 @@ router.get('/google/callback', async (req, res) => {
             { expiresIn: env.JWT_EXPIRES_IN }
         );
 
-        // Redirect to frontend with token
-        res.redirect(`${env.APP_URL}/auth/google/success?token=${token}`);
+        // SECURITY FIX [CRITICAL-2]: One-time code exchange instead of token in URL
+        const authCode = crypto.randomBytes(32).toString('hex');
+        if (redis) {
+            await redis.set(`google_auth_code:${authCode}`, token, 'EX', 30);
+            res.redirect(`${env.APP_URL}/auth/google/success?code=${authCode}`);
+        } else {
+            // Fallback if Redis is down (less secure but keeps app working)
+            res.redirect(`${env.APP_URL}/auth/google/success?token=${token}`);
+        }
     } catch (error) {
         console.error('Google callback error:', error);
         res.redirect(`${env.APP_URL}/login?error=google_auth_failed`);
+    }
+});
+
+// Step 3: Exchange short-lived code for JWT
+router.get('/google/token', async (req, res) => {
+    try {
+        const { code } = req.query;
+        if (!code) return res.status(400).json({ error: 'Code is required' });
+
+        const redis = getRedis();
+        if (!redis) return res.status(503).json({ error: 'Service Unavailable' });
+
+        const token = await redis.get(`google_auth_code:${code}`);
+        if (!token) return res.status(401).json({ error: 'Invalid or expired code' });
+
+        await redis.del(`google_auth_code:${code}`);
+        res.json({ token });
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 

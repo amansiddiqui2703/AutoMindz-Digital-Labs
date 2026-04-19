@@ -51,29 +51,42 @@ export default function InboxPage() {
 
         const token = localStorage.getItem('token');
         if (!token) return;
-        const url = import.meta.env.DEV ? `http://localhost:5000/api/events?token=${token}` : `/api/events?token=${token}`;
-        const source = new EventSource(url);
 
-        source.addEventListener('inbox_update', (e) => {
+        let source;
+        const connectSSE = async () => {
             try {
-                const newMsg = JSON.parse(e.data);
-                // Prepend dynamically
-                setMessages(prev => {
-                    const exists = prev.find(p => p._id === newMsg._id);
-                    if (exists) return prev;
-                    // Auto open into thread if it currently is selected
-                    setThread(t => {
-                        if (t && t.length > 0 && t[0].gmailThreadId === newMsg.gmailThreadId) {
-                            return [...t, newMsg];
-                        }
-                        return t;
-                    });
-                    return [newMsg, ...prev];
-                });
-            } catch (err) { }
-        });
+                const { data } = await api.post('/events/ticket');
+                const url = import.meta.env.DEV ? `http://localhost:5000/api/events?ticket=${data.ticket}` : `/api/events?ticket=${data.ticket}`;
+                source = new EventSource(url);
 
-        return () => source.close();
+                source.addEventListener('inbox_update', (e) => {
+                    try {
+                        const newMsg = JSON.parse(e.data);
+                        // Prepend dynamically
+                        setMessages(prev => {
+                            const exists = prev.find(p => p._id === newMsg._id);
+                            if (exists) return prev;
+                            // Auto open into thread if it currently is selected
+                            setThread(t => {
+                                if (t && t.length > 0 && t[0].gmailThreadId === newMsg.gmailThreadId) {
+                                    return [...t, newMsg];
+                                }
+                                return t;
+                            });
+                            return [newMsg, ...prev];
+                        });
+                    } catch (err) { }
+                });
+            } catch (err) {
+                console.error("SSE connection failed:", err);
+            }
+        };
+
+        connectSSE();
+
+        return () => {
+            if (source) source.close();
+        };
     }, [filter, search]);
 
     const fetchMessages = async () => {

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import fs from 'fs';
@@ -11,9 +12,10 @@ import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 import env from './config/env.js';
 import connectDB from './config/db.js';
-import { connectRedis } from './config/redis.js';
+import { connectRedis, getRedis } from './config/redis.js';
 import { initQueue } from './services/queue.js';
-import { apiLimiter } from './middleware/rateLimit.js';
+import { apiLimiter, authLimiter } from './middleware/rateLimit.js';
+import auth from './middleware/auth.js';
 import { startFollowUpScheduler } from './services/followUpScheduler.js';
 import { startCampaignScheduler } from './services/campaignScheduler.js';
 
@@ -66,13 +68,17 @@ Sentry.init({
 app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
 // Middleware
+app.use((req, res, next) => {
+    res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
+    next();
+});
 app.use(cors({ origin: env.APP_URL, credentials: true }));
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],   // inline script on unsubscribe page
+      scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],   // CSP nonce for inline script
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
@@ -90,15 +96,31 @@ app.use('/api/', apiLimiter);
 // -------------------------------------------------------------
 // Real-Time Event Stream (Server-Sent Events)
 // -------------------------------------------------------------
-app.get('/api/events', (req, res) => {
-    // Note: EventSource in browser cannot reliably send Authorization header across all browsers
-    // so we pass token in URL string e.g. /api/events?token=x
-    const token = req.query.token;
-    if (!token) return res.status(401).json({ error: 'Auth token missing' });
+app.post('/api/events/ticket', auth, async (req, res) => {
+    try {
+        const ticket = crypto.randomBytes(32).toString('hex');
+        const redis = getRedis();
+        if (!redis) return res.status(503).json({ error: 'Redis is not available for SSE ticket.' });
+        await redis.set(`sse_ticket:${ticket}`, req.user.id, 'EX', 30);
+        res.json({ ticket });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to generate SSE ticket' });
+    }
+});
+
+app.get('/api/events', async (req, res) => {
+    const ticket = req.query.ticket;
+    if (!ticket) return res.status(401).json({ error: 'Auth ticket missing' });
 
     try {
-        const decoded = jwt.verify(token, env.JWT_SECRET);
-        const userId = decoded.id;
+        const redis = getRedis();
+        if (!redis) return res.status(503).json({ error: 'Redis is not available.' });
+        
+        const userId = await redis.get(`sse_ticket:${ticket}`);
+        if (!userId) return res.status(401).json({ error: 'Invalid or expired ticket' });
+        
+        // Delete ticket so it is one-time use
+        await redis.del(`sse_ticket:${ticket}`);
 
         // Establish SSE Connection Context
         res.setHeader('Content-Type', 'text/event-stream');
@@ -168,7 +190,7 @@ app.get('/unsubscribe/:trackingId', async (req, res) => {
         <p>Click below to unsubscribe from future emails.</p>
         <button class="btn" onclick="doUnsubscribe()">Unsubscribe</button>
       </div>
-      <script>
+      <script nonce="${res.locals.cspNonce}">
         async function doUnsubscribe() {
           try {
             await fetch('/unsubscribe/${req.params.trackingId}', { method: 'POST' });
@@ -181,7 +203,7 @@ app.get('/unsubscribe/:trackingId', async (req, res) => {
   `);
 });
 
-app.post('/unsubscribe/:trackingId', async (req, res) => {
+app.post('/unsubscribe/:trackingId', authLimiter, async (req, res) => {
   try {
     await recordUnsubscribe(req.params.trackingId);
     res.json({ ok: true });
@@ -211,6 +233,9 @@ Sentry.setupExpressErrorHandler(app);
 
 // Start server
 const start = async () => {
+  process.on('unhandledRejection', (reason) => { console.error('Unhandled Rejection:', reason); });
+  process.on('uncaughtException', (err) => { console.error('Uncaught Exception:', err); process.exit(1); });
+
   await connectDB();
   const redisConn = connectRedis();
   

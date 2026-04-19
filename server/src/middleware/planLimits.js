@@ -33,7 +33,8 @@ const planLimits = async (req, res, next) => {
         next();
     } catch (error) {
         console.error('Plan limits middleware error:', error);
-        next();
+        // SECURITY FIX [HIGH-3]: Do not bypass plan limits on DB error
+        return res.status(503).json({ error: 'Service temporarily unavailable. Please try again.' });
     }
 };
 

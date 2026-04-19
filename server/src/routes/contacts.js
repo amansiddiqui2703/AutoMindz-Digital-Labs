@@ -9,7 +9,19 @@ import planLimits from '../middleware/planLimits.js';
 import { parseCSV, deduplicateByEmail } from '../utils/csv.js';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+// BUG FIX [BUG-7]: Add file type validation for CSV uploads
+const upload = multer({ 
+  storage: multer.memoryStorage(), 
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const isCsv = file.mimetype === 'text/csv' || file.originalname.toLowerCase().endsWith('.csv');
+    if (isCsv) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV files are allowed'), false);
+    }
+  }
+});
 
 // List contacts
 router.get('/', auth, async (req, res) => {
@@ -36,14 +48,19 @@ router.get('/', auth, async (req, res) => {
             if (endDate) filter.createdAt.$lte = new Date(endDate);
         }
 
+        // BUG FIX [BUG-2/8]: Parse and cap pagination parameters
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const limitNum = Math.min(Math.max(1, parseInt(limit) || 50), 200);
+        const skip = (pageNum - 1) * limitNum;
+
         const contacts = await Contact.find(filter)
             .sort({ createdAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit));
+            .skip(skip)
+            .limit(limitNum);
 
         const total = await Contact.countDocuments(filter);
 
-        res.json({ contacts, total, page: parseInt(page), pages: Math.ceil(total / limit) });
+        res.json({ contacts, total, page: pageNum, pages: Math.ceil(total / limitNum) });
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch contacts' });
     }
