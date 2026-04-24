@@ -95,6 +95,8 @@ export const sendEmail = async (account, { to, subject, htmlBody, plainBody, con
         emailLog.status = 'sent';
         emailLog.sentAt = new Date();
         emailLog.messageId = result.messageId;
+        if (result.gmailMessageId) emailLog.gmailMessageId = result.gmailMessageId;
+        if (result.gmailThreadId) emailLog.gmailThreadId = result.gmailThreadId;
         await emailLog.save();
 
         // Update account stats

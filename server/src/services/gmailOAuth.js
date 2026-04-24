@@ -69,20 +69,30 @@ export const getAuthenticatedClient = async (account) => {
     const bufferMs = 5 * 60 * 1000;
     const isExpired = account.tokenExpiresAt && new Date(account.tokenExpiresAt).getTime() - bufferMs < Date.now();
     
-    if (isExpired && account.refreshToken) {
+    if (isExpired) {
+        if (!account.refreshToken) {
+            console.error(`✗ No refresh token available for ${account.email}`);
+            account.health = 'critical';
+            account.isActive = false;
+            await account.save();
+            throw new Error(`Gmail token expired and cannot be refreshed. Please reconnect your Gmail account (${account.email})`);
+        }
+        
         try {
             console.log(`🔄 Refreshing OAuth token for ${account.email}...`);
             const { credentials } = await oauth2Client.refreshAccessToken();
             account.accessToken = credentials.access_token;
             if (credentials.refresh_token) account.refreshToken = credentials.refresh_token;
             account.tokenExpiresAt = new Date(credentials.expiry_date);
+            account.health = 'good'; // Reset health status after successful refresh
             await account.save();
             oauth2Client.setCredentials(credentials);
             console.log(`✓ Token refreshed for ${account.email}`);
         } catch (refreshError) {
             console.error(`✗ Token refresh failed for ${account.email}:`, refreshError.message);
-            // Mark account health as warning so user knows to reconnect
-            account.health = 'warning';
+            // Mark account as critical so user knows to reconnect
+            account.health = 'critical';
+            account.isActive = false;
             await account.save();
             throw new Error(`Gmail token expired. Please reconnect your Gmail account (${account.email}): ${refreshError.message}`);
         }
@@ -142,25 +152,34 @@ export const sendViaOAuth = async (account, { to, subject, htmlBody, plainBody, 
         requestBody: { raw: encodedMessage },
     });
 
-    return { success: true, messageId: customMessageId };
+    return { 
+        success: true, 
+        messageId: customMessageId,
+        gmailMessageId: result.data.id,
+        gmailThreadId: result.data.threadId,
+    };
 };
 
 /**
  * Send a threaded reply via Gmail API using OAuth2.
  */
-export const replyViaOAuth = async (account, { to, originalSubject, htmlBody, plainBody, displayName, previousMessageId }) => {
+export const replyViaOAuth = async (account, { to, originalSubject, htmlBody, plainBody, displayName, previousMessageId, threadId: providedThreadId }) => {
     const oauth2Client = await getAuthenticatedClient(account);
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
-    let threadId = null;
+    let threadId = providedThreadId || null;
     let inReplyTo = null;
     const cleanSubject = originalSubject.replace(/^Re:\s*/i, '');
 
-    // 1. If we have the exact messageId of the previous email, we can use it directly
-    if (previousMessageId) {
+    // 1. If we have a direct threadId from previous email log, use it
+    if (providedThreadId) {
+        threadId = providedThreadId;
+        inReplyTo = previousMessageId; // Use the Gmail messageId for In-Reply-To header
+    }
+    // 2. If we have just the messageId, search for threadId
+    else if (previousMessageId) {
         inReplyTo = previousMessageId;
         try {
-            // Still try to get threadId if possible, but threading headers are primary
             const msg = await gmail.users.messages.list({
                 userId: 'me',
                 q: `rfc822msgid:${previousMessageId}`,
@@ -174,7 +193,7 @@ export const replyViaOAuth = async (account, { to, originalSubject, htmlBody, pl
         }
     }
 
-    // 2. Fallback: Search for the original thread by subject if previousMessageId failed/missing
+    // 3. Fallback: Search for the original thread by subject if threadId still not found
     if (!threadId) {
         try {
             const searchResult = await gmail.users.messages.list({
@@ -248,5 +267,10 @@ export const replyViaOAuth = async (account, { to, originalSubject, htmlBody, pl
         requestBody: sendPayload,
     });
 
-    return { success: true, messageId: customMessageId, threaded: !!inReplyTo };
+    return {
+        success: true,
+        messageId: customMessageId,
+        gmailMessageId: result.data.id,
+        gmailThreadId: result.data.threadId,
+    };
 };

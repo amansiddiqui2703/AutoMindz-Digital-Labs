@@ -27,6 +27,8 @@ const emailLogSchema = new mongoose.Schema({
     },
     trackingId: { type: String, unique: true },
     messageId: String,
+    gmailMessageId: String,
+    gmailThreadId: String,
     sentAt: Date,
     error: String,
     isFollowUp: { type: Boolean, default: false },

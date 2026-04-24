@@ -219,10 +219,11 @@ const processRecipientFollowUp = async (campaign, recipient) => {
             campaignId: campaign._id,
             to: recipient.email.toLowerCase(),
             status: 'sent',
-            messageId: { $ne: null }
+            gmailMessageId: { $ne: null }
         }).sort({ createdAt: -1 });
 
-        const previousMessageId = previousLog ? previousLog.messageId : null;
+        const previousMessageId = previousLog ? previousLog.gmailMessageId : null;
+        const threadId = previousLog ? previousLog.gmailThreadId : null;
 
         // 8. Send threaded reply via appropriate method
         let result;
@@ -233,6 +234,7 @@ const processRecipientFollowUp = async (campaign, recipient) => {
             plainBody,
             displayName: account.displayName || account.email,
             previousMessageId,
+            threadId,
         };
 
         if (account.connectionType === 'oauth') {
@@ -245,6 +247,8 @@ const processRecipientFollowUp = async (campaign, recipient) => {
         followUpLog.status = 'sent';
         followUpLog.sentAt = new Date();
         followUpLog.messageId = result.messageId;
+        if (result.gmailMessageId) followUpLog.gmailMessageId = result.gmailMessageId;
+        if (result.gmailThreadId) followUpLog.gmailThreadId = result.gmailThreadId;
         await followUpLog.save();
 
         // 10. Update account stats
