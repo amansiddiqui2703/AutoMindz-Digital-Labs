@@ -164,6 +164,13 @@ router.post('/verify/:token', async (req, res) => {
         user.verificationToken = undefined;
         await user.save();
 
+        // Send welcome email after successful verification
+        try {
+            await sendWelcomeEmail(user.email, user.name);
+        } catch (emailErr) {
+            console.warn('Welcome email failed (non-blocking):', emailErr.message);
+        }
+
         res.json({ success: true, message: 'Email verified successfully' });
     } catch (err) {
         res.status(500).json({ error: 'Verification failed' });
