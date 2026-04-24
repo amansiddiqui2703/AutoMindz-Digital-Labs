@@ -1,21 +1,13 @@
 import { Router } from 'express';
 import User from '../models/User.js';
 import auth from '../middleware/auth.js';
+import authorize from '../middleware/rbac.js';
 import { apiLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();
 
-// Middleware to check for Admin role
-const isAdmin = (req, res, next) => {
-    if (req.user && req.user.role === 'admin') {
-        next();
-    } else {
-        res.status(403).json({ error: 'Access denied: Requires admin privileges' });
-    }
-};
-
-// Apply auth and rate limiting to all admin routes
-router.use(auth, apiLimiter, isAdmin);
+// Apply auth, rate limiting, and admin-only access to all admin routes
+router.use(auth, apiLimiter, authorize('admin'));
 
 // Get summary admin stats
 router.get('/stats', async (req, res) => {

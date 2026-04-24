@@ -37,6 +37,9 @@ const env = {
     ADMIN_EMAILS: process.env.ADMIN_EMAILS || '',
     // Sentry
     SENTRY_DSN: process.env.SENTRY_DSN || '',
+    // Resend
+    RESEND_API_KEY: process.env.RESEND_API_KEY || '',
+    RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET || '',
 };
 
 // Validation schema for required variables

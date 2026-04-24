@@ -44,6 +44,7 @@ import inboxRoutes from './routes/inbox.js';
 import seoRoutes from './routes/seo.js';
 import sequenceRoutes from './routes/sequences.js';
 import { handleStripeWebhook } from './services/stripeWebhook.js';
+import { handleResendWebhook } from './services/webhookHandler.js';
 import sse from './services/sse.js';
 
 // Tracking & unsubscribe (public)
@@ -65,6 +66,9 @@ Sentry.init({
 
 // Stripe webhook needs raw body — must come BEFORE express.json()
 app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+
+// Resend webhook needs raw body for signature verification
+app.post('/api/webhooks/resend', express.raw({ type: 'application/json' }), handleResendWebhook);
 
 // Middleware
 app.use((req, res, next) => {

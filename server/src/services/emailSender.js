@@ -6,6 +6,7 @@ import EmailLog from '../models/EmailLog.js';
 import InboxMessage from '../models/InboxMessage.js';
 import sse from './sse.js';
 import env from '../config/env.js';
+import logger from '../utils/logger.js';
 
 const TRACKING_PIXEL = (trackingId) =>
     `<img src="${env.SERVER_URL}/t/${trackingId}/open" width="1" height="1" style="display:none" alt="" />`;
@@ -129,9 +130,9 @@ export const sendEmail = async (account, { to, subject, htmlBody, plainBody, con
 
         return { success: true, trackingId, messageId: result.messageId };
     } catch (error) {
-        console.error(`✗ Email send failed to ${to}:`, error.message);
+        logger.error(`Email send failed to ${to}`, error);
         if (error.response?.data) {
-            console.error('  Gmail API error details:', JSON.stringify(error.response.data));
+            logger.error('Gmail API error details:', null, error.response.data);
         }
         emailLog.status = 'failed';
         emailLog.error = error.message;

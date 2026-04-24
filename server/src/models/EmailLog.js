@@ -22,7 +22,7 @@ const emailLogSchema = new mongoose.Schema({
     subject: String,
     status: {
         type: String,
-        enum: ['queued', 'sent', 'failed', 'bounced'],
+        enum: ['queued', 'sent', 'delivered', 'failed', 'bounced'],
         default: 'queued',
     },
     trackingId: { type: String, unique: true },
@@ -39,6 +39,10 @@ const emailLogSchema = new mongoose.Schema({
 });
 
 emailLogSchema.index({ campaignId: 1, status: 1 });
+emailLogSchema.index({ userId: 1, status: 1 });
+emailLogSchema.index({ trackingId: 1 });
+emailLogSchema.index({ to: 1, campaignId: 1 });
+emailLogSchema.index({ messageId: 1 });
 
 const EmailLog = mongoose.model('EmailLog', emailLogSchema);
 

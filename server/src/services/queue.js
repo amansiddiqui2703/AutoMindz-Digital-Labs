@@ -4,6 +4,9 @@ import { sendEmail } from './emailSender.js';
 import { selectAccount } from './gmailScript.js';
 import Campaign from '../models/Campaign.js';
 import Suppression from '../models/Suppression.js';
+import EmailLog from '../models/EmailLog.js';
+import User from '../models/User.js';
+import logger from '../utils/logger.js';
 
 import { getRedis } from '../config/redis.js';
 
@@ -152,24 +155,96 @@ export const initQueue = () => {
     }
 };
 
+/**
+ * Generate a random delay between min and max seconds (in milliseconds).
+ */
+const randomDelay = (minSec = 30, maxSec = 120) => {
+    return (Math.floor(Math.random() * (maxSec - minSec + 1)) + minSec) * 1000;
+};
+
+/**
+ * Check if the current time is within the allowed sending window (8am-6pm)
+ * in the user's configured timezone.
+ */
+const isWithinSendingWindow = (timezone = 'UTC') => {
+    try {
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: timezone });
+        const hour = parseInt(formatter.format(now), 10);
+        return hour >= 8 && hour < 18; // 8am to 6pm
+    } catch {
+        return true; // If timezone is invalid, allow sending
+    }
+};
+
+/**
+ * Calculate milliseconds until the next 8am in the user's timezone.
+ */
+const msUntilNextSendingWindow = (timezone = 'UTC') => {
+    try {
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: timezone });
+        const currentHour = parseInt(formatter.format(now), 10);
+        
+        if (currentHour >= 18) {
+            // After 6pm — next window is tomorrow 8am (14 hours from 6pm)
+            return (24 - currentHour + 8) * 60 * 60 * 1000;
+        } else if (currentHour < 8) {
+            // Before 8am — next window is today 8am
+            return (8 - currentHour) * 60 * 60 * 1000;
+        }
+        return 0; // Already in window
+    } catch {
+        return 0;
+    }
+};
+
 export const enqueueCampaign = async (campaign) => {
-    const delay = (campaign.delay || 5) * 1000;
     const hasABTest = !!campaign.subjectB;
 
-    // Warmup mode: limit how many emails to send today
-    let maxToday = Infinity;
-    if (campaign.warmupMode && campaign.warmupDailyIncrease > 0) {
-        const daysSinceCreation = Math.max(1, Math.ceil((Date.now() - new Date(campaign.createdAt).getTime()) / (1000 * 60 * 60 * 24)));
-        maxToday = campaign.warmupDailyIncrease * daysSinceCreation;
+    // Get user timezone for time-window sending
+    let userTimezone = 'UTC';
+    try {
+        const user = await User.findById(campaign.userId).select('settings.timezone');
+        if (user?.settings?.timezone) userTimezone = user.settings.timezone;
+    } catch { /* use UTC */ }
+
+    // Time-window check: if outside sending hours, calculate base delay offset
+    let baseDelay = 0;
+    if (!isWithinSendingWindow(userTimezone)) {
+        baseDelay = msUntilNextSendingWindow(userTimezone);
+        logger.info(`⏰ Outside sending window — delaying campaign start by ${Math.round(baseDelay / 60000)} minutes`);
     }
 
+    // Warmup mode: limit how many emails to send today
+    let maxToday = campaign.dailyLimit || 200;
+    if (campaign.warmupMode && campaign.warmupDailyIncrease > 0) {
+        const daysSinceCreation = Math.max(1, Math.ceil((Date.now() - new Date(campaign.createdAt).getTime()) / (1000 * 60 * 60 * 24)));
+        maxToday = Math.min(maxToday, campaign.warmupDailyIncrease * daysSinceCreation);
+    }
+
+    // Build set of already-contacted emails to skip duplicates
+    const alreadyContacted = new Set();
+    const existingLogs = await EmailLog.find(
+        { campaignId: campaign._id, status: { $in: ['sent', 'queued'] } },
+        { to: 1 }
+    ).lean();
+    existingLogs.forEach(l => alreadyContacted.add(l.to.toLowerCase()));
+
     let enqueued = 0;
+    let cumulativeDelay = baseDelay;
     const inMemoryJobs = [];
     
     for (let i = 0; i < campaign.recipients.length; i++) {
         const recipient = campaign.recipients[i];
         if (recipient.status !== 'pending') continue;
         if (enqueued >= maxToday) break;
+
+        // Skip already-contacted leads (deduplication)
+        if (alreadyContacted.has(recipient.email.toLowerCase())) {
+            logger.info(`⏭ Skipping already-contacted: ${recipient.email}`);
+            continue;
+        }
 
         // A/B test: randomly pick subject B for ~50% of recipients
         const useVariantB = hasABTest && Math.random() < 0.5;
@@ -195,11 +270,19 @@ export const enqueueCampaign = async (campaign) => {
             abVariant: useVariantB ? 'B' : 'A',
         };
 
+        // Random delay between 30-120 seconds per email (more human-like)
+        const thisDelay = enqueued === 0 ? baseDelay : cumulativeDelay;
+        
         if (emailQueue) {
-            await emailQueue.add(jobData, { delay: enqueued * delay });
+            await emailQueue.add(jobData, { 
+                delay: thisDelay,
+                priority: 10, // Normal priority; follow-ups use priority 5 (higher)
+            });
         } else {
-            inMemoryJobs.push({ jobData, delayMs: enqueued * delay });
+            inMemoryJobs.push({ jobData, delayMs: thisDelay });
         }
+        
+        cumulativeDelay += randomDelay(30, 120);
         enqueued++;
     }
 

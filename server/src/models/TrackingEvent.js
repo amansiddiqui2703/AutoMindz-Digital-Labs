@@ -12,7 +12,7 @@ const trackingEventSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['open', 'click', 'reply', 'bounce', 'unsubscribe'],
+        enum: ['open', 'click', 'reply', 'bounce', 'unsubscribe', 'delivered', 'complained'],
         required: true,
     },
     url: String,
@@ -23,5 +23,8 @@ const trackingEventSchema = new mongoose.Schema({
 });
 
 const TrackingEvent = mongoose.model('TrackingEvent', trackingEventSchema);
+
+// Compound index for efficient event lookups
+trackingEventSchema.index({ trackingId: 1, type: 1 });
 
 export default TrackingEvent;
