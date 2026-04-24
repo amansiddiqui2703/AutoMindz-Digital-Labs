@@ -39,16 +39,50 @@ const env = {
     SENTRY_DSN: process.env.SENTRY_DSN || '',
 };
 
-// SECURITY FIX [MEDIUM-1]: Enforce required secrets in production with hard exits
-if (env.NODE_ENV === 'production') {
-    if (!env.JWT_SECRET || env.JWT_SECRET === 'dev-secret-change-me') {
-        console.error('⛔ FATAL: JWT_SECRET not set or using insecure default in production!');
+// Validation schema for required variables
+const REQUIRED_ENV_VARS = [
+    'MONGODB_URI',
+    'JWT_SECRET',
+    'ENCRYPTION_KEY',
+    'APP_URL',
+    'SERVER_URL'
+];
+
+// Additional requirements for production
+const PRODUCTION_REQUIRED = [
+    'RESEND_API_KEY',
+    'STRIPE_SECRET_KEY',
+    'STRIPE_WEBHOOK_SECRET'
+];
+
+const validateEnv = () => {
+    const missing = [];
+    
+    REQUIRED_ENV_VARS.forEach(key => {
+        if (!process.env[key]) missing.push(key);
+    });
+
+    if (env.NODE_ENV === 'production') {
+        PRODUCTION_REQUIRED.forEach(key => {
+            if (!process.env[key]) missing.push(key);
+        });
+
+        if (env.JWT_SECRET === 'dev-secret-change-me') {
+            console.error('⛔ FATAL: JWT_SECRET using insecure default in production!');
+            process.exit(1);
+        }
+    }
+
+    if (missing.length > 0) {
+        console.error('⛔ FATAL: Missing required environment variables:');
+        missing.forEach(key => console.error(`  - ${key}`));
         process.exit(1);
     }
-    if (!env.ENCRYPTION_KEY) {
-        console.error('⛔ FATAL: ENCRYPTION_KEY not set in production!');
-        process.exit(1);
-    }
+};
+
+// Only validate if not running in a script context that doesn't need full env
+if (process.env.NODE_ENV !== 'test') {
+    validateEnv();
 }
 
 export default env;

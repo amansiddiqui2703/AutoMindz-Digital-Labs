@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken';
 import env from '../config/env.js';
+import User from '../models/User.js';
 
-const auth = (req, res, next) => {
+const auth = async (req, res, next) => {
     try {
         const header = req.headers.authorization;
         if (!header || !header.startsWith('Bearer ')) {
@@ -9,11 +10,29 @@ const auth = (req, res, next) => {
         }
 
         const token = header.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ error: 'Null token provided' });
+        }
+
         const decoded = jwt.verify(token, env.JWT_SECRET);
-        req.user = decoded;
+        
+        // Optional: Check if user still exists in DB
+        const user = await User.findById(decoded.id).select('_id email role isVerified');
+        if (!user) {
+            return res.status(401).json({ error: 'User no longer exists' });
+        }
+
+        if (env.NODE_ENV === 'production' && !user.isVerified) {
+            // return res.status(403).json({ error: 'Email verification required' });
+        }
+
+        req.user = user;
         next();
     } catch (error) {
-        return res.status(401).json({ error: 'Invalid or expired token' });
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: 'Token expired' });
+        }
+        return res.status(401).json({ error: 'Invalid token' });
     }
 };
 

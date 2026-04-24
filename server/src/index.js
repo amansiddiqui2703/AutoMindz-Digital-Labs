@@ -44,7 +44,6 @@ import inboxRoutes from './routes/inbox.js';
 import seoRoutes from './routes/seo.js';
 import sequenceRoutes from './routes/sequences.js';
 import { handleStripeWebhook } from './services/stripeWebhook.js';
-import jwt from 'jsonwebtoken';
 import sse from './services/sse.js';
 
 // Tracking & unsubscribe (public)
@@ -171,47 +170,17 @@ app.use('/api/sequences', sequenceRoutes);
 // Tracking routes (public, no auth)
 app.use('/t', trackingRoutes);
 
-// Unsubscribe page (public)
-app.get('/unsubscribe/:trackingId', async (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head><title>Unsubscribe</title>
-    <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f9fafb; }
-      .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
-      .btn { background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 16px; }
-      .btn:hover { background: #2563eb; }
-      .success { color: #059669; }
-    </style>
-    </head>
-    <body>
-      <div class="card" id="content">
-        <h2>Unsubscribe</h2>
-        <p>Click below to unsubscribe from future emails.</p>
-        <button class="btn" onclick="doUnsubscribe()">Unsubscribe</button>
-      </div>
-      <script nonce="${res.locals.cspNonce}">
-        async function doUnsubscribe() {
-          try {
-            await fetch('/unsubscribe/${req.params.trackingId}', { method: 'POST' });
-            document.getElementById('content').innerHTML = '<h2 class="success">✓ Unsubscribed</h2><p>You have been successfully unsubscribed.</p>';
-          } catch { document.getElementById('content').innerHTML = '<h2>Error</h2><p>Please try again later.</p>'; }
-        }
-      </script>
-    </body>
-    </html>
-  `);
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.post('/unsubscribe/:trackingId', authLimiter, async (req, res) => {
-  try {
-    await recordUnsubscribe(req.params.trackingId);
-    res.json({ ok: true });
-  } catch (error) {
-    res.status(500).json({ error: 'Unsubscribe failed' });
-  }
-});
+// Sentry error handler should be established before other error handlers
+Sentry.setupExpressErrorHandler(app);
+
+// Global Error Handler
+import errorHandler from './middleware/errorHandler.js';
+app.use(errorHandler);
 
 // Serve frontend in production
 const distPath = resolve(__dirname, '../../client/dist');
@@ -223,14 +192,6 @@ if (fs.existsSync(distPath)) {
     }
   });
 }
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// Sentry error handler should be established before other error handlers
-Sentry.setupExpressErrorHandler(app);
 
 // Start server
 const start = async () => {

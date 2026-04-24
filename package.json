@@ -14,6 +14,6 @@
         "dev": "npx -y concurrently \"npm run dev:server\" \"npm run dev:client\""
     },
     "dependencies": {
-        "express": "^5.2.1"
+        "express": "^4.21.0"
     }
 }

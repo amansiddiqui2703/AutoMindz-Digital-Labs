@@ -61,4 +61,46 @@ router.post('/webhook/bounce', async (req, res) => {
     }
 });
 
+// Unsubscribe page (public)
+router.get('/unsubscribe/:trackingId', async (req, res) => {
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head><title>Unsubscribe</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f9fafb; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
+        .btn { background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 16px; }
+        .btn:hover { background: #2563eb; }
+        .success { color: #059669; }
+      </style>
+      </head>
+      <body>
+        <div class="card" id="content">
+          <h2>Unsubscribe</h2>
+          <p>Click below to unsubscribe from future emails.</p>
+          <button class="btn" onclick="doUnsubscribe()">Unsubscribe</button>
+        </div>
+        <script>
+          async function doUnsubscribe() {
+            try {
+              await fetch('/t/unsubscribe/${req.params.trackingId}', { method: 'POST' });
+              document.getElementById('content').innerHTML = '<h2 class="success">✓ Unsubscribed</h2><p>You have been successfully unsubscribed.</p>';
+            } catch { document.getElementById('content').innerHTML = '<h2>Error</h2><p>Please try again later.</p>'; }
+          }
+        </script>
+      </body>
+      </html>
+    `);
+});
+
+router.post('/unsubscribe/:trackingId', async (req, res) => {
+    try {
+        await recordUnsubscribe(req.params.trackingId);
+        res.json({ ok: true });
+    } catch {
+        res.status(500).json({ ok: false });
+    }
+});
+
 export default router;

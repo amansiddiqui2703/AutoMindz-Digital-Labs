@@ -118,10 +118,13 @@ export const initQueue = () => {
                 ...(isUpstash ? { tls: { rejectUnauthorized: false } } : {}),
             },
             defaultJobOptions: {
-                removeOnComplete: 100,
-                removeOnFail: 200,
-                attempts: 3,
-                backoff: { type: 'exponential', delay: 5000 },
+                removeOnComplete: 100, // Keep last 100 successful jobs
+                removeOnFail: 500,     // Keep last 500 failed jobs for debugging
+                attempts: 5,           // Retry 5 times
+                backoff: { 
+                    type: 'exponential', 
+                    delay: 10000 // Start with 10s delay
+                },
             },
         });
 

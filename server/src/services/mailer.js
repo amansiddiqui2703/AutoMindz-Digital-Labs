@@ -1,34 +1,10 @@
 import { Resend } from 'resend';
-import nodemailer from 'nodemailer';
 import env from '../config/env.js';
 
-const resend = new Resend(process.env.RESEND_API_KEY || 're_mock');
+const resend = new Resend(env.RESEND_API_KEY || 're_mock');
 
-const SUPPORT_FROM = process.env.EMAIL_FROM_SUPPORT || `"AutoMindz Support" <support@automindz.com>`;
-const ONBOARDING_FROM = process.env.EMAIL_FROM_ONBOARDING || `"AutoMindz Team" <onboarding@automindz.com>`;
-
-let smtpTransport = null;
-const getSmtpTransport = () => {
-    if (smtpTransport) return smtpTransport;
-
-    const host = process.env.SMTP_HOST;
-    if (!host) return null;
-
-    const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587;
-    const secure = String(process.env.SMTP_SECURE || '').toLowerCase() === 'true' || port === 465;
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
-
-    smtpTransport = nodemailer.createTransport({
-        host,
-        port,
-        secure,
-        auth: user && pass ? { user, pass } : undefined,
-        tls: process.env.SMTP_TLS_REJECT_UNAUTHORIZED === 'false' ? { rejectUnauthorized: false } : undefined,
-    });
-
-    return smtpTransport;
-};
+const SUPPORT_FROM = env.EMAIL_FROM_SUPPORT || `"AutoMindz Support" <support@automindz.com>`;
+const ONBOARDING_FROM = env.EMAIL_FROM_ONBOARDING || `"AutoMindz Team" <onboarding@automindz.com>`;
 
 const escapeHtml = (input = '') => {
     return String(input)
@@ -79,23 +55,16 @@ const renderEmailLayout = ({ heading, preheader, bodyHtml, ctaText, ctaUrl }) =>
 
 const sendEmail = async ({ from, to, subject, html }) => {
     try {
-        if (process.env.RESEND_API_KEY) {
+        if (env.RESEND_API_KEY && env.RESEND_API_KEY !== 're_mock') {
             const info = await resend.emails.send({ from, to, subject, html });
             console.log('Message sent: %s', info?.data?.id);
-            return true;
-        }
-
-        const smtp = getSmtpTransport();
-        if (smtp) {
-            const info = await smtp.sendMail({ from, to, subject, html });
-            console.log('Message sent (SMTP): %s', info?.messageId);
             return true;
         }
 
         // Dev fallback: print the email to the console so you can copy the verify/reset links.
         {
             console.log('\n=============================================');
-            console.log('[DEVELOPMENT MODE - NO RESEND API KEY CONFIGURED]');
+            console.log('[DEVELOPMENT MODE - EMAILS LOGGED TO CONSOLE]');
             console.log(`From: ${from}`);
             console.log(`To: ${to}`);
             console.log(`Subject: ${subject}`);
