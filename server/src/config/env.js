@@ -7,6 +7,11 @@ const __dirname = dirname(__filename);
 
 dotenv.config({ path: resolve(__dirname, '../../../.env') });
 
+const normalizeBaseUrl = (value, fallback) => {
+    const url = (value || fallback || '').trim();
+    return url.endsWith('/') ? url.slice(0, -1) : url;
+};
+
 const env = {
     PORT: process.env.PORT || 5000,
     NODE_ENV: process.env.NODE_ENV || 'development',
@@ -16,8 +21,8 @@ const env = {
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-    APP_URL: process.env.APP_URL || 'http://localhost:5173',
-    SERVER_URL: process.env.SERVER_URL || 'http://localhost:5000',
+    APP_URL: normalizeBaseUrl(process.env.APP_URL, 'http://localhost:5173'),
+    SERVER_URL: normalizeBaseUrl(process.env.SERVER_URL, 'http://localhost:5000'),
     // Stripe
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',

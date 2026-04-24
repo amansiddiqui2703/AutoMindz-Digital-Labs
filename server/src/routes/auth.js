@@ -244,7 +244,11 @@ router.get('/google/url', async (req, res) => {
         const state = crypto.randomBytes(16).toString('hex');
         const redis = getRedis();
         if (redis) {
-            await redis.set(`oauth_state:${state}`, '1', 'EX', 300);
+            try {
+                await redis.set(`oauth_state:${state}`, '1', 'EX', 300);
+            } catch (err) {
+                console.warn('OAuth state save failed (Redis unavailable):', err.message);
+            }
         }
 
         const oauth2Client = createLoginOAuth2Client();
@@ -273,12 +277,24 @@ router.get('/google/callback', async (req, res) => {
         // SECURITY FIX [HIGH-2]: Validate state parameter
         const redis = getRedis();
         if (redis) {
-            const valid = await redis.get(`oauth_state:${state}`);
-            if (!valid) {
-                console.warn('Invalid OAuth state received');
-                return res.redirect(`${env.APP_URL}/login?error=invalid_state`);
+            try {
+                const valid = await redis.get(`oauth_state:${state}`);
+                if (!valid) {
+                    console.warn('Invalid OAuth state received');
+                    // In dev/test, allow fallback if Redis state is missing/expired.
+                    // In production, keep strict CSRF protection.
+                    if (env.NODE_ENV === 'production') {
+                        return res.redirect(`${env.APP_URL}/login?error=invalid_state`);
+                    }
+                } else {
+                    await redis.del(`oauth_state:${state}`);
+                }
+            } catch (err) {
+                console.warn('OAuth state validation failed (Redis unavailable):', err.message);
+                if (env.NODE_ENV === 'production') {
+                    return res.redirect(`${env.APP_URL}/login?error=invalid_state`);
+                }
             }
-            await redis.del(`oauth_state:${state}`);
         }
 
         const oauth2Client = createLoginOAuth2Client();
@@ -335,12 +351,16 @@ router.get('/google/callback', async (req, res) => {
         // SECURITY FIX [CRITICAL-2]: One-time code exchange instead of token in URL
         const authCode = crypto.randomBytes(32).toString('hex');
         if (redis) {
-            await redis.set(`google_auth_code:${authCode}`, token, 'EX', 30);
-            res.redirect(`${env.APP_URL}/auth/google/success?code=${authCode}`);
-        } else {
-            // Fallback if Redis is down (less secure but keeps app working)
-            res.redirect(`${env.APP_URL}/auth/google/success?token=${token}`);
+            try {
+                await redis.set(`google_auth_code:${authCode}`, token, 'EX', 30);
+                return res.redirect(`${env.APP_URL}/auth/google/success?code=${authCode}`);
+            } catch (err) {
+                console.warn('Failed to store Google auth code (Redis unavailable):', err.message);
+            }
         }
+
+        // Fallback if Redis is down (less secure but keeps app working)
+        return res.redirect(`${env.APP_URL}/auth/google/success?token=${token}`);
     } catch (error) {
         console.error('Google callback error:', error);
         res.redirect(`${env.APP_URL}/login?error=google_auth_failed`);

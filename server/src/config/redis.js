@@ -4,9 +4,15 @@ import env from './env.js';
 let redis = null;
 
 /**
- * Get the current Redis instance (may be null if not connected).
+ * Get the current Redis instance.
+ *
+ * Returns null unless Redis is connected and ready to accept commands.
  */
-export const getRedis = () => redis;
+export const getRedis = () => {
+    if (!redis) return null;
+    if (redis.status !== 'ready') return null;
+    return redis;
+};
 
 const connectRedis = () => {
     try {
