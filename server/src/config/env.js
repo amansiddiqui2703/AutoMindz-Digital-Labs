@@ -54,8 +54,6 @@ const REQUIRED_ENV_VARS = [
 // Additional requirements for production
 const PRODUCTION_REQUIRED = [
     'RESEND_API_KEY',
-    'STRIPE_SECRET_KEY',
-    'STRIPE_WEBHOOK_SECRET'
 ];
 
 const validateEnv = () => {
