@@ -7,7 +7,7 @@ import User from '../models/User.js';
 import auth from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimit.js';
 import env from '../config/env.js';
-import { sendAuthEmail, sendWelcomeEmail } from '../services/mailer.js';
+import { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail } from '../services/mailer.js';
 import { getRedis } from '../config/redis.js';
 
 const router = Router();
@@ -63,11 +63,7 @@ router.post('/register', authLimiter, [
         await user.save();
 
         const verifyUrl = `${env.APP_URL}/verify/${verificationToken}`;
-        await sendAuthEmail(
-            user.email,
-            'Verify your AutoMindz account',
-            `<p>Hi ${user.name},</p><p>Please <a href="${verifyUrl}">click here</a> to verify your email address.</p>`
-        );
+        await sendVerificationEmail(user.email, user.name, verifyUrl);
 
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
@@ -144,11 +140,7 @@ router.post('/resend-verification', authLimiter, [
         await user.save();
 
         const verifyUrl = `${env.APP_URL}/verify/${verificationToken}`;
-        await sendAuthEmail(
-            user.email,
-            'Verify your AutoMindz account',
-            `<p>Hi ${user.name},</p><p>Please <a href="${verifyUrl}">click here</a> to verify your email address.</p>`
-        );
+        await sendVerificationEmail(user.email, user.name, verifyUrl);
 
         const payload = { success: true, message: 'Verification email sent. Please check your inbox.' };
         // In dev (no email provider), return the URL so the UI can show it.
@@ -172,9 +164,6 @@ router.post('/verify/:token', async (req, res) => {
         user.verificationToken = undefined;
         await user.save();
 
-        // Send Welcome email when successfully verified for the first time
-        await sendWelcomeEmail(user.email, user.name);
-
         res.json({ success: true, message: 'Email verified successfully' });
     } catch (err) {
         res.status(500).json({ error: 'Verification failed' });
@@ -194,13 +183,14 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
         await user.save();
 
         const resetUrl = `${env.APP_URL}/reset-password/${resetToken}`;
-        await sendAuthEmail(
-            user.email,
-            'Reset your AutoMindz password',
-            `<p>Hi ${user.name},</p><p>You requested a password reset. <a href="${resetUrl}">Click here to reset it.</a></p><p>If you didn't request this, ignore this email.</p>`
-        );
+        await sendPasswordResetEmail(user.email, user.name, resetUrl);
 
-        res.json({ success: true, message: 'If this account exists, an email has been sent.' });
+        const payload = { success: true, message: 'If this account exists, an email has been sent.' };
+        if (env.NODE_ENV !== 'production' && !process.env.RESEND_API_KEY) {
+            payload.resetUrl = resetUrl;
+        }
+
+        res.json(payload);
     } catch (err) {
         res.status(500).json({ error: 'Failed to request reset' });
     }
