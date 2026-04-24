@@ -12,14 +12,19 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Handle 401
+// Handle 401 — auto logout on expired/invalid token
 api.interceptors.response.use(
     (res) => res,
     (error) => {
         if (error.response?.status === 401) {
-            localStorage.removeItem('automindz_token');
-            localStorage.removeItem('automindz_user');
-            window.location.href = '/login';
+            // Don't auto-redirect for Google OAuth token exchange — 
+            // GoogleAuthSuccess.jsx handles its own error flow
+            const url = error.config?.url || '';
+            if (!url.includes('/auth/google/token')) {
+                localStorage.removeItem('automindz_token');
+                localStorage.removeItem('automindz_user');
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }

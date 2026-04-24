@@ -1,17 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Zap } from 'lucide-react';
-import api from '../api/client'; // BUG FIX: need api client
+import api from '../api/client';
 
 /**
  * This page handles the redirect from Google OAuth.
- * It receives the JWT token from the URL, stores it, and redirects to dashboard.
+ * It receives either a JWT token or a one-time code from the URL,
+ * stores the token, and redirects to dashboard.
  */
 export default function GoogleAuthSuccess() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { setTokenAndUser, isAuthenticated } = useAuth();
+    const { setTokenAndUser } = useAuth();
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const token = searchParams.get('token');
@@ -19,36 +21,49 @@ export default function GoogleAuthSuccess() {
 
         const handle = async () => {
             try {
-                if (token) {
-                    // Backward compatibility if server didn't use code yet
-                    await setTokenAndUser(token);
-                    navigate('/dashboard', { replace: true });
-                    return;
-                }
+                let jwt = token;
 
-                if (code) {
+                if (!jwt && code) {
                     // Exchange short-lived server code for JWT
                     const res = await api.get(`/auth/google/token?code=${code}`);
-                    await setTokenAndUser(res.data.token);
+                    jwt = res.data.token;
+                }
+
+                if (jwt) {
+                    await setTokenAndUser(jwt);
                     navigate('/dashboard', { replace: true });
                     return;
                 }
 
-                navigate('/login?error=google_auth_failed', { replace: true });
+                setError('No token received from Google. Please try again.');
             } catch (err) {
                 console.error('Google auth flow failed:', err);
-                navigate('/login?error=google_auth_failed', { replace: true });
+                setError('Google sign-in failed. The link may have expired. Please try again.');
             }
         };
 
         handle();
-    }, [searchParams, setTokenAndUser, navigate]); // BUG FIX [BUG-4]: dependencies
+    }, []); // Run only once on mount
 
-    useEffect(() => {
-        if (isAuthenticated) {
-            navigate('/dashboard', { replace: true });
-        }
-    }, [isAuthenticated, navigate]);
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-950">
+                <div className="text-center max-w-md mx-auto p-6">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                        <Zap className="w-8 h-8 text-red-500" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-surface-900 dark:text-white mb-2">Sign-in Failed</h2>
+                    <p className="text-surface-500 mb-4">{error}</p>
+                    <button 
+                        onClick={() => navigate('/login', { replace: true })}
+                        className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                    >
+                        Back to Login
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-950">
