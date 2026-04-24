@@ -100,18 +100,13 @@ router.post('/login', authLimiter, [
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        // SECURITY FIX [HIGH-1]: Block login if unverified
-        if (!user.isVerified) {
-            return res.status(403).json({ error: 'Please verify your email before logging in.' });
-        }
-
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
             env.JWT_SECRET,
             { expiresIn: env.JWT_EXPIRES_IN }
         );
 
-        res.json({ user, token });
+        res.json({ user, token, isVerified: user.isVerified });
     } catch (error) {
         res.status(500).json({ error: 'Login failed' });
     }
