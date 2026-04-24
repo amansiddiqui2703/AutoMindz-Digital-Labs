@@ -17,22 +17,31 @@ export default function GoogleAuthSuccess() {
         const token = searchParams.get('token');
         const code = searchParams.get('code');
 
-        if (token) {
-            // Backward compatibility if server didn't use code yet
-            setTokenAndUser(token);
-        } else if (code) {
-            // SECURITY FIX [CRITICAL-2]: Exchange code for token securely
-            api.get(`/auth/google/token?code=${code}`)
-                .then(res => {
-                    setTokenAndUser(res.data.token);
-                })
-                .catch(err => {
-                    console.error('Code exchange failed:', err);
-                    navigate('/login?error=google_auth_failed', { replace: true });
-                });
-        } else {
-            navigate('/login?error=google_auth_failed', { replace: true });
-        }
+        const handle = async () => {
+            try {
+                if (token) {
+                    // Backward compatibility if server didn't use code yet
+                    await setTokenAndUser(token);
+                    navigate('/dashboard', { replace: true });
+                    return;
+                }
+
+                if (code) {
+                    // Exchange short-lived server code for JWT
+                    const res = await api.get(`/auth/google/token?code=${code}`);
+                    await setTokenAndUser(res.data.token);
+                    navigate('/dashboard', { replace: true });
+                    return;
+                }
+
+                navigate('/login?error=google_auth_failed', { replace: true });
+            } catch (err) {
+                console.error('Google auth flow failed:', err);
+                navigate('/login?error=google_auth_failed', { replace: true });
+            }
+        };
+
+        handle();
     }, [searchParams, setTokenAndUser, navigate]); // BUG FIX [BUG-4]: dependencies
 
     useEffect(() => {

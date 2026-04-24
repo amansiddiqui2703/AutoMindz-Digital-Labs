@@ -39,9 +39,23 @@ export function AuthProvider({ children }) {
     };
 
     // For Google OAuth — receives JWT token directly
-    const setTokenAndUser = (jwtToken) => {
+    // Stores token, sets state, and fetches user immediately.
+    const setTokenAndUser = async (jwtToken) => {
         localStorage.setItem('automindz_token', jwtToken);
         setToken(jwtToken);
+
+        try {
+            setLoading(true);
+            const res = await api.get('/auth/me');
+            setUser(res.data.user);
+            setLoading(false);
+            return res.data;
+        } catch (err) {
+            // If token invalid, clear and redirect to login
+            logout();
+            setLoading(false);
+            throw err;
+        }
     };
 
     const logout = () => {

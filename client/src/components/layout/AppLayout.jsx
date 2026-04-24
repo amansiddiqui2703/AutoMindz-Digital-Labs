@@ -13,7 +13,7 @@ export default function AppLayout() {
 
     useEffect(() => {
         if (!isAuthenticated) return;
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('automindz_token');
         if (!token) return;
 
         let source;
