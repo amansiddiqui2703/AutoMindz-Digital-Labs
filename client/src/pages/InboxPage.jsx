@@ -49,7 +49,7 @@ export default function InboxPage() {
     useEffect(() => {
         fetchMessages();
 
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('automindz_token');
         if (!token) return;
 
         let source;

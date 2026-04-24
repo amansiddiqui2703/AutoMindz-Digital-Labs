@@ -46,7 +46,7 @@ export default function Dashboard() {
     useEffect(() => {
         loadData();
         
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('automindz_token');
         if (!token) return;
 
         let source;

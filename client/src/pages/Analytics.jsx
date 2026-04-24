@@ -77,7 +77,7 @@ export default function Analytics() {
     useEffect(() => { if (tab === 'emails') fetchEmails(); }, [tab, filterDaysAgo, filterUnreplied]);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('automindz_token');
         if (!token) return;
 
         let source;
