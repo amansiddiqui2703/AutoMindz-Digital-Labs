@@ -44,6 +44,12 @@ router.post('/register', authLimiter, [
 
         const existingUser = await User.findOne({ email: email.toLowerCase() });
         if (existingUser) {
+            if (existingUser.googleId && !existingUser.password) {
+                return res.status(400).json({ error: 'This email is linked to Google sign-in. Please continue with Google.' });
+            }
+            if (!existingUser.isVerified) {
+                return res.status(409).json({ error: 'Email already registered but not verified. Please verify your email or resend the verification link.' });
+            }
             return res.status(400).json({ error: 'Email already registered' });
         }
 
@@ -85,7 +91,16 @@ router.post('/login', authLimiter, [
         const { email, password } = req.body;
 
         const user = await User.findOne({ email: email.toLowerCase() });
-        if (!user || !(await user.comparePassword(password))) {
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        // If account was created via Google OAuth only, email/password login won't work.
+        if (user.googleId && !user.password) {
+            return res.status(403).json({ error: 'This account uses Google sign-in. Please continue with Google.' });
+        }
+
+        if (!(await user.comparePassword(password))) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
@@ -103,6 +118,47 @@ router.post('/login', authLimiter, [
         res.json({ user, token });
     } catch (error) {
         res.status(500).json({ error: 'Login failed' });
+    }
+});
+
+// Resend Email Verification Link
+router.post('/resend-verification', authLimiter, [
+    body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+    validate,
+], async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email: email.toLowerCase() });
+
+        // Avoid account enumeration â€” always return a generic success message.
+        if (!user) {
+            return res.json({ success: true, message: 'If this account exists, a verification email has been sent.' });
+        }
+
+        if (user.isVerified) {
+            return res.json({ success: true, message: 'Email already verified. Please log in.' });
+        }
+
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        user.verificationToken = verificationToken;
+        await user.save();
+
+        const verifyUrl = `${env.APP_URL}/verify/${verificationToken}`;
+        await sendAuthEmail(
+            user.email,
+            'Verify your AutoMindz account',
+            `<p>Hi ${user.name},</p><p>Please <a href="${verifyUrl}">click here</a> to verify your email address.</p>`
+        );
+
+        const payload = { success: true, message: 'Verification email sent. Please check your inbox.' };
+        // In dev (no email provider), return the URL so the UI can show it.
+        if (env.NODE_ENV !== 'production' && !process.env.RESEND_API_KEY) {
+            payload.verifyUrl = verifyUrl;
+        }
+
+        res.json(payload);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to resend verification email' });
     }
 });
 

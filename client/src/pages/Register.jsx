@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Zap, User, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Zap, User, Mail, Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../api/client';
 
 export default function Register() {
@@ -9,6 +9,8 @@ export default function Register() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [resendStatus, setResendStatus] = useState('idle'); // idle | loading | success
+    const [resendMessage, setResendMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const { register } = useAuth();
@@ -17,6 +19,8 @@ export default function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setResendStatus('idle');
+        setResendMessage('');
         setLoading(true);
         try {
             await register(name, email, password);
@@ -25,6 +29,27 @@ export default function Register() {
             setError(err.response?.data?.error || 'Registration failed');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const canResendVerification =
+        !!email && (error.toLowerCase().includes('not verified') || error.toLowerCase().includes('verify your email'));
+
+    const handleResendVerification = async () => {
+        if (!email) {
+            setError('Please enter your email first.');
+            return;
+        }
+        setResendStatus('loading');
+        setResendMessage('');
+        try {
+            const res = await api.post('/auth/resend-verification', { email });
+            const msg = res.data?.verifyUrl ? `${res.data.message} (Dev link: ${res.data.verifyUrl})` : (res.data?.message || 'Verification email sent.');
+            setResendMessage(msg);
+            setResendStatus('success');
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to resend verification email');
+            setResendStatus('idle');
         }
     };
 
@@ -57,6 +82,26 @@ export default function Register() {
                         <div className="flex items-center gap-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm">
                             <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error}
                         </div>
+                    )}
+
+                    {resendStatus === 'success' && resendMessage && (
+                        <div className="flex items-center gap-2 bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 px-4 py-3 rounded-xl mb-6 text-sm">
+                            <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> {resendMessage}
+                        </div>
+                    )}
+
+                    {canResendVerification && (
+                        <button
+                            type="button"
+                            onClick={handleResendVerification}
+                            disabled={resendStatus === 'loading'}
+                            className="w-full btn-secondary justify-center mb-6"
+                            id="resend-verification-register"
+                        >
+                            {resendStatus === 'loading'
+                                ? <span className="w-4 h-4 border-2 border-surface-400 border-t-transparent rounded-full animate-spin" />
+                                : 'Resend verification email'}
+                        </button>
                     )}
 
                     {/* Google Sign Up Button */}
