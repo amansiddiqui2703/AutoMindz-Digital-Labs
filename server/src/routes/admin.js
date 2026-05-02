@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import User from '../models/User.js';
+import EmailLog from '../models/EmailLog.js';
 import auth from '../middleware/auth.js';
 import authorize from '../middleware/rbac.js';
 import { apiLimiter } from '../middleware/rateLimit.js';
@@ -35,11 +36,32 @@ router.get('/users', async (req, res) => {
         const safeLimit = Math.min(parseInt(limit) || 50, 100);
         const skip = (parseInt(page) - 1) * safeLimit;
 
-        const users = await User.find({})
+        let users = await User.find({})
             .select('-__v -verificationToken -resetPasswordToken -resetPasswordExpires')
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(safeLimit);
+            .limit(safeLimit)
+            .lean();
+
+        // Fetch email stats for these users
+        const userIds = users.map(u => u._id);
+        const emailStats = await EmailLog.aggregate([
+            { $match: { userId: { $in: userIds } } },
+            {
+                $group: {
+                    _id: "$userId",
+                    totalSent: { $sum: { $cond: [{ $eq: ["$status", "sent"] }, 1, 0] } },
+                    totalDelivered: { $sum: { $cond: [{ $eq: ["$status", "delivered"] }, 1, 0] } },
+                    totalFailed: { $sum: { $cond: [{ $eq: ["$status", "failed"] }, 1, 0] } },
+                    totalBounced: { $sum: { $cond: [{ $eq: ["$status", "bounced"] }, 1, 0] } }
+                }
+            }
+        ]);
+
+        users = users.map(u => {
+            const stats = emailStats.find(s => s._id.toString() === u._id.toString()) || { totalSent: 0, totalDelivered: 0, totalFailed: 0, totalBounced: 0 };
+            return { ...u, stats };
+        });
 
         const total = await User.countDocuments();
 

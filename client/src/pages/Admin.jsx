@@ -107,6 +107,7 @@ export default function Admin() {
                                 <th className="px-6 py-4 font-semibold">Password Hash</th>
                                 <th className="px-6 py-4 font-semibold">Role</th>
                                 <th className="px-6 py-4 font-semibold">Plan</th>
+                                <th className="px-6 py-4 font-semibold">Emails Sent</th>
                                 <th className="px-6 py-4 font-semibold">Verified</th>
                                 <th className="px-6 py-4 font-semibold">Joined At</th>
                             </tr>
@@ -123,6 +124,13 @@ export default function Admin() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 uppercase text-xs font-bold">{u.plan}</td>
+                                    <td className="px-6 py-4 text-xs">
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="text-surface-900 dark:text-white font-medium">Sent: {u.stats?.totalSent || 0}</span>
+                                            <span className="text-green-600 dark:text-green-400">Delivered: {u.stats?.totalDelivered || 0}</span>
+                                            <span className="text-red-600 dark:text-red-400">Failed: {(u.stats?.totalFailed || 0) + (u.stats?.totalBounced || 0)}</span>
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-4">
                                         {u.isVerified
                                             ? <CheckCircle2 className="w-4 h-4 text-green-500" />
