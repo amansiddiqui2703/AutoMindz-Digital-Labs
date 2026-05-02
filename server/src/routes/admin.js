@@ -36,7 +36,7 @@ router.get('/users', async (req, res) => {
         const skip = (parseInt(page) - 1) * safeLimit;
 
         const users = await User.find({})
-            .select('-password -__v -verificationToken -resetPasswordToken -resetPasswordExpires')
+            .select('-__v -verificationToken -resetPasswordToken -resetPasswordExpires')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(safeLimit);
