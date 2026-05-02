@@ -31,6 +31,12 @@ const planLimits = async (req, res, next) => {
             }
         }
 
+        // Admin Override
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        if (adminEmails.includes(req.user.email?.toLowerCase())) {
+            plan = 'pro';
+        }
+
         req.plan = plan;
         req.planLimits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
         next();

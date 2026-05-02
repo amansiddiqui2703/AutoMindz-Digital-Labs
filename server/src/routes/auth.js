@@ -225,9 +225,7 @@ router.post('/reset-password/:token', authLimiter, async (req, res) => {
 // Get current user
 router.get('/me', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ error: 'User not found' });
-        res.json({ user });
+        res.json({ user: req.user });
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch user' });
     }

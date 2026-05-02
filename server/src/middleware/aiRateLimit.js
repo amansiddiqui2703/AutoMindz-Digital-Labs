@@ -20,6 +20,12 @@ const aiRateLimit = async (req, res, next) => {
             }
         }
 
+        // Admin Override
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        if (adminEmails.includes(req.user.email?.toLowerCase())) {
+            plan = 'pro';
+        }
+
         const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
 
         // Check if AI is enabled for this plan

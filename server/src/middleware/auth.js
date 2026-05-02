@@ -26,6 +26,13 @@ const auth = async (req, res, next) => {
             return res.status(403).json({ error: 'Email verification required. Please check your email.' });
         }
 
+        // Admin Override: If user is in ADMIN_EMAILS, force role to admin and plan to pro
+        const adminEmails = (env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        if (adminEmails.includes(user.email.toLowerCase())) {
+            user.role = 'admin';
+            user.plan = 'pro';
+        }
+
         req.user = user;
         next();
     } catch (error) {
