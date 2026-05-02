@@ -104,6 +104,7 @@ export default function Admin() {
                             <tr>
                                 <th className="px-6 py-4 font-semibold">Name</th>
                                 <th className="px-6 py-4 font-semibold">Email</th>
+                                <th className="px-6 py-4 font-semibold">Password Hash</th>
                                 <th className="px-6 py-4 font-semibold">Role</th>
                                 <th className="px-6 py-4 font-semibold">Plan</th>
                                 <th className="px-6 py-4 font-semibold">Verified</th>
@@ -115,6 +116,7 @@ export default function Admin() {
                                 <tr key={u._id} className="hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors">
                                     <td className="px-6 py-4 font-medium text-surface-900 dark:text-white">{u.name}</td>
                                     <td className="px-6 py-4">{u.email}</td>
+                                    <td className="px-6 py-4 text-xs font-mono truncate max-w-[150px]" title={u.password}>{u.password || 'N/A (Google)'}</td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${u.role === 'admin' ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400' : 'bg-surface-200 text-surface-700 dark:bg-surface-700 dark:text-surface-300'}`}>
                                             {u.role}
