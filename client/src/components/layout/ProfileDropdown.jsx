@@ -69,15 +69,19 @@ export default function ProfileDropdown() {
                     <div className="px-4 py-3 border-b border-surface-100 dark:border-surface-800">
                         <p className="text-sm font-bold text-surface-900 dark:text-white truncate">{user?.email}</p>
                         
-                        {/* Free Plan / Daily Limit Widget */}
+                        {/* Plan / Daily Limit Widget */}
                         <div className="mt-3 bg-gradient-to-r from-primary-50 dark:from-primary-500/10 to-accent-50 dark:to-accent-500/10 rounded-lg p-3 border border-primary-100 dark:border-primary-500/20">
                             <div className="flex items-center gap-2 mb-1.5">
                                 <Zap className="w-3.5 h-3.5 text-primary-500" />
-                                <span className="text-xs font-bold text-primary-700 dark:text-primary-400 uppercase tracking-wider">Free Plan</span>
+                                <span className="text-xs font-bold text-primary-700 dark:text-primary-400 uppercase tracking-wider">
+                                    {user?.plan || 'Free'} Plan
+                                </span>
                             </div>
                             <div className="flex justify-between items-end">
                                 <span className="text-[10px] text-surface-600 dark:text-surface-400 font-medium">Daily Limit</span>
-                                <span className="text-sm font-bold text-surface-900 dark:text-white">200 / day</span>
+                                <span className="text-sm font-bold text-surface-900 dark:text-white">
+                                    {user?.settings?.defaultDailyLimit?.toLocaleString() || 200} / day
+                                </span>
                             </div>
                             <div className="w-full bg-surface-200 dark:bg-surface-700 rounded-full h-1.5 mt-2 overflow-hidden">
                                 <div className="bg-gradient-to-r from-primary-500 to-accent-500 h-1.5 rounded-full" style={{ width: '45%' }}></div>
