@@ -20,7 +20,8 @@ export const replaceMergeTags = (text, contact) => {
             : contact.customFields;
 
         for (const [key, value] of Object.entries(fields)) {
-            const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'gi');
+            const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`\\{\\{${escapedKey}\\}\\}`, 'gi');
             result = result.replace(regex, value || '');
         }
     }

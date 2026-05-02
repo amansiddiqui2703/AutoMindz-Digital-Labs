@@ -150,9 +150,17 @@ ${JSON.stringify(data, null, 2)}
 - If you don't know something specific to the system, say so honestly
 - Keep responses under 300 words
 - Use emoji sparingly for friendliness
+`;
+
+    const sanitizedQuestion = String(question)
+        .replace(/[^\r\n\x20-\x7e]/g, '')
+        .trim()
+        .slice(0, 2000);
+
+    const finalPrompt = `${prompt}
 
 ## User's Question
-${String(question).replace(/[\r\n]+/g, ' ').replace(/[\x00-\x1f\x7f]/g, '').trim().slice(0, 2000)}`;
+${String(question).replace(/[^\r\n\x20-\x7e]/g, '').trim().slice(0, 2000)}`;
 
     // 3. Call Gemini
     // SECURITY FIX [MEDIUM-4]: Move API key to headers
@@ -163,7 +171,7 @@ ${String(question).replace(/[\r\n]+/g, ' ').replace(/[\x00-\x1f\x7f]/g, '').trim
             'x-goog-api-key': env.GEMINI_API_KEY
         },
         body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
+            contents: [{ parts: [{ text: finalPrompt }] }],
             generationConfig: {
                 temperature: 0.7,
                 maxOutputTokens: 1024,

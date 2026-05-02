@@ -10,8 +10,7 @@ const MAX_PROMPT_INPUT_LENGTH = 5000;
 const sanitizePromptInput = (input, maxLen = MAX_PROMPT_INPUT_LENGTH) => {
     if (!input) return '';
     return String(input)
-        .replace(/[\r\n]+/g, ' ')
-        .replace(/[\x00-\x1f\x7f]/g, '')
+        .replace(/[^\r\n\x20-\x7e]/g, '') // Keep space, printable ASCII, and newlines only
         .trim()
         .slice(0, maxLen);
 };

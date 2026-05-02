@@ -17,7 +17,7 @@ const auth = async (req, res, next) => {
         const decoded = jwt.verify(token, env.JWT_SECRET);
         
         // Optional: Check if user still exists in DB
-        const user = await User.findById(decoded.id).select('_id email role isVerified');
+        const user = await User.findById(decoded.id).select('_id email role isVerified plan planExpiresAt');
         if (!user) {
             return res.status(401).json({ error: 'User no longer exists' });
         }

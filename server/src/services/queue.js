@@ -202,12 +202,14 @@ const msUntilNextSendingWindow = (timezone = 'UTC') => {
 export const enqueueCampaign = async (campaign) => {
     const hasABTest = !!campaign.subjectB;
 
-    // Get user timezone for time-window sending
+    // Get user details for limits and timezone
     let userTimezone = 'UTC';
+    let userPlan = 'free';
     try {
-        const user = await User.findById(campaign.userId).select('settings.timezone');
+        const user = await User.findById(campaign.userId).select('plan settings.timezone');
         if (user?.settings?.timezone) userTimezone = user.settings.timezone;
-    } catch { /* use UTC */ }
+        if (user?.plan) userPlan = user.plan;
+    } catch { /* use defaults */ }
 
     // Time-window check: if outside sending hours, calculate base delay offset
     let baseDelay = 0;
@@ -218,6 +220,8 @@ export const enqueueCampaign = async (campaign) => {
 
     // Warmup mode: limit how many emails to send today
     let maxToday = campaign.dailyLimit || 200;
+    // For Pro users, if dailyLimit is default, use a higher value
+    if (userPlan === 'pro' && maxToday === 200) maxToday = 5000;
     if (campaign.warmupMode && campaign.warmupDailyIncrease > 0) {
         const daysSinceCreation = Math.max(1, Math.ceil((Date.now() - new Date(campaign.createdAt).getTime()) / (1000 * 60 * 60 * 24)));
         maxToday = Math.min(maxToday, campaign.warmupDailyIncrease * daysSinceCreation);
@@ -282,7 +286,11 @@ export const enqueueCampaign = async (campaign) => {
             inMemoryJobs.push({ jobData, delayMs: thisDelay });
         }
         
-        cumulativeDelay += randomDelay(30, 120);
+        const isPro = userPlan === 'pro';
+        const minD = isPro ? 5 : 30;
+        const maxD = isPro ? 15 : 120;
+        
+        cumulativeDelay += randomDelay(minD, maxD);
         enqueued++;
     }
 

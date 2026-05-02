@@ -13,8 +13,11 @@ const aiRateLimit = async (req, res, next) => {
 
         // Determine effective plan (check expiry)
         let plan = user.plan || 'free';
-        if (plan !== 'free' && user.planExpiresAt && new Date(user.planExpiresAt) < new Date()) {
-            plan = 'free';
+        if (plan !== 'free' && user.planExpiresAt) {
+            const expiryDate = new Date(user.planExpiresAt);
+            if (!isNaN(expiryDate.getTime()) && expiryDate < new Date()) {
+                plan = 'free';
+            }
         }
 
         const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;

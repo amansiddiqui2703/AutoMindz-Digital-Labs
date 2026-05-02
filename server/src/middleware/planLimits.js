@@ -23,9 +23,12 @@ const planLimits = async (req, res, next) => {
         let plan = user.plan || 'free';
 
         // Check if paid plan has expired
-        if (plan !== 'free' && user.planExpiresAt && new Date(user.planExpiresAt) < new Date()) {
-            plan = 'free';
-            await User.findByIdAndUpdate(req.user.id, { plan: 'free' });
+        if (plan !== 'free' && user.planExpiresAt) {
+            const expiryDate = new Date(user.planExpiresAt);
+            if (!isNaN(expiryDate.getTime()) && expiryDate < new Date()) {
+                plan = 'free';
+                await User.findByIdAndUpdate(req.user.id, { plan: 'free' });
+            }
         }
 
         req.plan = plan;
