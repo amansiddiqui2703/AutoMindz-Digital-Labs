@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import DOMPurify from 'dompurify';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -239,7 +240,7 @@ export default function Compose() {
                     <div className="border-t border-surface-200 dark:border-surface-700 p-6">
                         <h4 className="text-sm font-semibold text-surface-700 dark:text-surface-300 mb-3">Preview</h4>
                         <div className="prose dark:prose-invert max-w-none text-sm"
-                            dangerouslySetInnerHTML={{ __html: mode === 'rich' ? editor?.getHTML() : mode === 'html' ? htmlSource : `<pre>${plainText}</pre>` }} />
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(mode === 'rich' ? editor?.getHTML() : mode === 'html' ? htmlSource : `<pre>${plainText}</pre>`) }} />
                     </div>
                 )}
 

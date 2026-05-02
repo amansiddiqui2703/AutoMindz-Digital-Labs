@@ -3,7 +3,6 @@ import { Globe, Activity, CheckSquare, ListFilter, Link as LinkIcon, MessageSqua
 
 const tools = [
     { name: 'SEO Tools', path: '/seo', icon: Globe, desc: 'Analyze domain authority and backlinks' },
-    { name: 'Chatbot', path: '/chatbot', icon: MessageSquare, desc: 'Manage your AI chatbot assistant' },
     { name: 'Smart Lists', path: '/smart-lists', icon: ListFilter, desc: 'Dynamic contact segments' },
     { name: 'Links', path: '/links', icon: LinkIcon, desc: 'Track your acquired backlinks' },
     { name: 'Tasks', path: '/tasks', icon: CheckSquare, desc: 'Manage your daily to-dos' },

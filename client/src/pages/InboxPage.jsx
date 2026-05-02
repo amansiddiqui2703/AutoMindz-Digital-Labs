@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import api from '../api/client';
 import toast from 'react-hot-toast';
 import {
@@ -140,7 +141,7 @@ export default function InboxPage() {
         try {
             await api.patch(`/inbox/${msgId}/star`);
             fetchMessages();
-        } catch { /* silent */ }
+        } catch { toast.error('Failed to update star status'); }
     };
 
     const toggleNeedsReply = async (msgId, value) => {
@@ -148,7 +149,7 @@ export default function InboxPage() {
             await api.patch(`/inbox/${msgId}/needs-reply`, { needsReply: value });
             toast.success(value ? 'Marked as needs reply' : 'Marked as resolved');
             fetchMessages();
-        } catch { /* silent */ }
+        } catch { toast.error('Failed to update status'); }
     };
 
     const handleStageChange = async (contactId, newStage) => {
@@ -409,7 +410,7 @@ export default function InboxPage() {
                                 </div>
                                 {msg.htmlBody ? (
                                     <div className="text-sm text-surface-700 dark:text-surface-300 prose prose-sm dark:prose-invert max-w-none"
-                                        dangerouslySetInnerHTML={{ __html: msg.htmlBody }} />
+                                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.htmlBody) }} />
                                 ) : msg.snippet ? (
                                     <p className="text-sm text-surface-700 dark:text-surface-300">{msg.snippet}</p>
                                 ) : (

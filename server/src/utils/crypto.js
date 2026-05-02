@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import crypto from 'crypto';
 import env from '../config/env.js';
 
 const key = env.ENCRYPTION_KEY;
@@ -42,6 +43,14 @@ export const verifyState = (state) => {
     const userId = state.substring(0, dotIndex);
     const sig = state.substring(dotIndex + 1);
     const expected = CryptoJS.HmacSHA256(userId, hmacKey).toString();
-    if (sig !== expected) return null;
+    // Use timing-safe comparison to prevent timing attacks
+    try {
+        const sigBuf = Buffer.from(sig, 'hex');
+        const expBuf = Buffer.from(expected, 'hex');
+        if (sigBuf.length !== expBuf.length) return null;
+        if (!crypto.timingSafeEqual(sigBuf, expBuf)) return null;
+    } catch {
+        return null;
+    }
     return userId;
 };

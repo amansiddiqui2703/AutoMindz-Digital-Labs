@@ -82,9 +82,10 @@ router.get('/unsubscribe/:trackingId', async (req, res) => {
           <button class="btn" onclick="doUnsubscribe()">Unsubscribe</button>
         </div>
         <script>
+          const trackingId = ${JSON.stringify(req.params.trackingId)};
           async function doUnsubscribe() {
             try {
-              await fetch('/t/unsubscribe/${req.params.trackingId}', { method: 'POST' });
+              await fetch('/t/unsubscribe/' + encodeURIComponent(trackingId), { method: 'POST' });
               document.getElementById('content').innerHTML = '<h2 class="success">✓ Unsubscribed</h2><p>You have been successfully unsubscribed.</p>';
             } catch { document.getElementById('content').innerHTML = '<h2>Error</h2><p>Please try again later.</p>'; }
           }

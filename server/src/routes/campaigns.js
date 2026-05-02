@@ -12,22 +12,26 @@ const router = Router();
 // List campaigns
 router.get('/', auth, async (req, res) => {
     try {
-        const { status, isArchived, page = 1, limit = 20 } = req.query;
+        const { status, isArchived } = req.query;
         const filter = { userId: req.user.id };
         if (status) filter.status = status;
         
         // Default to not showing archived unless requested
         filter.isArchived = isArchived === 'true';
 
+        // BUG FIX: Cap pagination parameters to prevent DB dump
+        const pageNum = Math.max(1, parseInt(req.query.page) || 1);
+        const limitNum = Math.min(Math.max(1, parseInt(req.query.limit) || 20), 100);
+
         const campaigns = await Campaign.find(filter)
             .select('-recipients -htmlBody -plainBody')
             .sort({ updatedAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit));
+            .skip((pageNum - 1) * limitNum)
+            .limit(limitNum);
 
         const total = await Campaign.countDocuments(filter);
 
-        res.json({ campaigns, total, page: parseInt(page), pages: Math.ceil(total / limit) });
+        res.json({ campaigns, total, page: pageNum, pages: Math.ceil(total / limitNum) });
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch campaigns' });
     }
@@ -75,6 +79,10 @@ router.post('/', auth, async (req, res) => {
         }
 
         const campaign = new Campaign({ ...data, userId: req.user.id });
+        // BUG FIX: Set stats.total to match recipients count on create
+        if (campaign.recipients) {
+            campaign.stats.total = campaign.recipients.length;
+        }
         await campaign.save();
         res.status(201).json({ campaign });
     } catch (error) {
@@ -140,9 +148,10 @@ router.post('/:id/duplicate', auth, async (req, res) => {
             createdAt: undefined,
             updatedAt: undefined,
         });
-        // Reset recipient statuses and sequence fields
+        // Reset recipient statuses and sequence fields; strip _id to avoid subdoc conflicts
         duplicate.recipients = duplicate.recipients.map(r => ({
             ...r,
+            _id: undefined,
             status: 'pending',
             sentAt: null,
             openedAt: null,
@@ -323,8 +332,9 @@ router.post('/:id/add-leads', auth, async (req, res) => {
         const campaign = await Campaign.findOne({ _id: req.params.id, userId: req.user.id });
         if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
 
-        // Get existing recipient contact IDs (cast to string for comparison)
+        // Get existing recipient contact IDs and emails (check both for dedup)
         const existingIds = new Set(campaign.recipients.map(r => r.contactId?.toString()).filter(Boolean));
+        const existingEmails = new Set(campaign.recipients.map(r => r.email?.toLowerCase()).filter(Boolean));
 
         // Note: we must dynamically import Contact here or at the top of the file
         // Wait, Contact is not imported in this file. Let me check the imports first.
@@ -337,7 +347,7 @@ router.post('/:id/add-leads', auth, async (req, res) => {
 
         let addedCount = 0;
         for (const c of newContacts) {
-            if (!existingIds.has(c._id.toString())) {
+            if (!existingIds.has(c._id.toString()) && !existingEmails.has(c.email?.toLowerCase())) {
                 campaign.recipients.push({
                     contactId: c._id,
                     email: c.email,

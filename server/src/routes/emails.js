@@ -107,6 +107,8 @@ router.post('/send-followup', auth, async (req, res) => {
                 htmlBody: trackedHtml,
                 plainBody: mergedPlain,
                 displayName: account.displayName || account.email,
+                previousMessageId: originalEmail.messageId,
+                threadId: originalEmail.gmailThreadId,
             };
             const result = account.connectionType === 'oauth'
                 ? await replyViaOAuth(account, replyPayload)
@@ -219,6 +221,8 @@ router.post('/send-bulk-followup', auth, async (req, res) => {
                     htmlBody: trackedHtml,
                     plainBody: mergedPlain,
                     displayName: account.displayName || account.email,
+                    previousMessageId: originalEmail.messageId,
+                    threadId: originalEmail.gmailThreadId,
                 };
                 const result = account.connectionType === 'oauth'
                     ? await replyViaOAuth(account, replyPayload)

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import env from '../config/env.js';
 import EmailLog from '../models/EmailLog.js';
 import Campaign from '../models/Campaign.js';
@@ -37,7 +38,7 @@ const gatherUserData = async (userId) => {
             }
         },
         { $unwind: '$emailLog' },
-        { $match: { 'emailLog.userId': userId } },
+        { $match: { 'emailLog.userId': new mongoose.Types.ObjectId(userId) } },
         {
             $group: {
                 _id: '$type',
@@ -88,7 +89,7 @@ const gatherUserData = async (userId) => {
             }
         },
         { $unwind: '$emailLog' },
-        { $match: { 'emailLog.userId': userId } },
+        { $match: { 'emailLog.userId': new mongoose.Types.ObjectId(userId) } },
         { $sort: { createdAt: -1 } },
         { $limit: 5 },
         {

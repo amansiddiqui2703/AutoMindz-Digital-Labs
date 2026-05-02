@@ -23,7 +23,7 @@ const auth = async (req, res, next) => {
         }
 
         if (env.NODE_ENV === 'production' && !user.isVerified) {
-            // return res.status(403).json({ error: 'Email verification required' });
+            return res.status(403).json({ error: 'Email verification required. Please check your email.' });
         }
 
         req.user = user;

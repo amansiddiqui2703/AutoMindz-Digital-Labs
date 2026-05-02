@@ -29,9 +29,9 @@ export const recordOpen = async (trackingId, ip, userAgent) => {
 };
 
 export const recordClick = async (trackingId, url, ip, userAgent) => {
-    // BUG-15: Prevent duplicate click tracking
-    const existing = await TrackingEvent.findOne({ trackingId, type: 'click' });
-    if (existing) return; // Already tracked
+    // BUG-15: Prevent duplicate click tracking per unique URL
+    const existing = await TrackingEvent.findOne({ trackingId, type: 'click', url });
+    if (existing) return; // Already tracked this specific link
 
     const event = new TrackingEvent({ trackingId, type: 'click', url, ip, userAgent });
     await event.save();

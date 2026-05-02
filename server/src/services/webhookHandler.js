@@ -21,7 +21,11 @@ const verifyResendSignature = (payload, signature) => {
             .createHmac('sha256', secret)
             .update(payload)
             .digest('hex');
-        return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+        // Guard: timingSafeEqual throws if buffers have different lengths
+        const sigBuf = Buffer.from(signature);
+        const expBuf = Buffer.from(expected);
+        if (sigBuf.length !== expBuf.length) return false;
+        return crypto.timingSafeEqual(sigBuf, expBuf);
     } catch {
         return false;
     }
@@ -34,7 +38,8 @@ const verifyResendSignature = (payload, signature) => {
  */
 export const handleResendWebhook = async (req, res) => {
     try {
-        const rawBody = req.body.toString('utf8');
+        // Handle both raw Buffer (if express.raw() is used) and parsed JSON object
+        const rawBody = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body);
         const signature = req.headers['resend-signature'] || req.headers['svix-signature'] || '';
 
         if (!verifyResendSignature(rawBody, signature)) {

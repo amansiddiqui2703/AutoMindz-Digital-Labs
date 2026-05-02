@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -287,7 +288,7 @@ export default function Templates() {
                             <div className="flex-1 mb-3">
                                 <div className="text-xs text-surface-400 line-clamp-3 leading-relaxed"
                                     dangerouslySetInnerHTML={{
-                                        __html: (t.htmlBody || '').replace(/<[^>]+>/g, ' ').substring(0, 150) + '...',
+                                        __html: DOMPurify.sanitize((t.htmlBody || '').replace(/<[^>]+>/g, ' ').substring(0, 150) + '...'),
                                     }}
                                 />
                             </div>
@@ -295,7 +296,7 @@ export default function Templates() {
                             {/* Expand preview */}
                             {previewId === t._id && (
                                 <div className="mb-3 p-3 bg-surface-50 dark:bg-surface-800/50 rounded-lg border border-surface-200 dark:border-surface-700 max-h-48 overflow-y-auto animate-in">
-                                    <div className="text-sm" dangerouslySetInnerHTML={{ __html: t.htmlBody || '<p class="text-surface-400">No content</p>' }} />
+                                    <div className="text-sm" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(t.htmlBody || '<p class="text-surface-400">No content</p>') }} />
                                 </div>
                             )}
 

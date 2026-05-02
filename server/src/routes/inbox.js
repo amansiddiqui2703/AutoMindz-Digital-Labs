@@ -1,8 +1,12 @@
 import { Router } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import auth from '../middleware/auth.js';
 import InboxMessage from '../models/InboxMessage.js';
 import Contact from '../models/Contact.js';
 import EmailLog from '../models/EmailLog.js';
+import GmailAccount from '../models/GmailAccount.js';
+import { replyViaOAuth } from '../services/gmailOAuth.js';
+import sse from '../services/sse.js';
 
 const router = Router();
 
@@ -204,15 +208,14 @@ router.post('/simulate-inbound', auth, async (req, res) => {
         });
 
         // Trigger SSE
-        import('../services/sse.js').then((sseMod) => {
-            sseMod.default.sendEventToUser(req.user.id, 'notification', {
-                title: 'New Reply Received',
-                message: `${from} replied to your email!`,
-                icon: 'MessageSquare'
-            });
-            sseMod.default.sendEventToUser(req.user.id, 'inbox_update', msg);
-            sseMod.default.sendEventToUser(req.user.id, 'analytics_update', { event: 'reply' });
-        }).catch(err => console.error(err));
+        // Send SSE notifications
+        sse.sendEventToUser(req.user.id, 'notification', {
+            title: 'New Reply Received',
+            message: `${from} replied to your email!`,
+            icon: 'MessageSquare'
+        });
+        sse.sendEventToUser(req.user.id, 'inbox_update', msg);
+        sse.sendEventToUser(req.user.id, 'analytics_update', { event: 'reply' });
 
         res.json({ message: `Simulated inbound email from ${from}`, msg });
     } catch (error) {
@@ -220,10 +223,7 @@ router.post('/simulate-inbound', auth, async (req, res) => {
     }
 });
 
-import { replyViaOAuth } from '../services/gmailOAuth.js';
-import GmailAccount from '../models/GmailAccount.js';
-import sse from '../services/sse.js';
-import { v4 as uuidv4 } from 'uuid';
+
 
 // Native inline reply to a thread
 router.post('/reply/:threadId', auth, async (req, res) => {

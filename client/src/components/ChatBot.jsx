@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import api from '../api/client';
 import { MessageCircle, X, Send, Loader2, Bot, User, Sparkles } from 'lucide-react';
 
@@ -109,7 +110,7 @@ export default function ChatBot() {
                                         ? 'bg-surface-100 dark:bg-surface-800 text-surface-800 dark:text-surface-200 rounded-tl-sm'
                                         : 'bg-primary-500 text-white rounded-tr-sm'
                                     }`}
-                                    dangerouslySetInnerHTML={{ __html: msg.role === 'bot' ? renderMarkdown(msg.text) : msg.text }}
+                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.role === 'bot' ? renderMarkdown(msg.text) : msg.text) }}
                                 />
                             </div>
                         ))}

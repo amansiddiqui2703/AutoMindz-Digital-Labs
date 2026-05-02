@@ -3,6 +3,7 @@ import { EventEmitter } from 'events';
 class SSEManager extends EventEmitter {
     constructor() {
         super();
+        this.setMaxListeners(0); // SSE manages cleanup via close handlers
         // userClients maps userId (string) -> Set of active Response objects
         this.userClients = new Map();
         

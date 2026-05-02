@@ -151,35 +151,35 @@ export default function CampaignDetail() {
         try {
             const res = await api.get('/accounts');
             setAccounts(res.data.accounts || []);
-        } catch { }
+        } catch { toast.error('Failed to load accounts'); }
     };
 
     const fetchContacts = async () => {
         try {
             const res = await api.get('/contacts?limit=500');
             setContacts(res.data.contacts || []);
-        } catch { }
+        } catch { toast.error('Failed to load contacts'); }
     };
 
     const fetchSequenceStats = async () => {
         try {
             const res = await api.get(`/campaigns/${id}/sequence-stats`);
             setSequenceStats(res.data);
-        } catch { }
+        } catch { toast.error('Failed to load sequence stats'); }
     };
 
     const fetchAbStats = async () => {
         try {
             const res = await api.get(`/campaigns/${id}/ab-stats`);
             if (res.data.abTest) setAbStats(res.data);
-        } catch { }
+        } catch { toast.error('Failed to load A/B stats'); }
     };
 
     const fetchTemplates = async () => {
         try {
             const res = await api.get('/templates');
             setTemplates(res.data.templates || []);
-        } catch { }
+        } catch { toast.error('Failed to load templates'); }
     };
 
     useEffect(() => {
