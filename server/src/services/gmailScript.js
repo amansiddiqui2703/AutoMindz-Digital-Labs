@@ -149,8 +149,11 @@ export const selectAccount = async (userId, accountIds) => {
     }).sort({ dailySentCount: 1 });
 
     for (const account of accounts) {
-        // Reset daily count if new day
-        const lastReset = new Date(account.lastResetDate);
+        // BUG FIX #19: Handle null/undefined lastResetDate safely
+        // new Date(null) = epoch (Jan 1 1970), which is always < today — that's fine
+        // but undefined/missing field must also be handled
+        const lastResetRaw = account.lastResetDate;
+        const lastReset = lastResetRaw ? new Date(lastResetRaw) : new Date(0);
         lastReset.setHours(0, 0, 0, 0);
 
         if (lastReset < today) {

@@ -13,8 +13,16 @@ api.interceptors.request.use((config) => {
 });
 
 // Handle 401 — auto logout on expired/invalid token
+// BUG FIX #17: Also pick up X-Renewed-Token for sliding session
 api.interceptors.response.use(
-    (res) => res,
+    (res) => {
+        // Silently renew token if server issued a new one
+        const renewedToken = res.headers?.['x-renewed-token'];
+        if (renewedToken) {
+            localStorage.setItem('automindz_token', renewedToken);
+        }
+        return res;
+    },
     (error) => {
         if (error.response?.status === 401) {
             // Don't auto-redirect for Google OAuth token exchange — 

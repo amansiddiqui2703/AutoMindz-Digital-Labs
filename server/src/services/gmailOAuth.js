@@ -1,4 +1,5 @@
 // import { v4 as uuidv4 } from 'uuid';
+// ... (old commented-out code preserved above)
 // import { google } from 'googleapis';
 // import env from '../config/env.js';
 // import { signState } from '../utils/crypto.js';
@@ -279,6 +280,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { google } from 'googleapis';
 import env from '../config/env.js';
 import { signState } from '../utils/crypto.js';
+import sse from './sse.js';
 
 /**
  * Create an OAuth2 client using app credentials.
@@ -414,6 +416,20 @@ export const getAuthenticatedClient = async (account) => {
             account.health = 'critical';
             account.isActive = false;
             await account.save();
+
+            // BUG FIX #2: Notify the user via SSE so they can see an alert in the dashboard
+            try {
+                sse.sendEventToUser(account.userId.toString(), 'notification', {
+                    title: '⚠️ Gmail Account Disconnected',
+                    message: `Your Gmail account (${account.email}) has been disconnected. Please reconnect it to continue sending emails.`,
+                    icon: 'AlertCircle',
+                    severity: 'critical',
+                    accountId: account._id,
+                });
+            } catch (sseErr) {
+                console.warn('Could not send SSE account-health notification:', sseErr.message);
+            }
+
             throw new Error(
                 `Gmail token expired. Please reconnect your Gmail account (${account.email}): ${refreshError.message}`
             );
@@ -450,6 +466,9 @@ export const sendViaOAuth = async (account, { to, subject, htmlBody, plainBody, 
         `Subject: ${subject}`,
         `MIME-Version: 1.0`,
         `Message-ID: ${customMessageId}`,
+        // BUG FIX #36: Add List-Unsubscribe header for better deliverability & compliance
+        `List-Unsubscribe: <${env.SERVER_URL}/t/unsubscribe/${customMessageId.replace(/[<>]/g, '')}>`,
+        `List-Unsubscribe-Post: List-Unsubscribe=One-Click`,
     ];
     if (cc) mimeHeaders.push(`Cc: ${cc}`);
     if (bcc) mimeHeaders.push(`Bcc: ${bcc}`);

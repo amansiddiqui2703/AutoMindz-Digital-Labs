@@ -320,6 +320,13 @@ router.post('/connect-script', auth, authorize('admin', 'manager', 'user'), asyn
         // Test the script connection
         const testResult = await testScriptConnection(scriptUrl);
 
+        // BUG FIX #6: Warn if the script doesn't declare support for the 'reply' action
+        // This is non-blocking — connection succeeds but user is alerted
+        const supportsReply = testResult.supportsReply !== false; // default true if not declared
+        const warning = !supportsReply
+            ? 'Script connected successfully but does not declare reply support. Follow-up emails may not thread correctly.'
+            : null;
+
         const existing = await GmailAccount.findOne({ userId: req.user.id, email: email.toLowerCase() });
 
         if (existing) {
@@ -346,6 +353,8 @@ router.post('/connect-script', auth, authorize('admin', 'manager', 'user'), asyn
         await account.save();
         res.json({
             message: 'Gmail account connected via Google Apps Script',
+            // BUG FIX #6: Include warning about reply support
+            warning: warning || undefined,
             account: { ...account.toObject(), scriptUrl: undefined },
         });
     } catch (error) {

@@ -10,6 +10,22 @@ import authorize from '../middleware/authorize.js';
 
 const router = Router();
 
+// BUG FIX #28: Quick today-stats endpoint for ProfileDropdown real-time usage
+router.get('/today-stats', auth, async (req, res) => {
+    try {
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const emailsSentToday = await EmailLog.countDocuments({
+            userId: req.user.id,
+            status: 'sent',
+            sentAt: { $gte: startOfDay },
+        });
+        res.json({ emailsSentToday });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch today stats' });
+    }
+});
+
 // Dashboard overview
 router.get('/dashboard', auth, async (req, res) => {
     try {

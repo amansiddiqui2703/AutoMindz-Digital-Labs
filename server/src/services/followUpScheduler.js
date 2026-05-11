@@ -164,8 +164,37 @@ const processRecipientFollowUp = async (campaign, recipient) => {
             return;
         }
 
-        // 5. Select an account (round-robin)
-        const account = await selectAccount(campaign.userId, campaign.accountIds);
+        // 5. Select an account — BUG FIX #4: Prefer the SAME account used to send original email
+        //    Using a different account breaks threading (different From: address)
+        let account = null;
+
+        // Try to find the account used for the first email in this thread
+        const originalLog = await EmailLog.findOne({
+            campaignId: campaign._id,
+            to: recipient.email.toLowerCase(),
+            isFollowUp: false,
+            status: 'sent',
+        }).sort({ createdAt: 1 });
+
+        if (originalLog?.accountId) {
+            const GmailAccount = (await import('../models/GmailAccount.js')).default;
+            const preferredAccount = await GmailAccount.findById(originalLog.accountId);
+            if (
+                preferredAccount &&
+                preferredAccount.isActive &&
+                preferredAccount.health !== 'critical' &&
+                preferredAccount.dailySentCount < preferredAccount.dailyLimit
+            ) {
+                account = preferredAccount;
+                console.log(`🔗 Thread consistency: using same account ${account.email} for follow-up`);
+            }
+        }
+
+        // Fall back to round-robin only if preferred account is unavailable
+        if (!account) {
+            account = await selectAccount(campaign.userId, campaign.accountIds);
+        }
+
         if (!account) {
             console.warn(`⚠ Follow-up delayed (no accounts available): ${recipient.email}`);
             return; // Will retry next cycle
@@ -294,6 +323,28 @@ const processRecipientFollowUp = async (campaign, recipient) => {
 
     } catch (error) {
         console.error(`✗ Follow-up failed for ${recipient.email}:`, error.message);
+
+        // BUG FIX #18: Mark the EmailLog as 'failed' so we can see it in the dashboard
+        // We need to update the most recent queued follow-up log for this recipient
+        try {
+            await EmailLog.findOneAndUpdate(
+                {
+                    campaignId: campaign._id,
+                    to: recipient.email.toLowerCase(),
+                    status: 'queued',
+                    isFollowUp: true,
+                },
+                {
+                    $set: {
+                        status: 'failed',
+                        error: error.message,
+                    },
+                },
+                { sort: { createdAt: -1 } }
+            );
+        } catch (updateErr) {
+            console.error(`✗ Could not update follow-up log to failed:`, updateErr.message);
+        }
     }
 };
 

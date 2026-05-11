@@ -12,17 +12,22 @@ class SSEManager extends EventEmitter {
             this.sendEventToUser(userId, event, payload);
         });
 
-        // BUG FIX [BUG-5]: Prevent connection leakage with heartbeat
+        // BUG FIX #30: Copy set to array before iterating to avoid mutation during iteration
         setInterval(() => {
             for (const [userId, clients] of this.userClients.entries()) {
+                const deadClients = [];
                 for (const res of clients) {
                     try {
                         res.write(': heartbeat\n\n');
-                    } catch (err) {
-                        clients.delete(res);
-                        if (clients.size === 0) this.userClients.delete(userId);
+                    } catch {
+                        deadClients.push(res);
                     }
                 }
+                // Remove dead connections after iteration
+                for (const dead of deadClients) {
+                    clients.delete(dead);
+                }
+                if (clients.size === 0) this.userClients.delete(userId);
             }
         }, 30000);
     }

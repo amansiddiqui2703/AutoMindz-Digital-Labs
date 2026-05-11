@@ -34,6 +34,22 @@ const auth = async (req, res, next) => {
         }
 
         req.user = user;
+
+        // BUG FIX #17: Sliding JWT — silently renew token if it expires within 24 hours
+        // This prevents active users from being unexpectedly logged out
+        const expiresAt = decoded.exp * 1000; // convert to ms
+        const twentyFourHours = 24 * 60 * 60 * 1000;
+        if (expiresAt - Date.now() < twentyFourHours) {
+            try {
+                const newToken = jwt.sign(
+                    { id: user._id, email: user.email, role: user.role },
+                    env.JWT_SECRET,
+                    { expiresIn: env.JWT_EXPIRES_IN || '7d' }
+                );
+                res.setHeader('X-Renewed-Token', newToken);
+            } catch { /* non-critical, don't block the request */ }
+        }
+
         next();
     } catch (error) {
         if (error.name === 'TokenExpiredError') {

@@ -48,9 +48,9 @@ router.get('/', auth, async (req, res) => {
             if (endDate) filter.createdAt.$lte = new Date(endDate);
         }
 
-        // BUG FIX [BUG-2/8]: Parse and cap pagination parameters
+        // BUG FIX #34: Cap pagination - max 500 per page to prevent memory/timeout issues
         const pageNum = Math.max(1, parseInt(page) || 1);
-        const limitNum = Math.min(Math.max(1, parseInt(limit) || 50), 200);
+        const limitNum = Math.min(Math.max(1, parseInt(limit) || 50), 500);
         const skip = (pageNum - 1) * limitNum;
 
         const contacts = await Contact.find(filter)

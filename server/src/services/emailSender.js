@@ -106,15 +106,17 @@ export const sendEmail = async (account, { to, subject, htmlBody, plainBody, con
         account.totalSent += 1;
         await account.save();
 
-        // INSTANTLY Inject into Unified Inbox and push over SSE
+        // BUG FIX #5/#7: Use actual Gmail IDs for InboxMessage, not the custom RFC message-id
         const inboxMsg = await InboxMessage.create({
             userId,
             accountId: account._id,
             contactId: contact?._id,
             campaignId,
             emailLogId: emailLog._id,
-            gmailMessageId: result.messageId || `sent-${emailLog._id}`,
-            gmailThreadId: result.messageId || `thread-${emailLog._id}`,
+            // Use gmailMessageId if available, fallback to custom message ID
+            gmailMessageId: result.gmailMessageId || result.messageId || `sent-${emailLog._id}`,
+            // Use gmailThreadId if available, NOT messageId (they're different things)
+            gmailThreadId: result.gmailThreadId || `thread-${emailLog._id}`,
             direction: 'outbound',
             from: 'me',
             to: to,

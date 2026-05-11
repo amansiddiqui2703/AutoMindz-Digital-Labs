@@ -43,6 +43,11 @@ emailLogSchema.index({ userId: 1, status: 1 });
 emailLogSchema.index({ trackingId: 1 });
 emailLogSchema.index({ to: 1, campaignId: 1 });
 emailLogSchema.index({ messageId: 1 });
+// BUG FIX #29: Add missing indexes for follow-up threading and analytics queries
+emailLogSchema.index({ gmailThreadId: 1 });
+emailLogSchema.index({ gmailMessageId: 1 });
+emailLogSchema.index({ sentAt: -1 });
+emailLogSchema.index({ campaignId: 1, to: 1, isFollowUp: 1 });
 
 const EmailLog = mongoose.model('EmailLog', emailLogSchema);
 

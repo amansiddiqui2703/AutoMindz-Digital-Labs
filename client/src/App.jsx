@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary'; // BUG FIX #35
 import { lazy, Suspense } from 'react';
 
 // Lazy-loaded page components for code splitting
@@ -65,6 +66,8 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
+          {/* BUG FIX #35: Wrap with ErrorBoundary to catch page-level crashes */}
+          <ErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<RootRoute />} />
@@ -105,6 +108,7 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
+          </ErrorBoundary>
         </BrowserRouter>
         <Toaster position="top-right" toastOptions={{
           style: { background: '#1e293b', color: '#fff', borderRadius: '12px', fontSize: '14px' },

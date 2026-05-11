@@ -26,8 +26,9 @@ export const replaceMergeTags = (text, contact) => {
         }
     }
 
-    // Clean up any remaining unresolved tags
-    result = result.replace(/\{\{[^}]+\}\}/g, '');
+    // BUG FIX #31: Don't silently erase unresolved tags — show them as [FIELD_NAME]
+    // This makes debugging templates much easier
+    result = result.replace(/\{\{([^}]+)\}\}/g, (match, key) => `[${key.trim()}]`);
 
     return result;
 };
