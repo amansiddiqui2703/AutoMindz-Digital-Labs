@@ -118,10 +118,10 @@ export default function ProfileDropdown() {
                             </div>
                             <div className="flex justify-between items-end">
                                 <span className="text-[10px] text-surface-600 dark:text-surface-400 font-medium">
-                                    {emailsToday} / {dailyLimit.toLocaleString()} sent today
+                                    {user?.plan === 'unlimited' ? `${emailsToday} / Unlimited sent today` : `${emailsToday} / ${dailyLimit.toLocaleString()} sent today`}
                                 </span>
                                 <span className="text-xs font-bold text-surface-900 dark:text-white">
-                                    {usagePercent}%
+                                    {user?.plan === 'unlimited' ? '∞' : `${usagePercent}%`}
                                 </span>
                             </div>
                             <div className="w-full bg-surface-200 dark:bg-surface-700 rounded-full h-1.5 mt-2 overflow-hidden">

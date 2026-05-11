@@ -37,8 +37,18 @@ const callGemini = async (prompt) => {
     });
 
     if (!response.ok) {
-        const err = await response.text();
-        throw new Error(`Gemini API error: ${err}`);
+        let errMessage = `Gemini API error (${response.status})`;
+        try {
+            const errData = await response.json();
+            if (response.status === 429) {
+                errMessage = `AI Rate Limit Exceeded: Your Google Gemini API free tier quota is full. Please check your Google AI Studio billing/plan or wait a few minutes before trying again.`;
+            } else if (errData.error?.message) {
+                errMessage = errData.error.message;
+            }
+        } catch {
+            // Fallback to text if JSON parsing fails
+        }
+        throw new Error(errMessage);
     }
 
     const data = await response.json();

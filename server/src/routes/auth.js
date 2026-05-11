@@ -100,6 +100,15 @@ router.post('/login', authLimiter, [
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
+        // Admin Override: Permanently set admin accounts to unlimited upon login
+        const adminEmails = (env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        if (adminEmails.includes(user.email.toLowerCase())) {
+            user.role = 'admin';
+            user.plan = 'unlimited';
+            user.isVerified = true;
+            await user.save();
+        }
+
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
             env.JWT_SECRET,

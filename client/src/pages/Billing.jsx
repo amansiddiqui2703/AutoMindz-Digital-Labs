@@ -28,6 +28,11 @@ const PLAN_DETAILS = [
         icon: Building, badge: 'Enterprise',
         features: ['5,000 emails/day', '50,000 contacts', '15 Gmail accounts', 'AI + Personalization', 'Unlimited follow-ups', 'Team features', 'White-label ready', 'Dedicated support'],
     },
+    {
+        id: 'unlimited', name: 'Unlimited', price: 999, color: 'from-rose-500 to-pink-600',
+        icon: Crown, badge: 'Admin Only',
+        features: ['Unlimited emails/day', 'Unlimited contacts', 'Unlimited accounts', 'Unlimited AI usage', 'Unlimited follow-ups', 'Full admin access', 'Priority support'],
+    },
 ];
 
 export default function Billing() {
