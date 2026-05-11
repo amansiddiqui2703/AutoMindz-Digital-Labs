@@ -182,12 +182,16 @@
   .dark .badge-purple { background: #5b21b6; color: #ede9fe; }
 
   /* TipTap editor */
+  /* Bug #21 Fix: user-select must be 'text' inside the editor so cursor/selection works */
   .tiptap-editor .ProseMirror {
     min-height: 250px;
     padding: 16px;
     outline: none;
     font-size: 14px;
     line-height: 1.7;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    cursor: text;
   }
   .tiptap-editor .ProseMirror p { margin: 0 0 8px; }
   .tiptap-editor .ProseMirror ul,
@@ -202,11 +206,25 @@
   }
   .animate-in { animation: fadeIn 0.3s ease-out; }
 
-  @keyframes slideIn {
+  @keyframes slideInLeft {
     from { opacity: 0; transform: translateX(-16px); }
     to { opacity: 1; transform: translateX(0); }
   }
-  .slide-in { animation: slideIn 0.3s ease-out; }
+  .slide-in { animation: slideInLeft 0.3s ease-out; }
+
+  /* Bug #21 Fix: These Tailwind v4 animation utilities need explicit CSS definitions */
+  @keyframes slideInFromTop {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .slide-in-from-top-2 { animation: slideInFromTop 0.2s ease-out; }
+
+  @keyframes slideInFromBottom {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .slide-in-from-bottom-5 { animation: slideInFromBottom 0.3s ease-out; }
+  .duration-300 { animation-duration: 0.3s; }
 
   @keyframes pulse-glow {
     0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }

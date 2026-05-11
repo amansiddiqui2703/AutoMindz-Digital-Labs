@@ -7,18 +7,25 @@ export const testScriptConnection = async (scriptUrl) => {
     try {
         const response = await fetch(scriptUrl, {
             method: 'POST',
+            // Bug #22 Fix: explicitly set Content-Type so the Apps Script web app parses JSON body
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'test' }),
             redirect: 'follow',
         });
 
         if (!response.ok) {
-            throw new Error(`Script responded with status ${response.status}`);
+            throw new Error(`Script responded with HTTP ${response.status} ${response.statusText}`);
+        }
+
+        // Bug #22 Fix: check Content-Type before calling .json() to avoid 'invalid JSON' errors
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json') && !contentType.includes('text/plain')) {
+            throw new Error(`Script returned unexpected content-type: ${contentType}. Expected JSON response.`);
         }
 
         const data = await response.json();
         if (!data.success) {
-            throw new Error(data.error || 'Script test failed');
+            throw new Error(data.error || 'Script test failed — ensure your script handles the "test" action');
         }
 
         return { success: true, email: data.email };
@@ -45,16 +52,25 @@ export const sendViaScript = async (scriptUrl, { to, subject, htmlBody, plainBod
 
         const response = await fetch(scriptUrl, {
             method: 'POST',
+            // Bug #22 Fix: always set Content-Type for JSON payloads
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
             redirect: 'follow',
         });
 
         if (!response.ok) {
-            throw new Error(`Script responded with status ${response.status}`);
+            const body = await response.text().catch(() => '');
+            throw new Error(`Script responded with HTTP ${response.status}: ${body.substring(0, 200)}`);
         }
 
-        const data = await response.json();
+        // Bug #22 Fix: safe JSON parsing
+        let data;
+        try {
+            data = await response.json();
+        } catch {
+            throw new Error('Script returned invalid JSON. Ensure your Apps Script returns a proper JSON response.');
+        }
+
         if (!data.success) {
             throw new Error(data.error || 'Send failed');
         }
@@ -69,7 +85,7 @@ export const sendViaScript = async (scriptUrl, { to, subject, htmlBody, plainBod
  * Send a threaded follow-up reply via Google Apps Script
  * This will search for the original email thread and reply in it
  */
-export const replyViaScript = async (scriptUrl, { to, originalSubject, htmlBody, plainBody, displayName, previousMessageId }) => {
+export const replyViaScript = async (scriptUrl, { to, originalSubject, htmlBody, plainBody, displayName, previousMessageId, threadId }) => {
     try {
         const payload = {
             action: 'reply',
@@ -78,26 +94,41 @@ export const replyViaScript = async (scriptUrl, { to, originalSubject, htmlBody,
             htmlBody,
             plainBody: plainBody || '',
             name: displayName || '',
-            previousMessageId,
+            previousMessageId: previousMessageId || null,
+            // Bug #27 Fix: pass threadId so the script can use it for threading if supported
+            threadId: threadId || null,
         };
 
         const response = await fetch(scriptUrl, {
             method: 'POST',
+            // Bug #22 Fix: always set Content-Type for JSON payloads
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
             redirect: 'follow',
         });
 
         if (!response.ok) {
-            throw new Error(`Script responded with status ${response.status}`);
+            const body = await response.text().catch(() => '');
+            throw new Error(`Script responded with HTTP ${response.status}: ${body.substring(0, 200)}`);
         }
 
-        const data = await response.json();
+        // Bug #22 Fix: safe JSON parsing for reply too
+        let data;
+        try {
+            data = await response.json();
+        } catch {
+            throw new Error('Script returned invalid JSON for reply action. Check your Apps Script implementation.');
+        }
+
         if (!data.success) {
             throw new Error(data.error || 'Reply failed');
         }
 
-        return { success: true, messageId: data.messageId || `gas-reply-${Date.now()}`, threaded: data.threaded };
+        return {
+            success: true,
+            messageId: data.messageId || `gas-reply-${Date.now()}`,
+            threaded: data.threaded || false,
+        };
     } catch (error) {
         throw new Error(`Failed to send follow-up via script: ${error.message}`);
     }

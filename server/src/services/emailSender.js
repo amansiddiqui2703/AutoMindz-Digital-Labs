@@ -18,9 +18,10 @@ const wrapLinks = (html, trackingId) => {
     );
 };
 
+// Bug #33 Fix: Unsubscribe URL must use the /t/ prefix since that's where tracking routes are mounted
 const UNSUBSCRIBE_FOOTER = (trackingId) => `
 <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:12px;color:#9ca3af;text-align:center;">
-  <p>If you no longer wish to receive these emails, <a href="${env.SERVER_URL}/unsubscribe/${trackingId}" style="color:#6b7280;text-decoration:underline;">unsubscribe here</a>.</p>
+  <p>If you no longer wish to receive these emails, <a href="${env.SERVER_URL}/t/unsubscribe/${trackingId}" style="color:#6b7280;text-decoration:underline;">unsubscribe here</a>.</p>
 </div>`;
 
 const generatePlainText = (html) => {

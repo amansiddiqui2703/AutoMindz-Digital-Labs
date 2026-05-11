@@ -177,6 +177,21 @@ router.post('/:id/send', auth, async (req, res) => {
         if (!campaign.recipients.length) return res.status(400).json({ error: 'No recipients in campaign' });
         if (!campaign.accountIds.length) return res.status(400).json({ error: 'No Gmail accounts selected' });
 
+        // Bug #27 Fix: Verify that at least one selected Gmail account is actually active
+        // This prevents a silent failure where emails appear queued but never send
+        const GmailAccount = (await import('../models/GmailAccount.js')).default;
+        const activeAccounts = await GmailAccount.find({
+            _id: { $in: campaign.accountIds },
+            userId: req.user.id,
+            isActive: true,
+            health: { $ne: 'critical' },
+        });
+        if (activeAccounts.length === 0) {
+            return res.status(400).json({
+                error: 'None of the selected Gmail accounts are active or healthy. Please reconnect your accounts.'
+            });
+        }
+
         await enqueueCampaign(campaign);
         res.json({ message: 'Campaign started', status: campaign.status });
     } catch (error) {

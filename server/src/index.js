@@ -78,10 +78,21 @@ app.use((req, res, next) => {
 app.use(cors({ origin: env.APP_URL, credentials: true }));
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+  // Bug #26 Fix: Explicitly deny camera, microphone, geolocation permissions
+  permissionsPolicy: {
+    features: {
+      camera: [],
+      microphone: [],
+      geolocation: [],
+      payment: [],
+      usb: [],
+    },
+  },
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
+      // Bug #26 Fix: keep blob: for workers but remove unused CDN sources
       workerSrc: ["'self'", "blob:"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
