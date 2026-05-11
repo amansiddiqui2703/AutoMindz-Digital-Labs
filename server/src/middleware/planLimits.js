@@ -8,6 +8,7 @@ const PLAN_LIMITS = {
     starter: { emailsPerDay: 200, contacts: 2000, accounts: 2, ai: 'basic', aiCallsPerDay: 50, followUpSteps: 2 },
     growth: { emailsPerDay: 1000, contacts: 10000, accounts: 5, ai: 'full', aiCallsPerDay: 200, followUpSteps: 5 },
     pro: { emailsPerDay: 5000, contacts: 50000, accounts: 15, ai: 'full', aiCallsPerDay: 999999, followUpSteps: 999 },
+    unlimited: { emailsPerDay: 99999999, contacts: 99999999, accounts: 99999, ai: 'full', aiCallsPerDay: 99999999, followUpSteps: 99999 },
 };
 
 export { PLAN_LIMITS };
@@ -34,7 +35,7 @@ const planLimits = async (req, res, next) => {
         // Admin Override
         const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
         if (adminEmails.includes(req.user.email?.toLowerCase())) {
-            plan = 'pro';
+            plan = 'unlimited';
         }
 
         req.plan = plan;

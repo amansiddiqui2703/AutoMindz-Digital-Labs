@@ -22,15 +22,16 @@ const auth = async (req, res, next) => {
             return res.status(401).json({ error: 'User no longer exists' });
         }
 
-        if (env.NODE_ENV === 'production' && !user.isVerified) {
-            return res.status(403).json({ error: 'Email verification required. Please check your email.' });
-        }
-
-        // Admin Override: If user is in ADMIN_EMAILS, force role to admin and plan to pro
+        // Admin Override: If user is in ADMIN_EMAILS, force role to admin, plan to unlimited, and auto-verify
         const adminEmails = (env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
         if (adminEmails.includes(user.email.toLowerCase())) {
             user.role = 'admin';
-            user.plan = 'pro';
+            user.plan = 'unlimited';
+            user.isVerified = true; // BUG FIX: Auto-verify admins so they don't get locked out during sign-in
+        }
+
+        if (env.NODE_ENV === 'production' && !user.isVerified) {
+            return res.status(403).json({ error: 'Email verification required. Please check your email.' });
         }
 
         req.user = user;
