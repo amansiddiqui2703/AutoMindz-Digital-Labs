@@ -1,11 +1,14 @@
 import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { google } from 'googleapis';
 import auth from '../middleware/auth.js';
 import InboxMessage from '../models/InboxMessage.js';
 import Contact from '../models/Contact.js';
 import EmailLog from '../models/EmailLog.js';
 import GmailAccount from '../models/GmailAccount.js';
+import Campaign from '../models/Campaign.js';
 import { replyViaOAuth } from '../services/gmailOAuth.js';
+import { getAuthenticatedClient } from '../services/gmailOAuth.js';
 import sse from '../services/sse.js';
 
 const router = Router();
@@ -176,6 +179,181 @@ router.post('/sync', auth, async (req, res) => {
     }
 });
 
+/**
+ * ISSUE 3 FIX: Sync real inbound replies from Gmail API.
+ *
+ * Root cause: The previous /sync endpoint only imported OUTBOUND sent emails
+ * from EmailLog. There was no mechanism to fetch actual replies sent BY recipients
+ * back to the connected Gmail inboxes. Gmail replies live in Gmail's inbox — they
+ * must be explicitly fetched via the Gmail API.
+ *
+ * This endpoint:
+ *  1. Iterates all connected OAuth Gmail accounts for the user.
+ *  2. Calls gmail.users.messages.list() with query "is:inbox" filtered to recent messages.
+ *  3. For each message, checks if it is a reply to one of our sent emails (via threadId).
+ *  4. Stores new inbound replies as InboxMessage documents (direction: 'inbound').
+ *  5. Marks Campaign recipient status as 'replied' and stops their follow-up sequence.
+ *  6. Broadcasts real-time SSE events so the UI updates without a manual refresh.
+ */
+router.post('/sync-replies', auth, async (req, res) => {
+    try {
+        // Only fetch messages from the last 7 days to limit API calls
+        const sevenDaysAgo = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
+
+        const accounts = await GmailAccount.find({
+            userId: req.user.id,
+            connectionType: 'oauth',
+            isActive: true,
+        });
+
+        if (accounts.length === 0) {
+            return res.json({ message: 'No OAuth Gmail accounts to sync', synced: 0 });
+        }
+
+        let totalSynced = 0;
+
+        for (const account of accounts) {
+            try {
+                const oauth2Client = await getAuthenticatedClient(account);
+                const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+                // Fetch messages in inbox received recently
+                const listRes = await gmail.users.messages.list({
+                    userId: 'me',
+                    q: `in:inbox after:${sevenDaysAgo}`,
+                    maxResults: 50,
+                });
+
+                const messageIds = listRes.data.messages || [];
+
+                for (const { id: gmailMsgId } of messageIds) {
+                    // Skip if already stored
+                    const alreadyStored = await InboxMessage.findOne({
+                        userId: req.user.id,
+                        gmailMessageId: gmailMsgId,
+                    });
+                    if (alreadyStored) continue;
+
+                    // Fetch full message details
+                    const msgRes = await gmail.users.messages.get({
+                        userId: 'me',
+                        id: gmailMsgId,
+                        format: 'full',
+                    });
+
+                    const gmailMsg = msgRes.data;
+                    const headers = gmailMsg.payload?.headers || [];
+                    const getHeader = (name) =>
+                        headers.find(h => h.name.toLowerCase() === name.toLowerCase())?.value || '';
+
+                    const fromRaw = getHeader('From');
+                    const subject = getHeader('Subject');
+                    const threadId = gmailMsg.threadId;
+
+                    // Extract plain email from "Name <email>" format
+                    const fromEmailMatch = fromRaw.match(/<([^>]+)>/) || [null, fromRaw];
+                    const fromEmail = (fromEmailMatch[1] || fromRaw).toLowerCase().trim();
+
+                    // ISSUE 3 FIX: Only store messages that are replies to our sent emails
+                    // (i.e. the threadId must match an outbound InboxMessage we sent)
+                    const sentMsgInThread = await InboxMessage.findOne({
+                        userId: req.user.id,
+                        gmailThreadId: threadId,
+                        direction: 'outbound',
+                    }).populate('campaignId contactId');
+
+                    if (!sentMsgInThread) continue; // Not a reply to our email
+
+                    // Extract body
+                    const getBody = (payload) => {
+                        if (!payload) return { html: '', plain: '' };
+                        const findPart = (parts, mime) =>
+                            parts?.find(p => p.mimeType === mime);
+
+                        const htmlPart = findPart(payload.parts, 'text/html');
+                        const plainPart = findPart(payload.parts, 'text/plain');
+
+                        const decode = (data) =>
+                            data ? Buffer.from(data, 'base64').toString('utf-8') : '';
+
+                        return {
+                            html: htmlPart ? decode(htmlPart.body?.data) : decode(payload.body?.data),
+                            plain: plainPart ? decode(plainPart.body?.data) : '',
+                        };
+                    };
+
+                    const { html: htmlBody, plain: plainBody } = getBody(gmailMsg.payload);
+                    const snippet = gmailMsg.snippet || subject.substring(0, 150);
+                    const receivedAt = new Date(parseInt(gmailMsg.internalDate, 10));
+
+                    // Resolve contact
+                    const contact = await Contact.findOne({
+                        userId: req.user.id,
+                        email: fromEmail,
+                    });
+
+                    // Store inbound reply
+                    const inboxMsg = await InboxMessage.create({
+                        userId: req.user.id,
+                        accountId: account._id,
+                        contactId: contact?._id || sentMsgInThread.contactId,
+                        campaignId: sentMsgInThread.campaignId,
+                        gmailMessageId: gmailMsgId,
+                        gmailThreadId: threadId,
+                        direction: 'inbound',
+                        from: fromEmail,
+                        to: account.email,
+                        subject: subject || `Re: ${sentMsgInThread.subject}`,
+                        snippet,
+                        htmlBody,
+                        plainBody,
+                        receivedAt,
+                        isRead: false,
+                        needsReply: true,
+                    });
+
+                    // ISSUE 2 + 3 FIX: Mark campaign recipient as 'replied' so follow-ups stop
+                    if (sentMsgInThread.campaignId) {
+                        await Campaign.updateOne(
+                            {
+                                _id: sentMsgInThread.campaignId,
+                                'recipients.email': fromEmail,
+                            },
+                            {
+                                $set: {
+                                    'recipients.$.status': 'replied',
+                                    'recipients.$.repliedAt': receivedAt,
+                                    'recipients.$.sequenceStatus': 'stopped_reply',
+                                }
+                            }
+                        );
+                    }
+
+                    // ISSUE 3 FIX: Broadcast real-time SSE so UI updates without refresh
+                    sse.sendEventToUser(req.user.id.toString(), 'inbox_update', inboxMsg);
+
+                    // Notify user of new reply
+                    sse.sendEventToUser(req.user.id.toString(), 'notification', {
+                        title: 'New Reply Received',
+                        message: `${fromEmail} replied to your email!`,
+                        icon: 'MessageSquare',
+                    });
+
+                    totalSynced++;
+                }
+            } catch (accountErr) {
+                // Continue with other accounts if one fails (e.g. token expired)
+                console.error(`Gmail sync-replies error for account ${account.email}:`, accountErr.message);
+            }
+        }
+
+        res.json({ message: `Synced ${totalSynced} new inbound reply(ies)`, synced: totalSynced });
+    } catch (error) {
+        console.error('sync-replies error:', error);
+        res.status(500).json({ error: 'Failed to sync replies' });
+    }
+});
+
 // Simulate inbound email (for testing)
 router.post('/simulate-inbound', auth, async (req, res) => {
     try {
@@ -260,13 +438,17 @@ router.post('/reply/:threadId', auth, async (req, res) => {
         const campaignId = lastMsg.campaignId;
 
         // Perform the OAuth Reply natively
+        // ISSUE 4 FIX: Must pass threadId so Gmail keeps the reply in the same thread.
+        // Previously threadId was missing from the payload, causing Gmail to create a NEW thread.
         const replyResult = await replyViaOAuth(targetAccount, {
             to: toEmail,
             originalSubject: originalSubject,
             htmlBody: htmlBody,
             plainBody: plainBody,
             displayName: targetAccount.displayName || targetAccount.email,
-            previousMessageId: lastMsg.gmailMessageId
+            previousMessageId: lastMsg.gmailMessageId,
+            // ISSUE 4 FIX: Pass the threadId so Gmail appends to the correct thread
+            threadId: req.params.threadId,
         });
 
         if (!replyResult.success) {

@@ -85,8 +85,22 @@ export default function InboxPage() {
 
         connectSSE();
 
+        // ISSUE 3 FIX: Poll Gmail for new inbound replies every 60 seconds.
+        // The server's /sync-replies endpoint fetches real replies from Gmail API
+        // and broadcasts SSE events, so the UI updates automatically without refresh.
+        const syncRepliesInterval = setInterval(async () => {
+            try {
+                await api.post('/inbox/sync-replies');
+                // No need to manually refresh — SSE inbox_update events will update the list
+            } catch (err) {
+                // Silently ignore polling errors (e.g. temporary network issue)
+                console.warn('Auto sync-replies poll failed:', err?.response?.data?.error || err.message);
+            }
+        }, 60_000); // every 60 seconds
+
         return () => {
             if (source) source.close();
+            clearInterval(syncRepliesInterval); // ISSUE 3 FIX: Clean up polling on unmount
         };
     }, [filter, search]);
 
@@ -108,8 +122,12 @@ export default function InboxPage() {
     const handleSync = async () => {
         setSyncing(true);
         try {
+            // Sync outbound sent emails
             const res = await api.post('/inbox/sync');
-            toast.success(res.data.message);
+            // ISSUE 3 FIX: Also sync inbound replies from Gmail in the same click
+            // This pulls real replies from Gmail API and broadcasts SSE events
+            await api.post('/inbox/sync-replies');
+            toast.success(res.data.message + ' (replies synced)');
             fetchMessages();
         } catch {
             toast.error('Sync failed');

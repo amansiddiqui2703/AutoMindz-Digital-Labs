@@ -283,6 +283,24 @@ import { signState } from '../utils/crypto.js';
 import sse from './sse.js';
 
 /**
+ * ISSUE 1 FIX: Encode email header values using RFC 2047 MIME Words (UTF-8 Base64).
+ * This prevents special characters (!, @, #, $, %, &, etc.) from being corrupted
+ * when email clients parse the Subject header.
+ * Only encodes if the string contains non-ASCII characters OR any character that
+ * commonly causes issues in raw MIME headers.
+ */
+const NEEDS_ENCODING_RE = /[^\x20-\x7E]|[()<>@,;:\\"/\[\]?=]|[!#$%&'*+\-/^_`{|}~]/;
+
+const encodeMimeHeader = (value) => {
+    if (!value) return '';
+    // If string has only safe printable ASCII without special chars, leave it as-is
+    // Otherwise, wrap in RFC 2047 encoded word: =?UTF-8?B?<base64>?=
+    if (!NEEDS_ENCODING_RE.test(value)) return value;
+    const encoded = Buffer.from(value, 'utf8').toString('base64');
+    return `=?UTF-8?B?${encoded}?=`;
+};
+
+/**
  * Create an OAuth2 client using app credentials.
  */
 export const createOAuth2Client = () => {
@@ -463,7 +481,8 @@ export const sendViaOAuth = async (account, { to, subject, htmlBody, plainBody, 
     let mimeHeaders = [
         `From: ${fromHeader}`,
         `To: ${to}`,
-        `Subject: ${subject}`,
+        // ISSUE 1 FIX: Encode subject using RFC 2047 to prevent corruption of special characters
+        `Subject: ${encodeMimeHeader(subject)}`,
         `MIME-Version: 1.0`,
         `Message-ID: ${customMessageId}`,
         // BUG FIX #36: Add List-Unsubscribe header for better deliverability & compliance
@@ -590,7 +609,8 @@ export const replyViaOAuth = async (
     let mimeHeaders = [
         `From: ${fromHeader}`,
         `To: ${to}`,
-        `Subject: ${replySubject}`,
+        // ISSUE 1 FIX: Encode reply subject using RFC 2047 to prevent corruption of special characters
+        `Subject: ${encodeMimeHeader(replySubject)}`,
         `MIME-Version: 1.0`,
         `Message-ID: ${customMessageId}`,
         `Content-Type: multipart/alternative; boundary="${boundary}"`,

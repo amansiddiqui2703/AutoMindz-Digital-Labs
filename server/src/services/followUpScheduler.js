@@ -5,6 +5,8 @@ import EmailLog from '../models/EmailLog.js';
 import GmailAccount from '../models/GmailAccount.js';
 import TrackingEvent from '../models/TrackingEvent.js';
 import Suppression from '../models/Suppression.js';
+// ISSUE 2 FIX: Import InboxMessage to check real inbound replies from Gmail
+import InboxMessage from '../models/InboxMessage.js';
 import { replyViaScript } from './gmailScript.js';
 import { replyViaOAuth } from './gmailOAuth.js';
 import { selectAccount } from './gmailScript.js';
@@ -12,22 +14,54 @@ import { replaceMergeTags } from '../utils/mergetags.js';
 import env from '../config/env.js';
 
 /**
- * Check if a recipient has replied based on tracking events & recipient status.
+ * Check if a recipient has replied based on:
+ *   1. Campaign recipient status (set manually or via webhook)
+ *   2. TrackingEvent records (set by tracking pixel / reply webhooks)
+ *   3. InboxMessage collection — the authoritative source for real Gmail replies
+ *
+ * ISSUE 2 FIX: Previously only (1) and (2) were checked, so real inbound replies
+ * that arrived via Gmail sync and were stored in InboxMessage were completely ignored.
+ * This caused follow-ups to be sent even when the recipient had already replied.
  */
 const hasRecipientReplied = async (campaignId, recipientEmail) => {
     const campaign = await Campaign.findById(campaignId);
     if (!campaign) return false;
+
+    // (1) Check Campaign recipient status field
     const recipient = campaign.recipients.find(
         r => r.email.toLowerCase() === recipientEmail.toLowerCase()
     );
     if (recipient && (recipient.status === 'replied' || recipient.repliedAt)) return true;
 
-    // Also check tracking events
+    // (2) Check TrackingEvent records for 'reply' events
     const logs = await EmailLog.find({ campaignId, to: recipientEmail.toLowerCase() });
     for (const log of logs) {
         const replyEvent = await TrackingEvent.findOne({ trackingId: log.trackingId, type: 'reply' });
         if (replyEvent) return true;
     }
+
+    // ISSUE 2 FIX: (3) Check InboxMessage for real inbound replies from this recipient
+    // These are stored when Gmail sync pulls in replies or simulate-inbound is triggered
+    const inboundReply = await InboxMessage.findOne({
+        campaignId,
+        from: recipientEmail.toLowerCase(),
+        direction: 'inbound',
+    });
+    if (inboundReply) {
+        // Also update Campaign recipient status so future checks are faster (avoids repeated DB hits)
+        await Campaign.updateOne(
+            { _id: campaignId, 'recipients.email': recipientEmail.toLowerCase() },
+            {
+                $set: {
+                    'recipients.$.status': 'replied',
+                    'recipients.$.repliedAt': inboundReply.receivedAt || new Date(),
+                    'recipients.$.sequenceStatus': 'stopped_reply',
+                }
+            }
+        );
+        return true;
+    }
+
     return false;
 };
 
