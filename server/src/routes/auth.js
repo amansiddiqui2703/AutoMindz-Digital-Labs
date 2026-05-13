@@ -326,23 +326,32 @@ router.get('/google/callback', async (req, res) => {
             ]
         });
 
+        const adminEmails = (env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        const isAdmin = adminEmails.includes(profile.email.toLowerCase());
+
         if (user) {
-            // Link Google ID if not already linked
+            // Link Google ID if not already linked, or promote to admin if env var changed
+            let needsSave = false;
             if (!user.googleId) {
                 user.googleId = profile.id;
-                await user.save();
+                needsSave = true;
             }
+            if (isAdmin && (user.role !== 'admin' || user.plan !== 'unlimited')) {
+                user.role = 'admin';
+                user.plan = 'unlimited';
+                user.isVerified = true;
+                needsSave = true;
+            }
+            if (needsSave) await user.save();
         } else {
             // Create new user (no password — Google-only)
-            const adminEmails = (env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-            const role = adminEmails.includes(profile.email.toLowerCase()) ? 'admin' : 'user';
-
             user = new User({
                 email: profile.email.toLowerCase(),
                 name: profile.name || profile.email,
                 googleId: profile.id,
                 isVerified: true, // Google emails are pre-verified
-                role,
+                role: isAdmin ? 'admin' : 'user',
+                plan: isAdmin ? 'unlimited' : 'free',
             });
             await user.save();
             
