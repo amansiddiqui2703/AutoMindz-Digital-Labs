@@ -324,7 +324,14 @@ const _enqueueCampaignInternal = async (campaign) => {
 
     // If Redis is not available, process jobs in-memory in the background
     if (!emailQueue && inMemoryJobs.length > 0) {
-        logger.warn('Redis not available — falling back to in-memory email processing');
+        if (env.NODE_ENV === 'production') {
+            logger.error('CRITICAL: Redis not available in production. In-memory fallback is disabled to prevent duplicate sends across scaled instances. Pausing campaign.');
+            campaign.status = 'paused';
+            await campaign.save();
+            return;
+        }
+
+        logger.warn('Redis not available — falling back to in-memory email processing (DEV/TEST ONLY)');
         (async () => {
             for (const { jobData, delayMs } of inMemoryJobs) {
                 try {

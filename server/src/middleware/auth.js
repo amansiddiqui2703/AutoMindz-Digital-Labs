@@ -36,11 +36,11 @@ const auth = async (req, res, next) => {
 
         req.user = user;
 
-        // BUG FIX #17: Sliding JWT — silently renew token if it expires within 24 hours
+        // BUG FIX #17: Sliding JWT — silently renew token if it expires within 3 days (72 hours)
         // This prevents active users from being unexpectedly logged out
         const expiresAt = decoded.exp * 1000; // convert to ms
-        const twentyFourHours = 24 * 60 * 60 * 1000;
-        if (expiresAt - Date.now() < twentyFourHours) {
+        const seventyTwoHours = 72 * 60 * 60 * 1000;
+        if (expiresAt - Date.now() < seventyTwoHours) {
             try {
                 const newToken = jwt.sign(
                     { id: user._id, email: user.email, role: user.role },

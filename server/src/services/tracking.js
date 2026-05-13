@@ -53,6 +53,10 @@ export const recordClick = async (trackingId, url, ip, userAgent) => {
 };
 
 export const recordUnsubscribe = async (trackingId) => {
+    // Check for idempotency
+    const existing = await TrackingEvent.findOne({ trackingId, type: 'unsubscribe' });
+    if (existing) return;
+
     const event = new TrackingEvent({ trackingId, type: 'unsubscribe' });
     await event.save();
 
@@ -72,6 +76,10 @@ export const recordUnsubscribe = async (trackingId) => {
 };
 
 export const recordBounce = async (trackingId) => {
+    // Check for idempotency
+    const existing = await TrackingEvent.findOne({ trackingId, type: 'bounce' });
+    if (existing) return;
+
     const event = new TrackingEvent({ trackingId, type: 'bounce' });
     await event.save();
 

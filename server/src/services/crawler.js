@@ -136,12 +136,31 @@ const fetchPage = async (url) => {
     }
 
     try {
-        const response = await axios.get(url, {
+        const axiosConfig = {
             timeout: REQUEST_TIMEOUT,
             headers: HEADERS,
             maxRedirects: 3,
             validateStatus: (status) => status < 400 || status === 403 || status === 404 || status === 500,
-        });
+        };
+
+        if (process.env.PROXY_URL) {
+            try {
+                const proxyUrl = new URL(process.env.PROXY_URL);
+                axiosConfig.proxy = {
+                    protocol: proxyUrl.protocol.replace(':', ''),
+                    host: proxyUrl.hostname,
+                    port: parseInt(proxyUrl.port) || (proxyUrl.protocol === 'https:' ? 443 : 80),
+                    auth: proxyUrl.username ? {
+                        username: proxyUrl.username,
+                        password: proxyUrl.password
+                    } : undefined
+                };
+            } catch (proxyErr) {
+                console.warn('Invalid PROXY_URL provided');
+            }
+        }
+
+        const response = await axios.get(url, axiosConfig);
         return { data: typeof response.data === 'string' ? response.data : '', status: response.status };
     } catch (err) {
         // Fallback to HTTP on SSL error (Note: rejectUnauthorized: false REMOVED for security)
@@ -149,12 +168,8 @@ const fetchPage = async (url) => {
             if (url.startsWith('https://')) {
                 const httpUrl = url.replace('https://', 'http://');
                 try {
-                    const fallbackRes = await axios.get(httpUrl, {
-                        timeout: REQUEST_TIMEOUT,
-                        headers: HEADERS,
-                        maxRedirects: 3,
-                        validateStatus: (status) => status < 400 || status === 403 || status === 404 || status === 500,
-                    });
+                    const fallbackConfig = { ...axiosConfig };
+                    const fallbackRes = await axios.get(httpUrl, fallbackConfig);
                     return { data: typeof fallbackRes.data === 'string' ? fallbackRes.data : '', status: fallbackRes.status };
                 } catch {
                     // ignore error

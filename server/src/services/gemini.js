@@ -15,44 +15,66 @@ const sanitizePromptInput = (input, maxLen = MAX_PROMPT_INPUT_LENGTH) => {
         .slice(0, maxLen);
 };
 
-const callGemini = async (prompt) => {
+const callGemini = async (prompt, maxRetries = 3) => {
     if (!env.GEMINI_API_KEY) {
         throw new Error('Gemini API key not configured');
     }
 
-    // SECURITY FIX [MEDIUM-4]: Move API key to headers to avoid URL leakage
-    const response = await fetch(GEMINI_API_URL, {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'x-goog-api-key': env.GEMINI_API_KEY 
-        },
-        body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 2048,
-            },
-        }),
-    });
-
-    if (!response.ok) {
-        let errMessage = `Gemini API error (${response.status})`;
+    let attempt = 0;
+    while (attempt < maxRetries) {
         try {
-            const errData = await response.json();
-            if (response.status === 429) {
-                errMessage = `AI Rate Limit Exceeded: Your Google Gemini API free tier quota is full. Please check your Google AI Studio billing/plan or wait a few minutes before trying again.`;
-            } else if (errData.error?.message) {
-                errMessage = errData.error.message;
-            }
-        } catch {
-            // Fallback to text if JSON parsing fails
-        }
-        throw new Error(errMessage);
-    }
+            const response = await fetch(GEMINI_API_URL, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': env.GEMINI_API_KEY 
+                },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 2048,
+                    },
+                }),
+            });
 
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (!response.ok) {
+                // If Rate Limit or Service Unavailable, throw specifically to trigger retry
+                if (response.status === 429 || response.status === 503) {
+                    const errObj = new Error(`Retryable API Error: ${response.status}`);
+                    errObj.status = response.status;
+                    errObj.response = response;
+                    throw errObj;
+                }
+
+                let errMessage = `Gemini API error (${response.status})`;
+                try {
+                    const errData = await response.json();
+                    if (errData.error?.message) {
+                        errMessage = errData.error.message;
+                    }
+                } catch { /* Fallback */ }
+                // Non-retryable error
+                throw new Error(errMessage);
+            }
+
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        } catch (error) {
+            attempt++;
+            if (attempt >= maxRetries || (error.status !== 429 && error.status !== 503)) {
+                if (error.status === 429) {
+                    throw new Error(`AI Rate Limit Exceeded: Your Google Gemini API free tier quota is full. Please check your Google AI Studio billing/plan or wait a few minutes before trying again.`);
+                }
+                throw error;
+            }
+            
+            // Exponential backoff: 1s, 2s, 4s...
+            const delay = Math.pow(2, attempt - 1) * 1000 + (Math.random() * 500);
+            console.warn(`[AI Service] API overloaded (${error.status}). Retrying in ${Math.round(delay)}ms... (Attempt ${attempt}/${maxRetries})`);
+            await new Promise(res => setTimeout(res, delay));
+        }
+    }
 };
 
 export const generateColdEmail = async ({ purpose, recipientInfo, tone, senderInfo }) => {
