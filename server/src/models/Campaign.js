@@ -106,6 +106,15 @@ const campaignSchema = new mongoose.Schema({
 
 campaignSchema.index({ userId: 1, status: 1 });
 campaignSchema.index({ userId: 1, isArchived: 1 });
+// DB OPTIMIZATION: Scheduler query index — critical for follow-up performance
+// The follow-up scheduler queries: {status: {$in:[...]}, recipients.sequenceStatus: 'active', recipients.nextFollowUpAt: {$lte: now}}
+campaignSchema.index({ status: 1, 'recipients.sequenceStatus': 1, 'recipients.nextFollowUpAt': 1 });
+// DB OPTIMIZATION: Fast lookup when updating a specific recipient by email
+campaignSchema.index({ _id: 1, 'recipients.email': 1 });
+// DB OPTIMIZATION: Analytics queries by date range
+campaignSchema.index({ userId: 1, createdAt: -1 });
+// DB OPTIMIZATION: Campaign scheduler startup query
+campaignSchema.index({ status: 1, scheduledAt: 1 });
 
 const Campaign = mongoose.model('Campaign', campaignSchema);
 

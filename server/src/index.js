@@ -14,7 +14,7 @@ import env from './config/env.js';
 import connectDB from './config/db.js';
 import { connectRedis, getRedis } from './config/redis.js';
 import { initQueue } from './services/queue.js';
-import { apiLimiter, authLimiter } from './middleware/rateLimit.js';
+import { apiLimiter, authLimiter, inboxSyncLimiter, campaignLaunchLimiter, aiLimiter } from './middleware/rateLimit.js';
 import auth from './middleware/auth.js';
 import { startFollowUpScheduler } from './services/followUpScheduler.js';
 import { startCampaignScheduler } from './services/campaignScheduler.js';
@@ -179,15 +179,31 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/inbox', inboxRoutes);
+app.use('/api/inbox/sync', inboxSyncLimiter);
+app.use('/api/inbox/sync-replies', inboxSyncLimiter);
+app.use('/api/ai', aiLimiter);
 app.use('/api/seo', seoRoutes);
 app.use('/api/sequences', sequenceRoutes);
 
 // Tracking routes (public, no auth)
 app.use('/t', trackingRoutes);
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Enhanced health check: reports DB + Redis readiness for load balancer probes
+app.get('/health', async (req, res) => {
+  const checks = { status: 'ok', timestamp: new Date().toISOString() };
+  try {
+    // Quick Mongoose connection state: 1 = connected
+    const mongoose = (await import('mongoose')).default;
+    checks.db = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  } catch { checks.db = 'unknown'; }
+  try {
+    const { getRedis } = await import('./config/redis.js');
+    const redis = getRedis();
+    checks.redis = redis ? (redis.status === 'ready' ? 'connected' : redis.status) : 'disabled';
+  } catch { checks.redis = 'unknown'; }
+
+  const isHealthy = checks.db === 'connected';
+  res.status(isHealthy ? 200 : 503).json(checks);
 });
 
 // Sentry error handler should be established before other error handlers
@@ -208,10 +224,17 @@ if (fs.existsSync(distPath)) {
   });
 }
 
-// Start server
 const start = async () => {
-  process.on('unhandledRejection', (reason) => { console.error('Unhandled Rejection:', reason); });
-  process.on('uncaughtException', (err) => { console.error('Uncaught Exception:', err); process.exit(1); });
+  // HARDENING: Capture unhandled rejections in Sentry and prevent silent failures
+  process.on('unhandledRejection', (reason) => {
+    console.error('[UnhandledRejection]', reason);
+    if (Sentry.captureException) Sentry.captureException(reason);
+  });
+  process.on('uncaughtException', (err) => {
+    console.error('[UncaughtException]', err);
+    if (Sentry.captureException) Sentry.captureException(err);
+    process.exit(1);
+  });
 
   await connectDB();
   const redisConn = connectRedis();
@@ -219,13 +242,8 @@ const start = async () => {
   // Wait for Redis to be connected before initializing the queue
   if (redisConn) {
     await new Promise((resolve) => {
-      // If already connected, resolve immediately
-      if (redisConn.status === 'ready') {
-        resolve();
-        return;
-      }
+      if (redisConn.status === 'ready') { resolve(); return; }
       redisConn.once('ready', resolve);
-      // Don't block startup forever if Redis fails
       setTimeout(() => {
         console.warn('⚠ Redis connection timed out — proceeding with in-memory fallback');
         resolve();
@@ -237,12 +255,35 @@ const start = async () => {
   startFollowUpScheduler();
   startCampaignScheduler();
 
-  app.listen(env.PORT, () => {
+  const server = app.listen(env.PORT, () => {
     console.log(`\n🚀 AutoMindz server running on port ${env.PORT}`);
     console.log(`   Environment: ${env.NODE_ENV}`);
     console.log(`   API: ${env.SERVER_URL}/api`);
     console.log(`   Health: ${env.SERVER_URL}/health\n`);
   });
+
+  // HARDENING: Graceful shutdown — closes active connections before exiting.
+  // Critical for Docker/Kubernetes to drain in-flight requests cleanly.
+  const gracefulShutdown = (signal) => {
+    console.log(`\n[${signal}] Graceful shutdown initiated...`);
+    server.close(() => {
+      console.log('✓ HTTP server closed');
+      import('mongoose').then(({ default: mongoose }) => {
+        mongoose.connection.close(false, () => {
+          console.log('✓ MongoDB connection closed');
+          process.exit(0);
+        });
+      }).catch(() => process.exit(0));
+    });
+    // Force exit after 15s if connections don't close
+    setTimeout(() => {
+      console.error('⚠ Forced shutdown after timeout');
+      process.exit(1);
+    }, 15_000);
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT',  () => gracefulShutdown('SIGINT'));
 };
 
 start().catch(console.error);

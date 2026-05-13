@@ -7,10 +7,13 @@ import Suppression from '../models/Suppression.js';
 import EmailLog from '../models/EmailLog.js';
 import User from '../models/User.js';
 import logger from '../utils/logger.js';
-
 import { getRedis } from '../config/redis.js';
 
 let emailQueue = null;
+
+// ISSUE 7 FIX: Prevent duplicate campaign enqueue if /launch is called twice rapidly.
+// In-process guard — campaign IDs are added before enqueue, removed after.
+const _enqueuingCampaigns = new Set();
 
 export const processEmailJob = async (data) => {
     const { campaignId, recipient, userId, accountIds, subject, htmlBody, plainBody, cc, bcc, attachments, abVariant } = data;
@@ -132,7 +135,7 @@ export const initQueue = () => {
         });
 
         emailQueue.on('error', (err) => {
-            console.warn('⚠ Email queue error:', err.message);
+            logger.warn('Email queue error', { message: err.message });
         });
 
         emailQueue.process(async (job) => {
@@ -140,11 +143,11 @@ export const initQueue = () => {
         });
 
         emailQueue.on('completed', (job, result) => {
-            console.log(`✓ Email job ${job.id} completed:`, result?.success ? 'sent' : 'skipped');
+            logger.info(`Email job ${job.id} completed`, { sent: result?.success, skipped: result?.skipped });
         });
 
         emailQueue.on('failed', (job, err) => {
-            console.error(`✗ Email job ${job.id} failed:`, err.message);
+            logger.error(`Email job ${job.id} failed`, err, { email: job.data?.recipient?.email });
         });
 
         console.log('✓ Email queue initialized');
@@ -200,6 +203,23 @@ const msUntilNextSendingWindow = (timezone = 'UTC') => {
 };
 
 export const enqueueCampaign = async (campaign) => {
+    const campaignIdStr = campaign._id.toString();
+
+    // ISSUE 7 FIX: Prevent double-enqueue if endpoint is called concurrently
+    if (_enqueuingCampaigns.has(campaignIdStr)) {
+        logger.warn(`Campaign ${campaignIdStr} is already being enqueued — ignoring duplicate call`);
+        return;
+    }
+    _enqueuingCampaigns.add(campaignIdStr);
+
+    try {
+        await _enqueueCampaignInternal(campaign);
+    } finally {
+        _enqueuingCampaigns.delete(campaignIdStr);
+    }
+};
+
+const _enqueueCampaignInternal = async (campaign) => {
     const hasABTest = !!campaign.subjectB;
 
     // Get user details for limits and timezone
@@ -304,27 +324,20 @@ export const enqueueCampaign = async (campaign) => {
 
     // If Redis is not available, process jobs in-memory in the background
     if (!emailQueue && inMemoryJobs.length > 0) {
-        console.warn('⚠ Redis not available — falling back to in-memory email processing');
+        logger.warn('Redis not available — falling back to in-memory email processing');
         (async () => {
             for (const { jobData, delayMs } of inMemoryJobs) {
                 try {
-                    if (delayMs > 0) {
-                        await new Promise(resolve => setTimeout(resolve, delayMs));
-                    }
-                    
-                    // Allow pause: check if campaign is still running before processing
+                    if (delayMs > 0) await new Promise(resolve => setTimeout(resolve, delayMs));
                     const checkCampaign = await Campaign.findById(campaign._id);
-                    // It can be paused, completed, or failed
                     if (checkCampaign && checkCampaign.status !== 'running') {
-                        console.log(`⏸️ Campaign ${campaign.name || campaign._id} paused or stopped, halting in-memory queue.`);
+                        logger.info(`Campaign ${campaign.name || campaign._id} no longer running — halting in-memory queue`);
                         break;
                     }
-
-                    console.log(`⏳ Processing in-memory job for ${jobData.recipient.email}`);
                     const res = await processEmailJob(jobData);
-                    console.log(`✓ Email job completed in-memory:`, res?.success ? 'sent' : 'skipped');
+                    logger.info('In-memory email job', { sent: res?.success, email: jobData.recipient.email });
                 } catch (err) {
-                    console.error(`✗ Email job failed in-memory:`, err.message);
+                    logger.error('In-memory email job failed', err, { email: jobData?.recipient?.email });
                 }
             }
         })();
