@@ -40,7 +40,6 @@ const emailLogSchema = new mongoose.Schema({
 
 emailLogSchema.index({ campaignId: 1, status: 1 });
 emailLogSchema.index({ userId: 1, status: 1 });
-emailLogSchema.index({ trackingId: 1 });
 emailLogSchema.index({ to: 1, campaignId: 1 });
 emailLogSchema.index({ messageId: 1 });
 // BUG FIX #29: Add missing indexes for follow-up threading and analytics queries

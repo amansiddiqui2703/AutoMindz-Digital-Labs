@@ -202,16 +202,21 @@ describe('InboxMessage model', () => {
             receivedAt: new Date(),
         });
 
+        // Ensure indexes are built before testing unique constraints
+        await InboxMessage.syncIndexes();
+
         await assert.rejects(
-            () => InboxMessage.create({
-                userId,
-                gmailMessageId: 'unique-msg-001', // duplicate
-                gmailThreadId: 'thread-x',
-                direction: 'outbound',
-                from: 'me@myapp.com',
-                to: 'contact@example.com',
-                receivedAt: new Date(),
-            }),
+            async () => {
+                await InboxMessage.create({
+                    userId,
+                    gmailMessageId: 'unique-msg-001', // duplicate
+                    gmailThreadId: 'thread-x',
+                    direction: 'outbound',
+                    from: 'me@myapp.com',
+                    to: 'contact@example.com',
+                    receivedAt: new Date(),
+                });
+            },
             { name: 'MongoServerError' },
             'Duplicate gmailMessageId should be rejected'
         );
