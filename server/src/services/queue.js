@@ -108,14 +108,7 @@ export const processEmailJob = async (data) => {
 
 export const initQueue = () => {
     try {
-        const redisInstance = getRedis();
-        if (!redisInstance) {
-            console.warn('⚠ Redis not available — email queue will use in-memory fallback');
-            return null;
-        }
-
-        // Bull creates its own ioredis connections from the URL
-        // For Upstash (rediss://), we need to pass TLS options through the redis key
+        // Bull creates its own ioredis connections from the URL - no need to check getRedis()
         const isUpstash = env.REDIS_URL.startsWith('rediss://');
 
         emailQueue = new Queue('emailQueue', env.REDIS_URL, {
