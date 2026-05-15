@@ -15,14 +15,13 @@ const router = Router();
 
 // BUG FIX #28: Quick today-stats endpoint for ProfileDropdown real-time usage
 router.get('/today-stats', auth, cacheMiddleware(60), asyncHandler(async (req, res) => {
-    try {
-        const startOfDay = new Date();
-        startOfDay.setHours(0, 0, 0, 0);
-        const emailsSentToday = await EmailLog.countDocuments({
-            userId: req.user.id,
-            status: 'sent',
-            sentAt: { $gte: startOfDay },
-        });
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const emailsSentToday = await EmailLog.countDocuments({
+        userId: req.user.id,
+        status: 'sent',
+        sentAt: { $gte: startOfDay },
+    });
     res.json({ emailsSentToday });
 }));
 
