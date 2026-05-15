@@ -10,6 +10,7 @@ import InboxMessage from '../models/InboxMessage.js';
 import { replyViaScript } from './gmailScript.js';
 import { replyViaOAuth } from './gmailOAuth.js';
 import { selectAccount } from './gmailScript.js';
+import { syncInboundReplies } from './inboxSyncService.js';
 import { replaceMergeTags } from '../utils/mergetags.js';
 import env from '../config/env.js';
 
@@ -402,18 +403,30 @@ const runScheduler = async () => {
         let totalDue = 0;
 
         for (const campaign of campaigns) {
+            // First, sync inbound replies for this user so we have the latest status
+            // before we decide to send a follow-up.
+            try {
+                await syncInboundReplies(campaign.userId);
+            } catch (syncErr) {
+                console.error(`Failed to sync replies for user ${campaign.userId} before follow-up:`, syncErr.message);
+            }
+
             // Find recipients due for follow-up
-            const dueRecipients = campaign.recipients.filter(
+            // We re-query the campaign to get the freshly synced recipient status
+            const updatedCampaignInitial = await Campaign.findById(campaign._id);
+            if (!updatedCampaignInitial) continue;
+
+            const dueRecipients = updatedCampaignInitial.recipients.filter(
                 r => r.sequenceStatus === 'active' && r.nextFollowUpAt && new Date(r.nextFollowUpAt) <= now
             );
 
             if (dueRecipients.length === 0) continue;
             totalDue += dueRecipients.length;
 
-            console.log(`⏰ Campaign "${campaign.name}": ${dueRecipients.length} follow-ups due`);
+            console.log(`⏰ Campaign "${updatedCampaignInitial.name}": ${dueRecipients.length} follow-ups due`);
 
             for (const recipient of dueRecipients) {
-                await processRecipientFollowUp(campaign, recipient);
+                await processRecipientFollowUp(updatedCampaignInitial, recipient);
                 // Small delay between sends to avoid rate limiting
                 await new Promise(r => setTimeout(r, 2000));
             }

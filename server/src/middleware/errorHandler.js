@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/node";
+import logger from '../utils/logger.js';
 
 /**
  * Global Error Handling Middleware
@@ -9,9 +10,8 @@ const errorHandler = (err, req, res, next) => {
     const message = err.message || 'Internal Server Error';
     
     // Log the error
-    console.error(`[Error] ${req.method} ${req.url}:`, {
-        message: err.message,
-        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    logger.error(`[Error] ${req.method} ${req.url}: ${err.message}`, {
+        stack: err.stack,
     });
 
     // Report to Sentry if in production and not a client error (4xx)

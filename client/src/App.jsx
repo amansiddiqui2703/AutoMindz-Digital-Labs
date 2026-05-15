@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -63,6 +64,7 @@ function RootRoute() {
 
 export default function App() {
   return (
+    <HelmetProvider>
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
@@ -117,5 +119,6 @@ export default function App() {
         }} />
       </AuthProvider>
     </ThemeProvider>
+    </HelmetProvider>
   );
 }

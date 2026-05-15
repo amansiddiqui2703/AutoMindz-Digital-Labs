@@ -1,30 +1,45 @@
+import winston from 'winston';
 import config from '../config/index.js';
 
-const logger = {
-    info: (message, meta = {}) => {
-        const timestamp = new Date().toISOString();
-        console.log(`[${timestamp}] INFO: ${message}`, Object.keys(meta).length ? meta : '');
-    },
-    error: (message, error = null, meta = {}) => {
-        const timestamp = new Date().toISOString();
-        console.error(`[${timestamp}] ERROR: ${message}`);
-        if (error) {
-            console.error(error.stack || error);
-        }
-        if (Object.keys(meta).length) {
-            console.error('Context:', meta);
-        }
-    },
-    warn: (message, meta = {}) => {
-        const timestamp = new Date().toISOString();
-        console.warn(`[${timestamp}] WARN: ${message}`, Object.keys(meta).length ? meta : '');
-    },
-    debug: (message, meta = {}) => {
-        if (!config.app.isProduction) {
-            const timestamp = new Date().toISOString();
-            console.debug(`[${timestamp}] DEBUG: ${message}`, Object.keys(meta).length ? meta : '');
-        }
-    }
-};
+const { combine, timestamp, printf, colorize, errors, splat, json } = winston.format;
+
+const customFormat = printf(({ level, message, timestamp, stack, ...metadata }) => {
+  let msg = `[${timestamp}] ${level}: ${message} `;
+  if (Object.keys(metadata).length > 0) {
+    msg += JSON.stringify(metadata);
+  }
+  if (stack) {
+    msg += `\n${stack}`;
+  }
+  return msg;
+});
+
+const isProduction = config.app?.isProduction || process.env.NODE_ENV === 'production';
+
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug'),
+  format: combine(
+    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    errors({ stack: true }),
+    splat(),
+    json()
+  ),
+  transports: [
+    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'logs/combined.log' }),
+  ],
+});
+
+if (!isProduction) {
+  logger.add(
+    new winston.transports.Console({
+      format: combine(
+        colorize(),
+        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        customFormat
+      ),
+    })
+  );
+}
 
 export default logger;

@@ -1,8 +1,21 @@
 FROM node:20-alpine
 WORKDIR /app
+
+# Set environment
+ENV NODE_ENV=production
+
+# Install dependencies
 COPY package*.json ./
-RUN npm ci --production
+RUN npm ci --only=production
+
+# Copy source code
 COPY src/ ./src/
-RUN mkdir -p uploads
+
+# Create uploads directory and set permissions
+RUN mkdir -p uploads && chown -R node:node /app
+
+# Switch to non-root user
+USER node
+
 EXPOSE 5000
 CMD ["node", "src/index.js"]

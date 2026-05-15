@@ -7,11 +7,14 @@ import GmailAccount from '../models/GmailAccount.js';
 import Contact from '../models/Contact.js';
 import User from '../models/User.js';
 import authorize from '../middleware/authorize.js';
+import asyncHandler from '../utils/asyncHandler.js';
+import { cacheMiddleware } from '../utils/cache.js';
+import { successResponse } from '../utils/apiResponse.js';
 
 const router = Router();
 
 // BUG FIX #28: Quick today-stats endpoint for ProfileDropdown real-time usage
-router.get('/today-stats', auth, async (req, res) => {
+router.get('/today-stats', auth, cacheMiddleware(60), asyncHandler(async (req, res) => {
     try {
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
@@ -20,16 +23,12 @@ router.get('/today-stats', auth, async (req, res) => {
             status: 'sent',
             sentAt: { $gte: startOfDay },
         });
-        res.json({ emailsSentToday });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch today stats' });
-    }
-});
+    res.json({ emailsSentToday });
+}));
 
 // Dashboard overview
-router.get('/dashboard', auth, async (req, res) => {
-    try {
-        const userId = req.user.id;
+router.get('/dashboard', auth, cacheMiddleware(300), asyncHandler(async (req, res) => {
+    const userId = req.user.id;
 
         // Get basic counts
         const [
@@ -154,11 +153,7 @@ router.get('/dashboard', auth, async (req, res) => {
             },
             timeline, deliveryStats, recentActivity, accounts, recentCampaigns,
         });
-    } catch (error) {
-        console.error('Analytics dashboard error:', error);
-        res.status(500).json({ error: 'Failed to fetch analytics' });
-    }
-});
+}));
 
 // ==========================================
 // Team Productivity Reports (Admin/Manager only)

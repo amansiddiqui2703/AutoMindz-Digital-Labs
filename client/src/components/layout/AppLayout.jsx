@@ -20,7 +20,7 @@ export default function AppLayout() {
         const connectSSE = async () => {
             try {
                 const { data } = await api.post('/events/ticket');
-                const url = import.meta.env.DEV ? `http://localhost:5000/api/events?ticket=${data.ticket}` : `/api/events?ticket=${data.ticket}`;
+                const url = import.meta.env.DEV ? `http://localhost:5000/api/v1/events?ticket=${data.ticket}` : `/api/v1/events?ticket=${data.ticket}`;
                 source = new EventSource(url);
 
                 source.addEventListener('notification', (e) => {

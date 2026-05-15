@@ -3,6 +3,7 @@ import {
     Zap, Send, Users, BarChart3, Bot, Timer, Shield, ArrowRight, Check,
     Mail, Search, MousePointerClick, Rocket, Crown, Building, Star
 } from 'lucide-react';
+import SEO from '../components/SEO.jsx';
 
 const FEATURES = [
     { icon: Send, title: 'Bulk Email Campaigns', desc: 'Send personalized emails to thousands of contacts with smart delays and warmup.' },
@@ -45,6 +46,10 @@ const TESTIMONIALS = [
 export default function Landing() {
     return (
         <div className="min-h-screen bg-white dark:bg-surface-950">
+            <SEO 
+                title="Automated Email Outreach & Lead Generation"
+                description="AutoMindz is the ultimate cold email outreach and lead generation platform. Automate follow-ups, find B2B contacts, and scale your sales pipeline effortlessly."
+            />
             {/* Navbar */}
             <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-surface-950/80 border-b border-surface-200 dark:border-surface-800">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">

@@ -1,4 +1,5 @@
 import express from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -6,7 +7,9 @@ import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import fs from 'fs';
-
+import mongoSanitize from 'express-mongo-sanitize';
+import xss from 'xss-clean';
+import hpp from 'hpp';
 import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
@@ -65,10 +68,10 @@ Sentry.init({
 });
 
 // Stripe webhook needs raw body — must come BEFORE express.json()
-app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+app.post('/api/v1/billing/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
 // Resend webhook needs raw body for signature verification
-app.post('/api/webhooks/resend', express.raw({ type: 'application/json' }), handleResendWebhook);
+app.post('/api/v1/webhooks/resend', express.raw({ type: 'application/json' }), handleResendWebhook);
 
 // Middleware
 app.use((req, res, next) => {
@@ -91,27 +94,50 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
-      // Bug #26 Fix: keep blob: for workers but remove unused CDN sources
+      scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
       workerSrc: ["'self'", "blob:"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      styleSrc: ["'self'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'", "https://o4511246035976192.ingest.us.sentry.io", "https://fonts.googleapis.com", "https://fonts.gstatic.com"],
     },
   },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
 }));
-app.use(morgan('dev'));
+// Request Tracing and Logging
+app.use((req, res, next) => {
+  req.id = uuidv4();
+  next();
+});
+
+import logger from './utils/logger.js';
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms [req-id: :req-id]', {
+  stream: {
+    write: (message) => logger.info(message.trim())
+  }
+}));
+
+morgan.token('req-id', (req) => req.id);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Security Hardening
+app.use(mongoSanitize());
+app.use(xss());
+app.use(hpp());
+
 // Rate limiting
-app.use('/api/', apiLimiter);
+app.use('/api/v1/', apiLimiter);
 
 // -------------------------------------------------------------
 // Real-Time Event Stream (Server-Sent Events)
 // -------------------------------------------------------------
-app.post('/api/events/ticket', auth, async (req, res) => {
+app.post('/api/v1/events/ticket', auth, async (req, res) => {
     try {
         const ticket = crypto.randomBytes(32).toString('hex');
         const redis = getRedis();
@@ -123,7 +149,7 @@ app.post('/api/events/ticket', auth, async (req, res) => {
     }
 });
 
-app.get('/api/events', async (req, res) => {
+app.get('/api/v1/events', async (req, res) => {
     const ticket = req.query.ticket;
     if (!ticket) return res.status(401).json({ error: 'Auth ticket missing' });
 
@@ -159,31 +185,31 @@ app.get('/api/events', async (req, res) => {
 app.use('/uploads', express.static(resolve(__dirname, '../uploads')));
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/accounts', accountRoutes);
-app.use('/api/campaigns', campaignRoutes);
-app.use('/api/contacts', contactRoutes);
-app.use('/api/emails', emailRoutes);
-app.use('/api/finder', finderRoutes);
-app.use('/api/ai', aiRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/templates', templateRoutes);
-app.use('/api/chatbot', chatbotRoutes);
-app.use('/api/billing', billingRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/accounts', accountRoutes);
+app.use('/api/v1/campaigns', campaignRoutes);
+app.use('/api/v1/contacts', contactRoutes);
+app.use('/api/v1/emails', emailRoutes);
+app.use('/api/v1/finder', finderRoutes);
+app.use('/api/v1/ai', aiRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/templates', templateRoutes);
+app.use('/api/v1/chatbot', chatbotRoutes);
+app.use('/api/v1/billing', billingRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
-app.use('/api/notes', noteRoutes);
-app.use('/api/smart-lists', smartListRoutes);
-app.use('/api/links', linkRoutes);
-app.use('/api/teams', teamRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/activity', activityRoutes);
-app.use('/api/inbox', inboxRoutes);
-app.use('/api/inbox/sync', inboxSyncLimiter);
-app.use('/api/inbox/sync-replies', inboxSyncLimiter);
-app.use('/api/ai', aiLimiter);
-app.use('/api/seo', seoRoutes);
-app.use('/api/sequences', sequenceRoutes);
+app.use('/api/v1/notes', noteRoutes);
+app.use('/api/v1/smart-lists', smartListRoutes);
+app.use('/api/v1/links', linkRoutes);
+app.use('/api/v1/teams', teamRoutes);
+app.use('/api/v1/tasks', taskRoutes);
+app.use('/api/v1/activity', activityRoutes);
+app.use('/api/v1/inbox', inboxRoutes);
+app.use('/api/v1/inbox/sync', inboxSyncLimiter);
+app.use('/api/v1/inbox/sync-replies', inboxSyncLimiter);
+app.use('/api/v1/ai', aiLimiter);
+app.use('/api/v1/seo', seoRoutes);
+app.use('/api/v1/sequences', sequenceRoutes);
 
 // Tracking routes (public, no auth)
 app.use('/t', trackingRoutes);
@@ -258,7 +284,7 @@ const start = async () => {
   const server = app.listen(env.PORT, () => {
     console.log(`\n🚀 AutoMindz server running on port ${env.PORT}`);
     console.log(`   Environment: ${env.NODE_ENV}`);
-    console.log(`   API: ${env.SERVER_URL}/api`);
+    console.log(`   API: ${env.SERVER_URL}/api/v1`);
     console.log(`   Health: ${env.SERVER_URL}/health\n`);
   });
 
