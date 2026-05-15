@@ -1,496 +1,356 @@
-# AutoMindz Codebase Analysis: OAuth, Threading & Follow-ups
+# 🔒 AutoMindz Comprehensive Security & Production Audit Report
 
-## 1. Google OAuth/Gmail Authentication Logic
-
-### 1.1 User Login (Google OAuth)
-**File:** [server/src/routes/auth.js](server/src/routes/auth.js#L180-L240)
-
-**Flow:**
-- **Step 1 - Generate Auth URL:** `GET /api/auth/google/url`
-  - Uses `createLoginOAuth2Client()` with separate redirect URI for login
-  - Generates state parameter (CSRF protection) stored in Redis with 5-min expiry
-  - Requests `userinfo.email` and `userinfo.profile` scopes only
-
-- **Step 2 - OAuth Callback:** `GET /api/auth/google/callback`
-  - Validates state parameter from Redis
-  - Exchanges code for tokens via `oauth2Client.getToken(code)`
-  - Fetches user profile via Google OAuth2 API
-  - Creates/Updates user in database
-  - **CRITICAL SECURITY FIX:** Uses one-time code exchange instead of token in URL
-  - Stores JWT in Redis with key `google_auth_code:{code}` (30-sec expiry)
-  - Redirects to frontend with code: `{APP_URL}/auth/google/success?code={code}`
-
-- **Step 3 - Token Exchange:** `GET /api/auth/google/token`
-  - **File:** [server/src/routes/auth.js](server/src/routes/auth.js#L407-L420)
-  - Frontend exchanges code for JWT from Redis
-  - Validates Redis entry exists and retrieves token
-  - Token is deleted immediately after retrieval
-
-**Frontend Handler:** [client/src/pages/GoogleAuthSuccess.jsx](client/src/pages/GoogleAuthSuccess.jsx)
-```javascript
-// Exchanges code for token
-api.get(`/auth/google/token?code=${code}`)
-    .then(res => {
-        setTokenAndUser(res.data.token);  // Stores JWT in AuthContext
-    })
-```
-
-### 1.2 Gmail Account Connection (OAuth)
-**File:** [server/src/routes/accounts.js](server/src/routes/accounts.js#L13-L71)
-
-**Flow:**
-- **Connect:** `GET /api/accounts/oauth/connect`
-  - Creates OAuth URL using `getAuthUrl(userId)` from gmailOAuth.js
-  - Uses HMAC-signed state parameter with userId (prevents spoofing)
-  
-- **Callback:** `GET /api/accounts/oauth/callback`
-  - Verifies signed state parameter to extract userId
-  - Exchanges code for tokens via `getTokensFromCode(code)`
-  - Gets Gmail profile via `getGmailProfile(accessToken)`
-  - **Saves/Updates GmailAccount with:**
-    - `accessToken` (encrypted at rest)
-    - `refreshToken` (encrypted at rest)
-    - `tokenExpiresAt` (from Google response)
-    - `connectionType: 'oauth'`
-
-### 1.3 OAuth Token Management
-**File:** [server/src/services/gmailOAuth.js](server/src/services/gmailOAuth.js#L52-L100)
-
-**Key Features:**
-- **Auto-Refresh Logic:** `getAuthenticatedClient(account)`
-  - Checks if token expired or within 5-min buffer
-  - Auto-refreshes via `oauth2Client.refreshAccessToken()`
-  - Updates `account.accessToken`, `account.refreshToken`, `account.tokenExpiresAt`
-  - On refresh failure: Sets `account.health = 'warning'` to alert user
-
-**Token Storage:** [server/src/models/GmailAccount.js](server/src/models/GmailAccount.js#L40-75)
-- Tokens encrypted before saving via `pre('save')` hook
-- Tokens decrypted after reading via `post('findOne/find')` hooks
-- API responses strip tokens via `toJSON()` method
+**Date:** May 16, 2026  
+**Codebase:** AutoMindz Email Outreach System  
+**Analysis Depth:** Full architecture, security, configuration, and deployment audit
 
 ---
 
-## 2. Follow-up Scheduling Logic
+## 🔴 CRITICAL FINDINGS (Immediate Action Required)
 
-### 2.1 Scheduler Process
-**File:** [server/src/services/followUpScheduler.js](server/src/services/followUpScheduler.js)
+### C1. Razorpay Webhook — Timing Attack Vulnerability & Missing Raw Body Verification
+**File:** `server/src/services/razorpayWebhook.js`  
+**Severity:** 🔴 CRITICAL  
 
-**Cron Schedule:** Runs every 15 minutes
+**Issue:**
 ```javascript
-cron.schedule('*/15 * * * *', () => {
-    runScheduler();
-});
+// Line 16-18 — Simple string comparison, NOT timing-safe
+const expectedSignature = crypto.createHmac('sha256', webhookSecret)
+    .update(JSON.stringify(req.body))
+    .digest('hex');
+if (expectedSignature !== signature) {  // ← VULNERABLE
 ```
+1. **`!==` string comparison** allows timing attacks — must use `crypto.timingSafeEqual()`
+2. **Razorpay requires raw body verification**, but `express.json()` is applied globally which re-encodes the body, breaking signature validation. The endpoint uses `express.json()` on line 71 of `index.js` instead of `express.raw()`.
 
-**Main Scheduler Logic:** [Lines 330-380](server/src/services/followUpScheduler.js#L330-L380)
-
-1. **Find Due Campaigns:**
-   - Queries campaigns with `status: ['running', 'completed']`
-   - Filters recipients with `sequenceStatus: 'active'` AND `nextFollowUpAt <= now`
-
-2. **Process Each Recipient:** Calls `processRecipientFollowUp(campaign, recipient)`
-
-### 2.2 Follow-up Processing Logic
-**File:** [server/src/services/followUpScheduler.js](server/src/services/followUpScheduler.js#L48-290)
-
-**Step-by-Step Process:**
-
-#### Step 1: Check Auto-Stop Conditions
+**Fix Required:**
 ```javascript
-// Check if recipient replied → auto-stop
-const replied = await hasRecipientReplied(campaign._id, recipient.email);
-if (replied) {
-    // Stop sequence
-    recipients.$.sequenceStatus = 'stopped_reply'
-}
+// Use timingSafeEqual AND raw body parsing
+app.post('/api/v1/billing/webhook', express.raw({ type: 'application/json' }), handleRazorpayWebhook);
 
-// Check if unsubscribed
-const suppressed = await Suppression.findOne({...});
-if (suppressed) {
-    recipients.$.sequenceStatus = 'stopped_unsubscribe'
-}
-```
-
-#### Step 2: Find Next Follow-up Step
-- Gets `followUpStep` where `stepNumber = recipient.currentStep + 1`
-- If no step found → marks sequence as `'completed'`
-
-#### Step 3: Check Condition
-- Evaluates condition (`'no_reply'`, `'no_open'`, `'no_click'`, `'all'`)
-- If condition not met → skips to next step
-- If no more steps → marks completed
-
-#### Step 4: Select Gmail Account
-```javascript
-const account = await selectAccount(campaign.userId, campaign.accountIds);
-// Round-robin selection based on dailySentCount
-// Checks: dailySentCount < dailyLimit AND health !== 'critical'
-```
-
-#### Step 5-6: Build & Send Follow-up Email
-- **Merge tags:** Uses contact data to replace merge tags
-- **Add tracking:** Wraps links and adds tracking pixel
-- **Creates EmailLog:** Records as `isFollowUp: true`, `followUpIndex: nextStepNumber`
-- **Retrieves previous message ID:** [Line 245-250](server/src/services/followUpScheduler.js#L245-L250)
-  ```javascript
-  const previousLog = await EmailLog.findOne({
-      campaignId: campaign._id,
-      to: recipient.email.toLowerCase(),
-      status: 'sent',
-      messageId: { $ne: null }
-  }).sort({ createdAt: -1 });
-  const previousMessageId = previousLog?.messageId;
-  ```
-
-#### Step 7-8: Send via Appropriate Method
-- **OAuth:** `replyViaOAuth(account, {to, originalSubject, htmlBody, plainBody, displayName, previousMessageId})`
-- **Script:** `replyViaScript(account.scriptUrl, {...})`
-
-#### Step 9-12: Update States
-- Updates EmailLog with `status: 'sent'`, `sentAt`, `messageId`
-- Updates account stats (dailySentCount, totalSent)
-- Updates campaign stats
-- Calculates next follow-up date and updates recipient state
-
-**2-Second Delay Between Sends:** [Line 396](server/src/services/followUpScheduler.js#L396)
-```javascript
-await new Promise(r => setTimeout(r, 2000));
-```
-
----
-
-## 3. Thread Handling in Email Sending
-
-### 3.1 Initial Email Send
-**File:** [server/src/services/emailSender.js](server/src/services/emailSender.js#L33-L121)
-
-**Threading Behavior:**
-- Creates unique Message-ID: `<uuid@automindz.local>`
-- **Does NOT set threading headers** (no In-Reply-To, no References)
-- Creates new inbox entry with:
-  ```javascript
-  gmailMessageId: result.messageId
-  gmailThreadId: `thread-${emailLog._id}`  // Custom thread ID fallback
-  ```
-
-⚠️ **ISSUE #1:** Initial emails don't expect to be part of a thread yet
-
-### 3.2 OAuth Threaded Reply
-**File:** [server/src/services/gmailOAuth.js](server/src/services/gmailOAuth.js#L148-255)
-
-**Threading Strategy:** Uses two-level fallback
-
-#### **Primary Method: Use previousMessageId (RFC Header)**
-```javascript
-if (previousMessageId) {
-    inReplyTo = previousMessageId;
-    // Search by RFC Message-ID: rfc822msgid:{messageId}
-    const msg = await gmail.users.messages.list({
-        q: `rfc822msgid:${previousMessageId}`,
-        maxResults: 1,
-    });
-    if (msg.data.messages?.length > 0) {
-        threadId = msg.data.messages[0].threadId;
-    }
-}
-```
-
-#### **Fallback Method: Search by Subject**
-```javascript
-if (!threadId) {
-    const searchResult = await gmail.users.messages.list({
-        q: `to:${to} subject:"${cleanSubject}" in:sent`,
-        maxResults: 1,
-    });
-    if (searchResult.data.messages?.length > 0) {
-        threadId = searchResult.data.messages[0].threadId;
-        inReplyTo = msgId from original message
-    }
-}
-```
-
-**MIME Headers Set:**
-```javascript
-In-Reply-To: ${inReplyTo}        // Original message RFC ID
-References: ${inReplyTo}         // Threading header
-Subject: Re: ${cleanSubject}    // Adds "Re:" prefix
-```
-
-**Send Payload:**
-```javascript
-const sendPayload = { raw: encodedMessage };
-if (threadId) sendPayload.threadId = threadId;  // Gmail API threading
-```
-
-**Return Value:**
-```javascript
-return { 
-    success: true, 
-    messageId: customMessageId,  // UUID@automindz.local
-    threaded: !!inReplyTo        // Boolean indicating if threaded
+// In razorpayWebhook.js:
+const verifyRazorpaySignature = (rawBody, signature) => {
+    const expected = crypto.createHmac('sha256', webhookSecret)
+        .update(rawBody)
+        .digest('hex');
+    const sigBuf = Buffer.from(signature, 'hex');
+    const expBuf = Buffer.from(expected, 'hex');
+    if (sigBuf.length !== expBuf.length) return false;
+    return crypto.timingSafeEqual(sigBuf, expBuf);
 };
 ```
 
-### 3.3 Script-based Threaded Reply
-**File:** [server/src/services/gmailScript.js](server/src/services/gmailScript.js#L67-104)
+### C2. crypto-js AES Encryption — Weak Implementation
+**File:** `server/src/utils/crypto.js`  
+**Severity:** 🔴 CRITICAL  
 
-**Payload Sent to Google Apps Script:**
+**Issue:** Uses `crypto-js` with a passphrase-based AES encryption (CryptoJS.AES.encrypt(text, key)) instead of proper key derivation (PBKDF2, scrypt) with a random IV per encryption. This means:
+- Same plaintext → same ciphertext (deterministic, no IV)
+- Passphrase is used directly, not a derived key
+- No authentication tag (no GCM mode)
+
+**Fix Required:** Use Node.js native `crypto.createCipheriv()` with:
+- AES-256-GCM (authenticated encryption)
+- Random 16-byte IV per encryption
+- PBKDF2 key derivation from the ENCRYPTION_KEY
+
+### C3. JWT_SECRET Used as HMAC Key for OAuth State
+**File:** `server/src/utils/crypto.js` (line 27)
+**Severity:** 🔴 CRITICAL  
+
 ```javascript
-const payload = {
-    action: 'reply',
-    to,
-    originalSubject,
-    htmlBody,
-    plainBody,
-    name: displayName,
-    previousMessageId,  // Script handles threading logic
-};
+const hmacKey = env.JWT_SECRET || 'dev-secret-change-me';
+```
+Using the same secret for JWT signing AND OAuth state HMAC creates a cross-protocol vulnerability. If one is compromised, both are.
+
+**Fix:** Use a dedicated `OAUTH_STATE_SECRET` environment variable.
+
+### C4. Auth Routes Not Behind authLimiter
+**File:** `server/src/index.js` (line 189)
+**Severity:** 🔴 CRITICAL  
+
+```javascript
+app.use('/api/v1/auth', authRoutes);  // No authLimiter applied here!
+```
+The `authLimiter` is defined but never applied to auth routes. Only the general `apiLimiter` (200 req/15min) covers `/api/v1/auth/*`. Login/register endpoints need strict 20 req/15min limits.
+
+**Fix:**
+```javascript
+app.use('/api/v1/auth', authLimiter, authRoutes);
 ```
 
-**Expects Script Response:**
+---
+
+## 🟠 HIGH SEVERITY FINDINGS
+
+### H1. Default JWT Secret in Development
+**File:** `server/src/config/env.js` (line 20)
+**Severity:** 🟠 HIGH  
+
 ```javascript
-{
-    success: true,
-    messageId: data.messageId,
-    threaded: data.threaded  // Script indicates if threading succeeded
+JWT_SECRET: process.env.JWT_SECRET || 'dev-secret-change-me',
+```
+Only validated in production. Development environments using the default are susceptible to token forgery if exposed.
+
+**Fix:** Add validation in development mode too, or generate a random fallback.
+
+### H2. Resend Webhook Bypass When Secret Missing
+**File:** `server/src/services/webhookHandler.js` (lines 14-18)
+**Severity:** 🟠 HIGH  
+
+```javascript
+if (!secret) {
+    logger.warn('RESEND_WEBHOOK_SECRET not set — skipping signature verification');
+    return true;  // ← Bypasses all verification in dev/test
 }
 ```
+In staging/testing environments pointing at real Resend webhooks, this is exploitable.
 
-⚠️ **ISSUE #2:** No validation that script actually implements threading
+**Fix:** In non-development environments, reject unverified webhooks.
 
-### 3.4 Email Log & Inbox Tracking
-**File:** [server/src/models/EmailLog.js](server/src/models/EmailLog.js)
+### H3. Sentry TracesSampleRate at 1.0 in Production
+**File:** `server/src/index.js` (lines 66-67)
+**Severity:** 🟠 HIGH  
 
-**Data Stored:**
-- `messageId`: The custom/Google Message-ID returned from send
-- `trackingId`: UUID for tracking opens/clicks (NOT used for threading)
-- `isFollowUp`: Boolean flag
-- `followUpIndex`: Which step in sequence
-
-⚠️ **ISSUE #3:** `messageId` may be custom UUID, not actual RFC Message-ID
-
-**File:** [server/src/models/InboxMessage.js](server/src/models/InboxMessage.js)
-
-**Thread Storage:**
 ```javascript
-gmailMessageId: String  // Gmail's actual message ID (if available)
-gmailThreadId: String   // Gmail's thread ID (if available)
+tracesSampleRate: 1.0,   // ← Captures 100% of traces
+profilesSampleRate: 1.0,  // ← Captures 100% of profiles
 ```
+This will generate massive Sentry usage costs and performance overhead at scale.
+
+**Fix:** 
+```javascript
+tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+```
+
+### H4. No Rate Limiting on File Uploads
+**File:** `server/src/index.js` (line 186)
+**Severity:** 🟠 HIGH  
+
+```javascript
+app.use('/uploads', express.static(resolve(__dirname, '../uploads')));
+```
+Static file serving with no size limits, no auth, and no rate limiting. `multer` in package.json suggests file uploads exist somewhere.
+
+**Fix:** Apply size limits on upload middleware, rate-limit upload endpoints, and validate file types.
+
+### H5. Config Mismatch — Stripe vs Razorpay
+**File:** `server/src/config/index.js` (lines 28-36)
+**Severity:** 🟠 HIGH  
+
+```javascript
+stripe: {
+    secretKey: env.STRIPE_SECRET_KEY,        // ← These env vars don't exist in env.js
+    webhookSecret: env.STRIPE_WEBHOOK_SECRET,
+    prices: { ... }
+},
+```
+The config object references Stripe, but `env.js` only has Razorpay configuration. These env vars will silently be `undefined`.
+
+**Fix:** Remove Stripe config or add proper env var support.
 
 ---
 
-## 4. Identified Issues & Risks
+## 🟡 MEDIUM SEVERITY FINDINGS
 
-### 🔴 CRITICAL ISSUES
+### M1. Auth Middleware — No Blacklisted Token Check
+**File:** `server/src/middleware/auth.js`
+**Severity:** 🟡 MEDIUM  
 
-#### **Issue #1: Message-ID Mismatch for Threading**
-**Location:** [gmailOAuth.js Line 208](server/src/services/gmailOAuth.js#L208), [emailSender.js Line 82](server/src/services/emailSender.js#L82)
+No token blacklisting/invalidation mechanism. When a user changes their password or logs out, existing JWTs remain valid until expiry.
 
-**Problem:**
-- Initial email uses custom Message-ID: `<uuid@automindz.local>`
-- EmailLog stores this custom ID, NOT the RFC Message-ID returned by Gmail
-- Follow-up search uses RFC header `rfc822msgid:{customId}` which won't find it
-- **Result:** Threading fails, each email is in separate thread
+**Fix:** Implement a Redis-based token blacklist or use a token version in the User model.
 
-**Current Code:**
+### M2. ENCRYPTION_KEY Not Validated at Startup in Development
+**File:** `server/src/config/env.js`
+**Severity:** 🟡 MEDIUM  
+
+`ENCRYPTION_KEY` is in `REQUIRED_ENV_VARS` but the module-level code in `crypto.js` will throw an error anyway. However, startup validation could provide a clearer error message.
+
+### M3. No Account Lockout on Failed Login Attempts
+**File:** `server/src/models/User.js`
+**Severity:** 🟡 MEDIUM  
+
+No mechanism to lock accounts after N failed login attempts. Only the 20 req/15min rate limit protects auth endpoints.
+
+**Fix:** Add failed login tracking to User model and reject login after N failures within a time window.
+
+### M4. Console Transport Disabled in Production
+**File:** `server/src/utils/logger.js` (lines 33-43)
+**Severity:** 🟡 MEDIUM  
+
 ```javascript
-// Initial send
-return { success: true, messageId: customMessageId };  // <uuid@automindz.local>
-
-// EmailLog stores custom ID
-emailLog.messageId = result.messageId;  // NOT Gmail's actual messageId
-
-// Follow-up search
-q: `rfc822msgid:${previousMessageId}`,  // Searches for <uuid@automindz.local>
-// This will FAIL because Gmail doesn't assign that Message-ID
-```
-
-**Fix Required:** Store BOTH custom ID and Gmail's returned ID
-
----
-
-#### **Issue #2: Token Expiry Without User Notification**
-**Location:** [gmailOAuth.js Line 85-95](server/src/services/gmailOAuth.js#L85-L95)
-
-**Problem:**
-- When token refresh fails, account health set to `'warning'` but not propagated to user
-- User unaware their account will soon fail
-- Follow-ups will fail silently
-
-**Current Code:**
-```javascript
-if (isExpired && account.refreshToken) {
-    try {
-        const { credentials } = await oauth2Client.refreshAccessToken();
-        // update...
-    } catch (refreshError) {
-        account.health = 'warning';
-        await account.save();
-        throw new Error(`Gmail token expired...`);
-    }
+if (!isProduction) {
+    logger.add(new winston.transports.Console({ ... }));
 }
 ```
+In production, logs only go to files. In Docker/Kubernetes, stdout/stderr is the standard logging mechanism — file logs create persistence issues and require volume mounts.
 
-**Missing:** 
-- No UI notification queue
-- No email alert to user
-- No webhook to dashboard
+**Fix:** Always add console transport in containerized environments or use `NODE_ENV !== 'test'`.
 
----
+### M5. CI/CD — Docker Push Disabled
+**File:** `.github/workflows/ci-cd.yml` (line 51)
+**Severity:** 🟡 MEDIUM  
 
-#### **Issue #3: Missing Thread ID Recovery**
-**Location:** [followUpScheduler.js Line 245-251](server/src/services/followUpScheduler.js#L245-L251)
+```yaml
+push: false  # ← Images are built but never pushed to a registry
+```
+Docker images are built but go nowhere. No deployment step exists.
 
-**Problem:**
-- Retrieves `messageId` but not `gmailThreadId` from EmailLog
-- Has no way to pass threadId to reply functions
-- Forces threading to rely on subject line search (unreliable)
+**Fix:** Add registry authentication and push to Docker Hub/GitHub Container Registry.
 
-**Current Code:**
+### M6. xss-clean Package is Deprecated
+**File:** `server/package.json` (line 42)
+**Severity:** 🟡 MEDIUM  
+
+The `xss-clean` package is deprecated and unmaintained. It only provides basic XSS filtering.
+
+**Fix:** Replace with a DOMPurify-based alternative or use `helmet`'s CSP directives as the primary XSS defense.
+
+### M7. Auth Route Legacy Aliases Expose Unauthenticated Endpoints
+**File:** `server/src/index.js` (lines 220-221)
+**Severity:** 🟡 MEDIUM  
+
 ```javascript
-const previousLog = await EmailLog.findOne({
-    campaignId: campaign._id,
-    to: recipient.email.toLowerCase(),
-    status: 'sent',
-    messageId: { $ne: null }
-}).sort({ createdAt: -1 });
-
-const previousMessageId = previousLog?.messageId;
-// Missing: no threadId available
+app.use('/api/auth', authRoutes);      // Legacy alias
+app.use('/api/accounts', accountRoutes);
 ```
+These aliases bypass any middleware applied to `/api/v1/auth` — including any future `authLimiter`.
 
-**Fix Required:** 
-- Store `gmailThreadId` in EmailLog after send
-- Pass both `messageId` and `threadId` to reply functions
+**Fix:** Remove legacy aliases after Google Cloud Console redirect URIs are updated.
 
 ---
 
-### 🟠 MAJOR ISSUES
+## 🟢 LOW SEVERITY FINDINGS
 
-#### **Issue #4: Subject-based Thread Search Unreliable**
-**Location:** [gmailOAuth.js Line 188-201](server/src/services/gmailOAuth.js#L188-L201)
+### L1. No HEALTHCHECK in Dockerfile
+**File:** `server/Dockerfile`
+**Severity:** 🟢 LOW  
 
-**Problem:**
-- Fallback searches for subject in sent folder: `to:${to} subject:"${cleanSubject}" in:sent`
-- Multiple campaigns with same recipient/subject will collide
-- Original email may have been deleted
-- Subject may have changed (Re:, Fwd:)
+Missing Docker `HEALTHCHECK` instruction means orchestrators (K8s, Docker Swarm) cannot monitor application health.
 
-**Scenario:**
-```
-Campaign 1: "New Product Launch" to john@example.com
-Following week: "New Product Launch" campaign to same email
-Search finds Campaign 1's email instead of follow-up
-```
+**Fix:** `HEALTHCHECK --interval=30s --timeout=3s CMD wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1`
 
----
+### L2. GitHub Actions on v3 Actions — Version Pinning
+**Files:** `.github/workflows/ci-cd.yml`
+**Severity:** 🟢 LOW  
 
-#### **Issue #5: No Gmail API Response Processing**
-**Location:** [gmailOAuth.js Line 225-237](server/src/services/gmailOAuth.js#L225-L237)
+Uses `actions/checkout@v3`, `actions/setup-node@v3`, `docker/setup-buildx-action@v2`. These are outdated.
 
-**Problem:**
-- Gmail API returns actual `messageId` but custom ID is used instead
-- No capture of actual threadId returned by Gmail
-- Can't build accurate threading for future replies
+**Fix:** Update to `@v4` for checkout/setup-node, `@v3` for buildx.
 
-**Current Code:**
+### L3. Redis TLS — RejectUnauthorized Disabled
+**File:** `server/src/config/redis.js` (line 45)
+**Severity:** 🟢 LOW  
+
 ```javascript
-const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: sendPayload,
-});
-
-return { success: true, messageId: customMessageId, threaded: !!inReplyTo };
-// result.data.id (Gmail's messageId) is IGNORED
-// result.data.threadId is IGNORED
+redisOpts.tls = { rejectUnauthorized: false };
 ```
+Disabling TLS certificate validation makes Man-in-the-Middle attacks possible.
 
----
+**Fix:** Use proper CA certificates or set `rejectUnauthorized: true` with NODE_EXTRA_CA_CERTS.
 
-#### **Issue #6: Script Connection Has No Reply Implementation Check**
-**Location:** [accounts.js Line 85-117](server/src/routes/accounts.js#L85-L117)
+### L4. Morgan Token Registration After First Use
+**File:** `server/src/index.js` (lines 119-125)
+**Severity:** 🟢 LOW  
 
-**Problem:**
-- Script connection only validates basic "test" action
-- Never validates that script supports "reply" action
-- User unaware until follow-ups fail
-
----
-
-### 🟡 MODERATE ISSUES
-
-#### **Issue #7: Account Selection Doesn't Check Thread Consistency**
-**Location:** [followUpScheduler.js Line 223](server/src/services/followUpScheduler.js#L223)
-
-**Problem:**
-- Round-robin selects DIFFERENT account for follow-up
-- Original email sent from Account A, follow-up from Account B
-- Different "From" addresses break threading
-- Thread shown in different account's folder
-
-**Scenario:**
+```javascript
+app.use(morgan(':method :url :status ... [req-id: :req-id]', { ... }));
+morgan.token('req-id', (req) => req.id);  // ← Token registered AFTER use
 ```
-User has:
-- Account A: john@company.com (used for initial send)
-- Account B: sales@company.com (used for follow-up)
+The `req-id` token is used in the format string before it's registered. Morgan handles this gracefully but it's an ordering anti-pattern.
 
-Gmail recipient sees two different senders
-```
+**Fix:** Move `morgan.token()` before `app.use(morgan(...))`.
 
----
+### L5. Mongoose Connection Event Handlers Registered After Connection
+**File:** `server/src/config/db.js` (lines 19-24)
+**Severity:** 🟢 LOW  
 
-#### **Issue #8: Tracking ID Confusion**
-**Location:** [emailSender.js Line 52](server/src/services/emailSender.js#L52), [followUpScheduler.js Line 235](server/src/services/followUpScheduler.js#L235)
+Runtime error/disconnect handlers registered after `mongoose.connect()` — they won't catch initial connection failures (handled by try/catch), but are correct for subsequent events.
 
-**Problem:**
-- `trackingId` (UUID) is used for opens/clicks, NOT threading
-- Code sometimes confuses trackingId with messageId
-- No clear comments distinguishing their purposes
+**Fix:** Not critical, but could be reordered for clarity.
 
 ---
 
-## 5. Summary Table
+## 📊 Architecture & Code Quality Assessment
 
-| Issue | Severity | File | Impact |
-|-------|----------|------|--------|
-| Message-ID mismatch breaks threading | CRITICAL | gmailOAuth.js, emailSender.js | Follow-ups always in new threads |
-| Token refresh fails silently | CRITICAL | gmailOAuth.js | Unexpected failures, user unaware |
-| No thread ID recovery in scheduler | CRITICAL | followUpScheduler.js | Can't pass threadId to reply |
-| Subject search unreliable | MAJOR | gmailOAuth.js | Wrong thread replies possible |
-| Gmail API response not captured | MAJOR | gmailOAuth.js | Can't store actual thread IDs |
-| Script validation incomplete | MAJOR | accounts.js | Fail-blind on reply action |
-| Wrong account used for follow-up | MODERATE | followUpScheduler.js | Different From: address breaks thread |
-| Tracking vs Message ID confusion | MODERATE | Multiple files | Code maintenance risk |
+### Strengths ✅
+1. **Comprehensive security hardening** — helmet with CSP, HSTS, permissions policy, mongo-sanitize, HPP, XSS protection
+2. **Granular rate limiting** — Different limiters for auth, inbox sync, AI, campaigns, and general API
+3. **Proper JWT sliding renewal** — 72-hour refresh window for active users
+4. **Secure OAuth state** — HMAC-signed state with timing-safe verification
+5. **Graceful shutdown** — SIGTERM/SIGINT handlers for Docker/K8s
+6. **RBAC middleware** — Proper role-based access control on admin routes
+7. **Plan enforcement** — Plan expiry checks, admin override, non-bypass on DB errors
+8. **Webhook signature verification** — HMAC with timingSafeEqual (except Razorpay)
+9. **User model security** — bcrypt (12 rounds), sensitive field exclusion from JSON
+10. **Sentry integration** — Error tracking and profiling
+
+### Weaknesses ⚠️
+1. **Razorpay webhook** — Most critical vulnerability (timing attack + wrong body parser)
+2. **Crypto implementation** — crypto-js without proper IV, GCM, or key derivation
+3. **Cross-protocol key reuse** — JWT_SECRET used for OAuth state HMAC
+4. **No token invalidation** — Can't revoke JWTs server-side
+5. **Deprecated packages** — xss-clean is unmaintained
+6. **CI/CD incomplete** — Docker images built but not pushed/deployed
+7. **Config drift** — Stripe references present but only Razorpay implemented
 
 ---
 
-## 6. Recommendations
+## 🛠️ Recommended Fix Priority
 
-### Priority 1 (Critical)
-1. **Store actual Gmail messageId/threadId in EmailLog**
-   - Add `gmailMessageId` field to EmailLog schema
-   - Add `gmailThreadId` field to EmailLog schema
-   - Capture from Gmail API response in `sendViaOAuth`
+### Sprint 1 (Security-Critical)
+- [ ] **C1**: Fix Razorpay webhook — timingSafeEqual + raw body parsing
+- [ ] **C2**: Replace crypto-js with Node.js native AES-256-GCM with IV + PBKDF2
+- [ ] **C3**: Add dedicated `OAUTH_STATE_SECRET` env var
+- [ ] **C4**: Apply `authLimiter` to auth routes
 
-2. **Fix thread lookup in follow-ups**
-   - Use `gmailThreadId` directly instead of searching
-   - Use actual `gmailMessageId` for In-Reply-To header
+### Sprint 2 (Production Hardening)
+- [ ] **H1**: Validate JWT_SECRET in all environments
+- [ ] **H3**: Reduce Sentry sampling rates in production
+- [ ] **H5**: Clean up Stripe/Razorpay config mismatch
+- [ ] **H2**: Enforce webhook verification in non-development
+- [ ] **M1**: Implement token blacklisting/versioning
+- [ ] **M3**: Add account lockout mechanism
+- [ ] **M5**: Complete CI/CD with Docker push + deployment
 
-3. **Add user notification for token expiry**
-   - Create alert queue when health → 'warning'
-   - Push SSE event to UI
-   - Send email notification
+### Sprint 3 (Operational Excellence)
+- [ ] **H4**: Add upload limits and rate limiting
+- [ ] **M4**: Enable console logging in production containers
+- [ ] **M6**: Replace deprecated xss-clean
+- [ ] **L1**: Add HEALTHCHECK to Dockerfile
+- [ ] **L2**: Update GitHub Actions versions
+- [ ] **L3**: Fix Redis TLS configuration
+- [ ] **M7**: Remove legacy route aliases after redirect URI update
+- [ ] **L4**: Fix Morgan token ordering
 
-### Priority 2 (High)
-4. **Ensure account consistency**
-   - Use same account for all replies in a sequence
-   - Store `accountId` in first EmailLog, reuse it
+---
 
-5. **Validate script capabilities**
-   - Test "reply" action during connection
-   - Cache supported actions in GmailAccount
+## 📋 Files Audited (17/17)
 
-6. **Capture full Gmail response**
-   - Extract `messageId`, `threadId` from response
-   - Store both custom and actual IDs
-
+| # | File | Status |
+|---|------|--------|
+| 1 | `server/src/config/env.js` | ✅ |
+| 2 | `server/src/config/index.js` | ✅ |
+| 3 | `server/src/config/db.js` | ✅ |
+| 4 | `server/src/config/redis.js` | ✅ |
+| 5 | `server/src/index.js` | ✅ |
+| 6 | `server/src/middleware/auth.js` | ✅ |
+| 7 | `server/src/middleware/rbac.js` | ✅ |
+| 8 | `server/src/middleware/rateLimit.js` | ✅ |
+| 9 | `server/src/middleware/errorHandler.js` | ✅ |
+| 10 | `server/src/middleware/planLimits.js` | ✅ |
+| 11 | `server/src/models/User.js` | ✅ |
+| 12 | `server/src/utils/crypto.js` | ✅ |
+| 13 | `server/src/utils/validators.js` | ✅ |
+| 14 | `server/src/utils/logger.js` | ✅ |
+| 15 | `server/src/services/webhookHandler.js` | ✅ |
+| 16 | `server/src/services/razorpayWebhook.js` | ✅ |
+| 17 | `server/src/services/gmailOAuth.js` | ✅ |
+| 18 | `server/src/routes/admin.js` | ✅ |
+| 19 | `server/package.json` | ✅ |
+| 20 | `.env.example` | ✅ |
+| 21 | `server/Dockerfile` | ✅ |
+| 22 | `.github/workflows/ci-cd.yml` | ✅ |
+| 23 | `client/vite.config.js` | ✅ |
