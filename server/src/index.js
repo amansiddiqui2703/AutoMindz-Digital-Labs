@@ -205,11 +205,19 @@ app.use('/api/v1/teams', teamRoutes);
 app.use('/api/v1/tasks', taskRoutes);
 app.use('/api/v1/activity', activityRoutes);
 app.use('/api/v1/inbox', inboxRoutes);
+app.use('/api/v1/seo', seoRoutes);
+app.use('/api/v1/sequences', sequenceRoutes);
+
+// Rate limiting for specific routes
 app.use('/api/v1/inbox/sync', inboxSyncLimiter);
 app.use('/api/v1/inbox/sync-replies', inboxSyncLimiter);
 app.use('/api/v1/ai', aiLimiter);
-app.use('/api/v1/seo', seoRoutes);
-app.use('/api/v1/sequences', sequenceRoutes);
+
+// BUG FIX #29: Legacy aliases for Google OAuth callbacks
+// Because we moved to /api/v1, Google Cloud Console's registered redirect URIs
+// (which are still /api/...) will return 404. These aliases ensure the callbacks work.
+app.use('/api/auth', authRoutes);
+app.use('/api/accounts', accountRoutes);
 
 // Tracking routes (public, no auth)
 app.use('/t', trackingRoutes);
