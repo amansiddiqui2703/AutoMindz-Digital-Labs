@@ -34,7 +34,5 @@ server/test-crawler.js
 .cache/
 
 # Misc
-*.lock
-yarn.lock
-package-lock.json
+.cache/
 
