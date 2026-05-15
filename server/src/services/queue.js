@@ -18,7 +18,7 @@ const _enqueuingCampaigns = new Set();
 export const processEmailJob = async (data) => {
     const { campaignId, recipient, userId, accountIds, subject, htmlBody, plainBody, cc, bcc, attachments, abVariant } = data;
 
-    // Check suppression
+    // Check suppression list before sending
     const suppressed = await Suppression.findOne({ userId, email: recipient.email.toLowerCase() });
     if (suppressed) {
         return { skipped: true, reason: 'suppressed', email: recipient.email };
@@ -27,6 +27,7 @@ export const processEmailJob = async (data) => {
     // Select account with available quota (round-robin)
     const account = await selectAccount(userId, accountIds);
     if (!account) {
+        logger.error(`❌ No available Gmail accounts for user ${userId} — all accounts exhausted or unhealthy`);
         throw new Error('No available Gmail accounts (quota exhausted)');
     }
 
@@ -127,8 +128,8 @@ export const initQueue = () => {
                 removeOnComplete: 100, // Keep last 100 successful jobs
                 removeOnFail: 500,     // Keep last 500 failed jobs for debugging
                 attempts: 5,           // Retry 5 times
-                backoff: { 
-                    type: 'exponential', 
+                backoff: {
+                    type: 'exponential',
                     delay: 10000 // Start with 10s delay
                 },
             },
@@ -188,7 +189,7 @@ const msUntilNextSendingWindow = (timezone = 'UTC') => {
         const now = new Date();
         const formatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: timezone });
         const currentHour = parseInt(formatter.format(now), 10);
-        
+
         if (currentHour >= 18) {
             // After 6pm — next window is tomorrow 8am (14 hours from 6pm)
             return (24 - currentHour + 8) * 60 * 60 * 1000;
@@ -232,8 +233,9 @@ const _enqueueCampaignInternal = async (campaign) => {
     } catch { /* use defaults */ }
 
     // Time-window check: if outside sending hours, calculate base delay offset
+    // Can be bypassed by setting DISABLE_SENDING_WINDOW=true in .env for testing
     let baseDelay = 0;
-    if (!isWithinSendingWindow(userTimezone)) {
+    if (!env.DISABLE_SENDING_WINDOW && !isWithinSendingWindow(userTimezone)) {
         baseDelay = msUntilNextSendingWindow(userTimezone);
         logger.info(`⏰ Outside sending window — delaying campaign start by ${Math.round(baseDelay / 60000)} minutes`);
     }
@@ -258,7 +260,7 @@ const _enqueueCampaignInternal = async (campaign) => {
     let enqueued = 0;
     let cumulativeDelay = baseDelay;
     const inMemoryJobs = [];
-    
+
     for (let i = 0; i < campaign.recipients.length; i++) {
         const recipient = campaign.recipients[i];
         if (recipient.status !== 'pending') continue;
@@ -296,20 +298,20 @@ const _enqueueCampaignInternal = async (campaign) => {
 
         // Random delay between 30-120 seconds per email (more human-like)
         const thisDelay = enqueued === 0 ? baseDelay : cumulativeDelay;
-        
+
         if (emailQueue) {
-            await emailQueue.add(jobData, { 
+            await emailQueue.add(jobData, {
                 delay: thisDelay,
                 priority: 10, // Normal priority; follow-ups use priority 5 (higher)
             });
         } else {
             inMemoryJobs.push({ jobData, delayMs: thisDelay });
         }
-        
+
         const isPro = userPlan === 'pro';
         const minD = isPro ? 5 : 30;
         const maxD = isPro ? 15 : 120;
-        
+
         cumulativeDelay += randomDelay(minD, maxD);
         enqueued++;
     }

@@ -41,6 +41,8 @@ const env = {
     // Resend
     RESEND_API_KEY: process.env.RESEND_API_KEY || '',
     RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET || '',
+    // Feature flags
+    DISABLE_SENDING_WINDOW: process.env.DISABLE_SENDING_WINDOW === 'true',
 };
 
 // Validation schema for required variables
@@ -59,7 +61,7 @@ const PRODUCTION_REQUIRED = [
 
 const validateEnv = () => {
     const missing = [];
-    
+
     REQUIRED_ENV_VARS.forEach(key => {
         if (!process.env[key]) missing.push(key);
     });
