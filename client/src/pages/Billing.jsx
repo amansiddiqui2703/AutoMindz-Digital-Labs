@@ -4,7 +4,7 @@ import api from '../api/client';
 import toast from 'react-hot-toast';
 import {
     CreditCard, Check, Zap, ArrowRight, Mail, Users, Bot, Timer,
-    Crown, Rocket, Building, Loader2, ExternalLink
+    Crown, Rocket, Building, Loader2, XCircle
 } from 'lucide-react';
 
 const PLAN_DETAILS = [
@@ -38,12 +38,15 @@ export default function Billing() {
 
     useEffect(() => {
         fetchBilling();
-        if (searchParams.get('success') === 'true') {
-            toast.success(`Successfully upgraded to ${searchParams.get('plan') || 'paid'} plan! 🎉`);
-        }
-        if (searchParams.get('cancelled') === 'true') {
-            toast('Checkout cancelled', { icon: '⚠️' });
-        }
+        // Load Razorpay Script
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
+        
+        return () => {
+            document.body.removeChild(script);
+        };
     }, []);
 
     const fetchBilling = async () => {
@@ -61,10 +64,41 @@ export default function Billing() {
     const handleUpgrade = async (planId) => {
         setUpgrading(planId);
         try {
-            const res = await api.post('/billing/create-checkout', { plan: planId });
-            if (res.data.url) {
-                window.location.href = res.data.url;
-            }
+            const res = await api.post('/billing/create-subscription', { plan: planId });
+            
+            const options = {
+                key: res.data.keyId,
+                subscription_id: res.data.subscriptionId,
+                name: 'AutoMindz',
+                description: `Upgrade to ${planId.toUpperCase()} Plan`,
+                handler: async function (response) {
+                    try {
+                        await api.post('/billing/verify-payment', {
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_subscription_id: response.razorpay_subscription_id,
+                            razorpay_signature: response.razorpay_signature
+                        });
+                        toast.success(`Successfully upgraded to ${planId} plan! 🎉`);
+                        fetchBilling(); // refresh usage/limits
+                    } catch (err) {
+                        toast.error(err.response?.data?.error || 'Payment verification failed');
+                    }
+                },
+                prefill: {
+                    name: res.data.name,
+                    email: res.data.email,
+                    contact: res.data.contact
+                },
+                theme: {
+                    color: '#3b82f6'
+                }
+            };
+            
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response){
+                toast.error(response.error.description || 'Payment failed');
+            });
+            rzp.open();
         } catch (err) {
             toast.error(err.response?.data?.error || 'Failed to start checkout');
         } finally {
@@ -73,13 +107,13 @@ export default function Billing() {
     };
 
     const handleManage = async () => {
+        if (!window.confirm('Are you sure you want to cancel your subscription? You will lose access to premium features immediately.')) return;
         try {
-            const res = await api.post('/billing/create-portal');
-            if (res.data.url) {
-                window.location.href = res.data.url;
-            }
+            await api.post('/billing/cancel-subscription');
+            toast.success('Subscription cancelled successfully');
+            fetchBilling();
         } catch (err) {
-            toast.error(err.response?.data?.error || 'Failed to open portal');
+            toast.error(err.response?.data?.error || 'Failed to cancel subscription');
         }
     };
 
@@ -102,8 +136,8 @@ export default function Billing() {
                     <p className="text-surface-500 mt-1">Manage your subscription and usage</p>
                 </div>
                 {billing?.hasSubscription && (
-                    <button onClick={handleManage} className="btn-secondary">
-                        <ExternalLink className="w-4 h-4" /> Manage Subscription
+                    <button onClick={handleManage} className="btn-danger">
+                        <XCircle className="w-4 h-4" /> Cancel Subscription
                     </button>
                 )}
             </div>
@@ -231,16 +265,16 @@ export default function Billing() {
                                         className={`w-full py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r ${plan.color} hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg`}
                                     >
                                         {upgrading === plan.id
-                                            ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting...</>
+                                            ? <><Loader2 className="w-4 h-4 animate-spin" /> Starting...</>
                                             : <><ArrowRight className="w-4 h-4" /> Upgrade to {plan.name}</>
                                         }
                                     </button>
                                 ) : (
                                     <button
-                                        onClick={handleManage}
+                                        onClick={() => handleUpgrade(plan.id)}
                                         className="w-full py-3 rounded-xl text-sm font-semibold border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 transition-all"
                                     >
-                                        Change Plan
+                                        Downgrade Plan
                                     </button>
                                 )}
                             </div>
@@ -254,10 +288,10 @@ export default function Billing() {
                 <h3 className="text-lg font-semibold text-surface-900 dark:text-white mb-4">Frequently Asked Questions</h3>
                 <div className="space-y-4 text-sm">
                     {[
-                        { q: 'Can I cancel anytime?', a: 'Yes! You can cancel your subscription at any time from the Manage Subscription button. Your plan will remain active until the end of the billing period.' },
-                        { q: 'What payment methods do you accept?', a: 'We accept all major credit cards (Visa, Mastercard, American Express) and some local payment methods through Stripe.' },
+                        { q: 'Can I cancel anytime?', a: 'Yes! You can cancel your subscription at any time from the Cancel Subscription button. Your plan will remain active until the end of the billing period.' },
+                        { q: 'What payment methods do you accept?', a: 'We accept all major credit cards, UPI, Wallets, and Netbanking through Razorpay.' },
                         { q: 'What happens if I exceed my limits?', a: 'You\'ll be notified when approaching limits. Once a limit is reached, that feature will be paused until the next billing cycle or until you upgrade.' },
-                        { q: 'Can I switch plans?', a: 'Yes! You can upgrade or downgrade at any time. Changes take effect immediately, and billing is prorated.' },
+                        { q: 'Can I switch plans?', a: 'Yes! You can upgrade or downgrade at any time. Changes take effect immediately.' },
                     ].map((faq, i) => (
                         <div key={i} className="bg-surface-50 dark:bg-surface-800/50 p-4 rounded-xl">
                             <p className="font-semibold text-surface-900 dark:text-white">{faq.q}</p>
@@ -269,3 +303,4 @@ export default function Billing() {
         </div>
     );
 }
+

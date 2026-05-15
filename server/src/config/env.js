@@ -23,12 +23,13 @@ const env = {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     APP_URL: normalizeBaseUrl(process.env.APP_URL, 'http://localhost:5173'),
     SERVER_URL: normalizeBaseUrl(process.env.SERVER_URL, 'http://localhost:5000'),
-    // Stripe
-    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
-    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
-    STRIPE_PRICE_STARTER: process.env.STRIPE_PRICE_STARTER || '',
-    STRIPE_PRICE_GROWTH: process.env.STRIPE_PRICE_GROWTH || '',
-    STRIPE_PRICE_PRO: process.env.STRIPE_PRICE_PRO || '',
+    // Razorpay
+    RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || '',
+    RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
+    RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET || '',
+    RAZORPAY_PLAN_STARTER: process.env.RAZORPAY_PLAN_STARTER || '',
+    RAZORPAY_PLAN_GROWTH: process.env.RAZORPAY_PLAN_GROWTH || '',
+    RAZORPAY_PLAN_PRO: process.env.RAZORPAY_PLAN_PRO || '',
     // Google OAuth2
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',

@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import Stripe from 'stripe';
+import Razorpay from 'razorpay';
+import crypto from 'crypto';
 import auth from '../middleware/auth.js';
 import User from '../models/User.js';
 import EmailLog from '../models/EmailLog.js';
@@ -11,21 +12,24 @@ import authorize from '../middleware/authorize.js';
 
 const router = Router();
 
-const getStripe = () => {
-    if (!env.STRIPE_SECRET_KEY) return null;
-    return new Stripe(env.STRIPE_SECRET_KEY);
+const getRazorpay = () => {
+    if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET) return null;
+    return new Razorpay({
+        key_id: env.RAZORPAY_KEY_ID,
+        key_secret: env.RAZORPAY_KEY_SECRET,
+    });
 };
 
-const PRICE_MAP = {
-    starter: () => env.STRIPE_PRICE_STARTER,
-    growth: () => env.STRIPE_PRICE_GROWTH,
-    pro: () => env.STRIPE_PRICE_PRO,
+const PLAN_MAP = {
+    starter: () => env.RAZORPAY_PLAN_STARTER,
+    growth: () => env.RAZORPAY_PLAN_GROWTH,
+    pro: () => env.RAZORPAY_PLAN_PRO,
 };
 
 // Get billing status + plan info
 router.get('/status', auth, authorize('admin', 'manager', 'user'), async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('plan stripeCustomerId stripeSubscriptionId planExpiresAt').lean();
+        const user = await User.findById(req.user.id).select('plan razorpayCustomerId razorpaySubscriptionId planExpiresAt').lean();
         if (!user) return res.status(404).json({ error: 'User not found' });
 
         const limits = PLAN_LIMITS[user.plan || 'free'] || PLAN_LIMITS.free;
@@ -46,7 +50,7 @@ router.get('/status', auth, authorize('admin', 'manager', 'user'), async (req, r
         res.json({
             plan: user.plan || 'free',
             planExpiresAt: user.planExpiresAt,
-            hasSubscription: !!user.stripeSubscriptionId,
+            hasSubscription: !!user.razorpaySubscriptionId,
             limits,
             usage: {
                 emailsSentToday,
@@ -60,75 +64,116 @@ router.get('/status', auth, authorize('admin', 'manager', 'user'), async (req, r
     }
 });
 
-// Create Stripe Checkout session
-router.post('/create-checkout', auth, authorize('admin', 'manager', 'user'), async (req, res) => {
+// Create Razorpay Subscription
+router.post('/create-subscription', auth, authorize('admin', 'manager', 'user'), async (req, res) => {
     try {
-        const stripe = getStripe();
-        if (!stripe) return res.status(500).json({ error: 'Stripe is not configured. Add STRIPE_SECRET_KEY to your .env file.' });
+        const rzp = getRazorpay();
+        if (!rzp) return res.status(500).json({ error: 'Razorpay is not configured. Add RAZORPAY_KEY_ID to your .env file.' });
 
         const { plan } = req.body;
-        if (!plan || !PRICE_MAP[plan]) {
+        if (!plan || !PLAN_MAP[plan]) {
             return res.status(400).json({ error: 'Invalid plan. Choose: starter, growth, or pro.' });
         }
 
-        const priceId = PRICE_MAP[plan]();
-        if (!priceId) return res.status(500).json({ error: `Stripe price ID for "${plan}" not configured.` });
+        const planId = PLAN_MAP[plan]();
+        if (!planId) return res.status(500).json({ error: `Razorpay plan ID for "${plan}" not configured.` });
 
         const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ error: 'User not found' });
 
-        // Create or retrieve Stripe customer
-        let customerId = user.stripeCustomerId;
+        // Create or retrieve Razorpay customer
+        let customerId = user.razorpayCustomerId;
         if (!customerId) {
-            const customer = await stripe.customers.create({
-                email: user.email,
+            const customer = await rzp.customers.create({
                 name: user.name,
-                metadata: { userId: user._id.toString() },
+                email: user.email,
+                notes: { userId: user._id.toString() },
             });
             customerId = customer.id;
-            user.stripeCustomerId = customerId;
+            user.razorpayCustomerId = customerId;
             await user.save();
         }
 
-        // Create checkout session
-        const session = await stripe.checkout.sessions.create({
-            customer: customerId,
-            payment_method_types: ['card'],
-            mode: 'subscription',
-            line_items: [{ price: priceId, quantity: 1 }],
-            success_url: `${env.APP_URL}/billing?success=true&plan=${plan}`,
-            cancel_url: `${env.APP_URL}/billing?cancelled=true`,
-            metadata: { userId: user._id.toString(), plan },
-            subscription_data: { metadata: { userId: user._id.toString(), plan } },
+        // Create subscription
+        const subscription = await rzp.subscriptions.create({
+            plan_id: planId,
+            customer_notify: 1,
+            total_count: 120, // max 10 years
+            notes: { userId: user._id.toString(), plan },
         });
 
-        res.json({ url: session.url });
+        res.json({ 
+            subscriptionId: subscription.id,
+            keyId: env.RAZORPAY_KEY_ID,
+            name: user.name,
+            email: user.email,
+            contact: ''
+        });
     } catch (error) {
-        console.error('Checkout error:', error);
-        res.status(500).json({ error: 'Failed to create checkout session' });
+        console.error('Subscription creation error:', error);
+        res.status(500).json({ error: 'Failed to create subscription' });
     }
 });
 
-// Create Stripe Customer Portal session
-router.post('/create-portal', auth, authorize('admin', 'manager', 'user'), async (req, res) => {
+// Cancel Razorpay Subscription
+router.post('/cancel-subscription', auth, authorize('admin', 'manager', 'user'), async (req, res) => {
     try {
-        const stripe = getStripe();
-        if (!stripe) return res.status(500).json({ error: 'Stripe is not configured.' });
+        const rzp = getRazorpay();
+        if (!rzp) return res.status(500).json({ error: 'Razorpay is not configured.' });
 
         const user = await User.findById(req.user.id);
-        if (!user?.stripeCustomerId) {
-            return res.status(400).json({ error: 'No billing account found. Subscribe to a plan first.' });
+        if (!user?.razorpaySubscriptionId) {
+            return res.status(400).json({ error: 'No active subscription found.' });
         }
 
-        const session = await stripe.billingPortal.sessions.create({
-            customer: user.stripeCustomerId,
-            return_url: `${env.APP_URL}/billing`,
-        });
+        await rzp.subscriptions.cancel(user.razorpaySubscriptionId);
+        
+        user.plan = 'free';
+        user.razorpaySubscriptionId = '';
+        user.planExpiresAt = null;
+        await user.save();
 
-        res.json({ url: session.url });
+        res.json({ message: 'Subscription cancelled successfully' });
     } catch (error) {
-        console.error('Portal error:', error);
-        res.status(500).json({ error: 'Failed to open billing portal' });
+        console.error('Cancel subscription error:', error);
+        res.status(500).json({ error: 'Failed to cancel subscription' });
+    }
+});
+
+// Verify Payment
+router.post('/verify-payment', auth, authorize('admin', 'manager', 'user'), async (req, res) => {
+    try {
+        const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = req.body;
+        
+        if (!razorpay_payment_id || !razorpay_subscription_id || !razorpay_signature) {
+            return res.status(400).json({ error: 'Missing payment details' });
+        }
+
+        const generatedSignature = crypto
+            .createHmac('sha256', env.RAZORPAY_KEY_SECRET)
+            .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
+            .digest('hex');
+
+        if (generatedSignature !== razorpay_signature) {
+            return res.status(400).json({ error: 'Invalid signature. Payment verification failed.' });
+        }
+
+        const user = await User.findById(req.user.id);
+        
+        // Fetch subscription from Razorpay to get the plan notes
+        const rzp = getRazorpay();
+        const sub = await rzp.subscriptions.fetch(razorpay_subscription_id);
+        const plan = sub.notes?.plan || 'starter';
+
+        user.plan = plan;
+        user.razorpaySubscriptionId = razorpay_subscription_id;
+        user.planExpiresAt = new Date(sub.current_end * 1000);
+        await user.save();
+
+        res.json({ success: true, message: 'Payment verified and plan activated' });
+    } catch (error) {
+        console.error('Payment verification error:', error);
+        res.status(500).json({ error: 'Failed to verify payment' });
     }
 });
 

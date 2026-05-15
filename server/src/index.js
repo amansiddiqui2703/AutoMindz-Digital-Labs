@@ -46,7 +46,7 @@ import activityRoutes from './routes/activity.js';
 import inboxRoutes from './routes/inbox.js';
 import seoRoutes from './routes/seo.js';
 import sequenceRoutes from './routes/sequences.js';
-import { handleStripeWebhook } from './services/stripeWebhook.js';
+import { handleRazorpayWebhook } from './services/razorpayWebhook.js';
 import { handleResendWebhook } from './services/webhookHandler.js';
 import sse from './services/sse.js';
 
@@ -67,8 +67,8 @@ Sentry.init({
   profilesSampleRate: 1.0,
 });
 
-// Stripe webhook needs raw body — must come BEFORE express.json()
-app.post('/api/v1/billing/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+// Webhooks
+app.post('/api/v1/billing/webhook', express.json(), handleRazorpayWebhook);
 
 // Resend webhook needs raw body for signature verification
 app.post('/api/v1/webhooks/resend', express.raw({ type: 'application/json' }), handleResendWebhook);
