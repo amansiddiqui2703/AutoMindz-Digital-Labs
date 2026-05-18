@@ -6,6 +6,7 @@ import {
     CreditCard, Check, Zap, ArrowRight, Mail, Users, Bot, Timer,
     Crown, Rocket, Building, Loader2, XCircle
 } from 'lucide-react';
+import RazorpayCheckout from '../components/RazorpayCheckout';
 
 const PLAN_DETAILS = [
     {
@@ -201,6 +202,17 @@ export default function Billing() {
                     )}
                 </div>
             )}
+
+            {/* Standard Checkout / Top Up */}
+            <div className="glass-card p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <h3 className="text-lg font-semibold text-surface-900 dark:text-white">One-Time Top Up</h3>
+                    <p className="text-surface-500 text-sm mt-1">Need a quick boost? Buy 10,000 extra email credits for ₹999.</p>
+                </div>
+                <div>
+                    <RazorpayCheckout amount={99900} buttonText="Buy Credits (₹999)" onSuccess={() => { fetchBilling(); toast.success("Credits added!"); }} />
+                </div>
+            </div>
 
             {/* Plan Cards */}
             <div>

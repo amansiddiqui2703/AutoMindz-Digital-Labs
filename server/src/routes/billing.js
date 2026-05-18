@@ -189,4 +189,59 @@ router.get('/plans', async (req, res) => {
     });
 });
 
+// Create Order for standard checkout
+router.post('/create-order', auth, authorize('admin', 'manager', 'user'), async (req, res) => {
+    try {
+        const { amount, currency = 'INR', receipt = `rcpt_${Date.now()}` } = req.body;
+        
+        if (!amount || amount < 100) {
+            return res.status(400).json({ error: 'Amount is required and must be at least 100 paise' });
+        }
+        
+        const rzp = getRazorpay();
+        if (!rzp) return res.status(500).json({ error: 'Razorpay is not configured.' });
+
+        const options = {
+            amount, // in paise
+            currency,
+            receipt
+        };
+
+        const order = await rzp.orders.create(options);
+        res.json({
+            order_id: order.id,
+            amount: order.amount,
+            currency: order.currency
+        });
+    } catch (error) {
+        console.error('Order creation error:', error);
+        res.status(500).json({ error: 'Failed to create order' });
+    }
+});
+
+// Verify Order Payment
+router.post('/verify-order-payment', auth, authorize('admin', 'manager', 'user'), async (req, res) => {
+    try {
+        const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+        
+        if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+            return res.status(400).json({ error: 'Missing payment details' });
+        }
+
+        const generatedSignature = crypto
+            .createHmac('sha256', env.RAZORPAY_KEY_SECRET)
+            .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+            .digest('hex');
+
+        if (generatedSignature !== razorpay_signature) {
+            return res.status(400).json({ error: 'Invalid signature. Payment verification failed.' });
+        }
+
+        res.json({ success: true, message: 'Payment verified successfully' });
+    } catch (error) {
+        console.error('Order payment verification error:', error);
+        res.status(500).json({ error: 'Failed to verify payment' });
+    }
+});
+
 export default router;
