@@ -1,4 +1,17 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://automindz.com/sitemap.xml
+# Exclude protected/dashboard routes from being indexed
+Disallow: /dashboard
+Disallow: /campaigns
+Disallow: /contacts
+Disallow: /inbox
+Disallow: /settings
+Disallow: /billing
+Disallow: /accounts
+Disallow: /analytics
+Disallow: /tools
+Disallow: /sequences
+Disallow: /templates
+
+Sitemap: https://new-outreach-system.onrender.com/sitemap.xml
