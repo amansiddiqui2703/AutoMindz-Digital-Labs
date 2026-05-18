@@ -62,6 +62,7 @@ export default function Landing() {
                     <div className="hidden md:flex items-center gap-8 text-sm font-medium text-surface-600 dark:text-surface-400">
                         <a href="#features" className="hover:text-primary-500 transition-colors">Features</a>
                         <a href="#pricing" className="hover:text-primary-500 transition-colors">Pricing</a>
+                        <Link to="/blog" className="hover:text-primary-500 transition-colors">Blog</Link>
                         <a href="#testimonials" className="hover:text-primary-500 transition-colors">Reviews</a>
                     </div>
                     <div className="flex items-center gap-3">
@@ -229,6 +230,7 @@ export default function Landing() {
                     </div>
                     <p className="text-sm text-surface-500">&copy; {new Date().getFullYear()} AutoMindz. All rights reserved.</p>
                     <div className="flex items-center gap-6 text-sm text-surface-500">
+                        <Link to="/blog" className="hover:text-primary-500 transition-colors">Blog</Link>
                         <Link to="/privacy-policy" className="hover:text-primary-500 transition-colors">Privacy</Link>
                         <Link to="/terms" className="hover:text-primary-500 transition-colors">Terms</Link>
                         <a href="mailto:support@automindz.com" className="hover:text-primary-500 transition-colors">Contact</a>
