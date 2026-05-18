@@ -15,7 +15,9 @@ export default function RazorpayCheckout({ amount, buttonText = "Pay with Razorp
             document.body.appendChild(script);
             
             return () => {
-                document.body.removeChild(script);
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
             };
         }
     }, []);
