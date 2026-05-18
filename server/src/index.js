@@ -93,13 +93,14 @@ app.use(helmet({
   },
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
+      defaultSrc: ["'self'", "https://api.razorpay.com"],
+      scriptSrc: ["'self'", "https://checkout.razorpay.com", (req, res) => `'nonce-${res.locals.cspNonce}'`],
+      frameSrc: ["'self'", "https://api.razorpay.com"],
       workerSrc: ["'self'", "blob:"],
-      styleSrc: ["'self'", "https://fonts.googleapis.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://o4511246035976192.ingest.us.sentry.io", "https://fonts.googleapis.com", "https://fonts.gstatic.com"],
+      connectSrc: ["'self'", "https://o4511246035976192.ingest.us.sentry.io", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://lumberjack-cx.razorpay.com"],
     },
   },
   hsts: {

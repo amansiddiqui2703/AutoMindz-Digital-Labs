@@ -55,7 +55,7 @@ export default function Compose() {
             let htmlBody = '';
             if (mode === 'rich') htmlBody = editor?.getHTML() || '';
             else if (mode === 'html') htmlBody = htmlSource;
-            else htmlBody = `<pre>${plainText}</pre>`;
+            else htmlBody = plainText.split('\n').map(line => `<p>${line || '&nbsp;'}</p>`).join('');
 
             await api.post('/emails/send-single', { to, subject, htmlBody, cc, bcc });
             toast.success('Email sent!');
@@ -240,7 +240,7 @@ export default function Compose() {
                     <div className="border-t border-surface-200 dark:border-surface-700 p-6">
                         <h4 className="text-sm font-semibold text-surface-700 dark:text-surface-300 mb-3">Preview</h4>
                         <div className="prose dark:prose-invert max-w-none text-sm"
-                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(mode === 'rich' ? editor?.getHTML() : mode === 'html' ? htmlSource : `<pre>${plainText}</pre>`) }} />
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(mode === 'rich' ? editor?.getHTML() : mode === 'html' ? htmlSource : plainText.split('\n').map(line => `<p>${line || '&nbsp;'}</p>`).join('')) }} />
                     </div>
                 )}
 

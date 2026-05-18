@@ -105,7 +105,7 @@ export default function Analytics() {
         if (!followUpBody.trim()) return toast.error('Please write a follow-up message');
         setFollowUpSending(true);
         try {
-            const res = await api.post('/emails/send-followup', { originalEmailId: emailId, htmlBody: `<p>${followUpBody.replace(/\n/g, '<br/>')}</p>` });
+            const res = await api.post('/emails/send-followup', { originalEmailId: emailId, htmlBody: followUpBody.split('\n').map(line => `<p>${line || '&nbsp;'}</p>`).join('') });
             toast.success(res.data.message);
             setFollowUpId(null);
             setFollowUpBody('');
@@ -134,7 +134,7 @@ export default function Analytics() {
         try {
             const res = await api.post('/emails/send-bulk-followup', {
                 emailIds: selectedEmails,
-                htmlBody: `<p>${bulkFollowUpBody.replace(/\n/g, '<br/>')}</p>`,
+                htmlBody: bulkFollowUpBody.split('\n').map(line => `<p>${line || '&nbsp;'}</p>`).join(''),
             });
             toast.success(res.data.message);
             setSelectedEmails([]);

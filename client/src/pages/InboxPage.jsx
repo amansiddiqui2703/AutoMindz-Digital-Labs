@@ -215,7 +215,7 @@ export default function InboxPage() {
         setReplying(true);
         try {
             await api.post(`/inbox/reply/${selectedMsg.gmailThreadId}`, {
-                htmlBody: `<p>${replyBody.replace(/\n/g, '<br/>')}</p>`,
+                htmlBody: replyBody.split('\n').map(line => `<p>${line || '&nbsp;'}</p>`).join(''),
                 plainBody: replyBody
             });
             toast.success('Reply Sent Successfully');

@@ -90,7 +90,7 @@ export default function ContactDetail() {
         try {
             await api.post('/emails/send-followup', {
                 originalEmailId: emailId,
-                htmlBody: `<p>${followUpBody.replace(/\n/g, '<br/>')}</p>`
+                htmlBody: followUpBody.split('\n').map(line => `<p>${line || '&nbsp;'}</p>`).join('')
             });
             toast.success('Follow-up sent successfully!');
             setFollowUpEmailId(null);

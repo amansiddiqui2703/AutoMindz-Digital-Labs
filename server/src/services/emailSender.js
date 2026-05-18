@@ -48,6 +48,18 @@ export const sendEmail = async (account, { to, subject, htmlBody, plainBody, con
     mergedHtml += TRACKING_PIXEL(trackingId);
     mergedHtml += UNSUBSCRIBE_FOOTER(trackingId);
 
+    // Wrap in a proper HTML email document so all clients (Gmail, Outlook, etc.) render correctly
+    mergedHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;">
+  ${mergedHtml}
+</body>
+</html>`;
+
     // Plain text fallback
     const mergedPlain = plainBody
         ? replaceMergeTags(plainBody, contact)
