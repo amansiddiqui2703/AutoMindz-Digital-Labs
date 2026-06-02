@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import SEO from '../components/SEO.jsx';
 
 const sections = [
     {
@@ -190,6 +191,11 @@ export default function PrivacyPolicy() {
 
     return (
         <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", background: "#F8F9FF", minHeight: "100vh", color: "#1A1A2E" }}>
+            <SEO 
+                title="Privacy Policy"
+                description="Learn how AutoMindz protects your personal data, handles Google OAuth credentials, and secures your email outreach campaigns."
+                url="https://automindz.com/privacy-policy"
+            />
             {/* Google Font */}
             <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');

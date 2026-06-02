@@ -1,15 +1,37 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../components/SEO.jsx';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 export default function BlogPost() {
   return (
     <>
-      <Helmet>
-        <title>Best Free Cold Email Software in 2026 — AutoMindz vs Instantly</title>
-        <meta name="description" content="Looking for free cold email software? AutoMindz offers AI personalization, follow-up automation & 50 free emails/day. The affordable Instantly alternative." />
-      </Helmet>
+      <SEO 
+        title="Best Free Cold Email Software in 2026 — AutoMindz vs Instantly"
+        description="Looking for free cold email software? AutoMindz offers AI personalization, follow-up automation & 50 free emails/day. The affordable Instantly alternative."
+        type="article"
+        url="https://automindz.com/blog/best-free-cold-email-software"
+        customSchema={{
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": "Best Free Cold Email Software in 2026: Why Agencies Are Switching to AutoMindz",
+            "description": "Looking for free cold email software? AutoMindz offers AI personalization, follow-up automation & 50 free emails/day.",
+            "author": {
+                "@type": "Organization",
+                "name": "AutoMindz"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "AutoMindz",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://automindz.com/logo.png"
+                }
+            },
+            "datePublished": "2026-01-01T08:00:00+08:00",
+            "dateModified": "2026-06-02T08:00:00+08:00"
+        }}
+      />
 
       {/* Basic Public Navigation */}
       <nav className="border-b border-surface-200 dark:border-surface-800 bg-white/50 dark:bg-surface-950/50 backdrop-blur-xl sticky top-0 z-50">

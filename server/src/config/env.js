@@ -21,8 +21,8 @@ const env = {
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-    APP_URL: normalizeBaseUrl(process.env.APP_URL, 'http://localhost:5173'),
-    SERVER_URL: normalizeBaseUrl(process.env.SERVER_URL, 'http://localhost:5000'),
+    APP_URL: normalizeBaseUrl(process.env.APP_URL || process.env.RENDER_EXTERNAL_URL, process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5173'),
+    SERVER_URL: normalizeBaseUrl(process.env.SERVER_URL || process.env.RENDER_EXTERNAL_URL, process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000'),
     // Razorpay
     RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || '',
     RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
@@ -63,7 +63,7 @@ const validateEnv = () => {
     const missing = [];
 
     REQUIRED_ENV_VARS.forEach(key => {
-        if (!process.env[key]) missing.push(key);
+        if (!env[key]) missing.push(key);
     });
 
     if (env.NODE_ENV === 'production') {

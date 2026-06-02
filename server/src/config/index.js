@@ -3,8 +3,8 @@ import env from './env.js';
 const config = {
     app: {
         name: 'AutoMindz',
-        url: env.APP_URL || 'http://localhost:5173',
-        serverUrl: env.SERVER_URL || 'http://localhost:5000',
+        url: env.APP_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5173'),
+        serverUrl: env.SERVER_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000'),
         env: env.NODE_ENV || 'development',
         isProduction: env.NODE_ENV === 'production',
         port: env.PORT || 5000,

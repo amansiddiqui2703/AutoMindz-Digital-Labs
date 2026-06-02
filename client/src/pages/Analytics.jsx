@@ -84,7 +84,8 @@ export default function Analytics() {
         const connectSSE = async () => {
             try {
                 const { data } = await api.post('/events/ticket');
-                const url = import.meta.env.DEV ? `http://localhost:5000/api/v1/events?ticket=${data.ticket}` : `/api/v1/events?ticket=${data.ticket}`;
+                const baseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000/api/v1' : '/api/v1');
+                const url = `${baseUrl}/events?ticket=${data.ticket}`;
                 source = new EventSource(url);
                 source.addEventListener('analytics_update', () => {
                     api.get('/analytics/dashboard').then(r => setData(r.data)).catch(() => {});

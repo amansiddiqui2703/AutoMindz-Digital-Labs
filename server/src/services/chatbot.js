@@ -5,7 +5,7 @@ import Campaign from '../models/Campaign.js';
 import Contact from '../models/Contact.js';
 import TrackingEvent from '../models/TrackingEvent.js';
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 /**
  * Gather live stats for the authenticated user.
@@ -168,14 +168,11 @@ ${String(question).replace(/[^\r\n\x20-\x7e]/g, '').trim().slice(0, 2000)}`;
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'x-goog-api-key': env.GEMINI_API_KEY
+            'Authorization': `Bearer ${env.GEMINI_API_KEY}`
         },
         body: JSON.stringify({
-            contents: [{ parts: [{ text: finalPrompt }] }],
-            generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 1024,
-            },
+            model: 'google/gemini-2.5-flash',
+            messages: [{ role: 'user', content: finalPrompt }]
         }),
     });
 
@@ -185,7 +182,7 @@ ${String(question).replace(/[^\r\n\x20-\x7e]/g, '').trim().slice(0, 2000)}`;
     }
 
     const result = await response.json();
-    const answer = result.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I couldn\'t generate a response. Please try again.';
+    const answer = result.choices?.[0]?.message?.content || 'Sorry, I couldn\'t generate a response. Please try again.';
 
     return { answer, data };
 };

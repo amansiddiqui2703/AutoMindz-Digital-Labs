@@ -125,7 +125,7 @@ export const sendPasswordResetEmail = async (to, name, resetUrl) => {
 
 export const sendWelcomeEmail = async (to, name) => {
     const subject = `Welcome to AutoMindz, ${name}!`;
-    const appUrl = env.APP_URL || 'http://localhost:5173';
+    const appUrl = env.APP_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5173');
     const html = renderEmailLayout({
         heading: 'Welcome to AutoMindz!',
         preheader: 'Your AutoMindz account is ready.',

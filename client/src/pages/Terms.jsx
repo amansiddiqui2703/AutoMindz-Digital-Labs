@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import SEO from '../components/SEO.jsx';
 
 const sections = [
     {
@@ -230,6 +231,11 @@ export default function TermsAndConditions() {
 
     return (
         <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", background: "#F8F9FF", minHeight: "100vh", color: "#1A1A2E" }}>
+            <SEO 
+                title="Terms and Conditions"
+                description="Read the AutoMindz Terms and Conditions to understand the rules and guidelines for using our email outreach platform."
+                url="https://automindz.com/terms"
+            />
             <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }

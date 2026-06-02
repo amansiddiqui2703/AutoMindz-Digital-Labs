@@ -1,5 +1,9 @@
 import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import dns from 'dns';
+import { promisify } from 'util';
+
+const resolveMx = promisify(dns.resolveMx);
 import auth from '../middleware/auth.js';
 import GmailAccount from '../models/GmailAccount.js';
 import EmailLog from '../models/EmailLog.js';
@@ -10,6 +14,54 @@ import { replaceMergeTags } from '../utils/mergetags.js';
 import env from '../config/env.js';
 
 const router = Router();
+// Detailed Email Diagnostics Endpoint
+router.post('/test-email', auth, async (req, res) => {
+    try {
+        const { to, accountId } = req.body;
+        if (!to) return res.status(400).json({ error: 'To email is required' });
+
+        const account = await GmailAccount.findOne({ 
+            ...(accountId ? { _id: accountId } : {}),
+            userId: req.user.id, 
+            isActive: true 
+        });
+
+        if (!account) return res.status(400).json({ error: 'No active Gmail account available for testing' });
+
+        const domain = to.split('@')[1];
+        let mxRecords = [];
+        try {
+            mxRecords = await resolveMx(domain);
+        } catch (e) {
+            return res.status(400).json({ 
+                error: `DNS resolution failed for domain ${domain}`, 
+                details: e.message 
+            });
+        }
+
+        if (!mxRecords || mxRecords.length === 0) {
+            return res.status(400).json({ error: `No MX records found for domain ${domain}` });
+        }
+
+        const htmlBody = '<p>This is a <b>diagnostic test email</b> from AutoMindz.</p>';
+        const subject = 'AutoMindz Delivery Diagnostic Test';
+
+        const result = await sendEmail(account, {
+            to, subject, htmlBody, plainBody: 'This is a diagnostic test email.', 
+            contact: { email: to, name: 'Test User' }, 
+            userId: req.user.id
+        });
+
+        res.json({
+            status: result.success ? 'success' : 'failed',
+            account: { email: account.email, type: account.connectionType },
+            mxRecords,
+            result
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message, stack: error.stack });
+    }
+});
 
 // Send single email
 router.post('/send-single', auth, async (req, res) => {

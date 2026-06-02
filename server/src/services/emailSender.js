@@ -176,14 +176,19 @@ export const sendEmail = async (account, { to, subject, htmlBody, plainBody, con
 
         return { success: true, trackingId, messageId: result.messageId };
     } catch (error) {
-        logger.error(`Email send failed to ${to}`, error);
-        if (error.response?.data) {
-            logger.error('Gmail API error details:', null, error.response.data);
-        }
+        const errorDetails = error.response?.data || error.message;
+        const statusCode = error.response?.status || 500;
+        const fullStack = error.stack;
+        
+        logger.error(`[Email Delivery Failure] To: ${to} | Account: ${account.email} | Status: ${statusCode}`, { 
+            error: errorDetails,
+            stack: fullStack
+        });
+
         emailLog.status = 'failed';
-        emailLog.error = error.message;
+        emailLog.error = typeof errorDetails === 'object' ? JSON.stringify(errorDetails) : errorDetails;
         await emailLog.save();
 
-        return { success: false, error: error.message };
+        return { success: false, error: emailLog.error, details: errorDetails };
     }
 };

@@ -101,6 +101,8 @@ app.use(helmet({
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'", "https://o4511246035976192.ingest.us.sentry.io", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://lumberjack-cx.razorpay.com"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
     },
   },
   hsts: {

@@ -1,6 +1,6 @@
 import env from '../config/env.js';
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 const MAX_PROMPT_INPUT_LENGTH = 5000;
 
@@ -27,14 +27,11 @@ const callGemini = async (prompt, maxRetries = 3) => {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'x-goog-api-key': env.GEMINI_API_KEY 
+                    'Authorization': `Bearer ${env.GEMINI_API_KEY}`
                 },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 2048,
-                    },
+                    model: 'google/gemini-2.5-flash',
+                    messages: [{ role: 'user', content: prompt }]
                 }),
             });
 
@@ -59,7 +56,7 @@ const callGemini = async (prompt, maxRetries = 3) => {
             }
 
             const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            return data.choices?.[0]?.message?.content || '';
         } catch (error) {
             attempt++;
             if (attempt >= maxRetries || (error.status !== 429 && error.status !== 503)) {

@@ -1,10 +1,10 @@
 import { Helmet } from 'react-helmet-async';
 
-export default function SEO({ title, description, name = 'AutoMindz', type = 'website', url = 'https://automindz.com' }) {
+export default function SEO({ title, description, name = 'AutoMindz', type = 'website', url = 'https://automindz.com', customSchema = null }) {
     const fullTitle = `${title} | ${name}`;
     
     // Add Structured Data Schema
-    const schemaOrg = {
+    const schemaOrg = customSchema || {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": name,

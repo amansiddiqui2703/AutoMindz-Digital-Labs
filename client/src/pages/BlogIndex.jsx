@@ -1,15 +1,22 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../components/SEO.jsx';
 import { Link } from 'react-router-dom';
 import { Zap, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export default function BlogIndex() {
   return (
     <>
-      <Helmet>
-        <title>Blog — AutoMindz Cold Email & SEO Strategies</title>
-        <meta name="description" content="Learn the latest strategies for cold email outreach, B2B lead generation, and deliverability from the AutoMindz team." />
-      </Helmet>
+      <SEO 
+        title="Blog — AutoMindz Cold Email & SEO Strategies"
+        description="Learn the latest strategies for cold email outreach, B2B lead generation, and deliverability from the AutoMindz team."
+        url="https://automindz.com/blog"
+        customSchema={{
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": "AutoMindz Blog",
+            "description": "Learn the latest strategies for cold email outreach, B2B lead generation, and deliverability from the AutoMindz team."
+        }}
+      />
 
       {/* Basic Public Navigation */}
       <nav className="border-b border-surface-200 dark:border-surface-800 bg-white/50 dark:bg-surface-950/50 backdrop-blur-xl sticky top-0 z-50">
