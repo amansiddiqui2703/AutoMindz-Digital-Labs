@@ -1,7 +1,8 @@
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+# react-quill@2 has peer dep conflict with React 19 — legacy-peer-deps required
+RUN npm ci --legacy-peer-deps
 COPY . .
 RUN npm run build
 
