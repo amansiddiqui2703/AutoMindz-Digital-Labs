@@ -302,8 +302,14 @@ const _enqueueCampaignInternal = async (campaign) => {
         }
 
         const isPro = userPlan === 'pro';
-        const minD = isPro ? 5 : 30;
-        const maxD = isPro ? 15 : 120;
+        let minD = isPro ? 5 : 30;
+        let maxD = isPro ? 15 : 120;
+
+        // If in test mode (DISABLE_SENDING_WINDOW=true), remove the long anti-spam delay
+        if (env.DISABLE_SENDING_WINDOW) {
+            minD = 1;
+            maxD = 3;
+        }
 
         cumulativeDelay += randomDelay(minD, maxD);
         enqueued++;
