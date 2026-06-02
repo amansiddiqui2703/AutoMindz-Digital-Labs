@@ -76,6 +76,8 @@ export default function InboxPage() {
                             });
                             return [newMsg, ...prev];
                         });
+                        // Auto-refresh counts so sidebar badges update immediately
+                        fetchMessages();
                     } catch (err) { }
                 });
             } catch (err) {
@@ -85,22 +87,18 @@ export default function InboxPage() {
 
         connectSSE();
 
-        // ISSUE 3 FIX: Poll Gmail for new inbound replies every 60 seconds.
-        // The server's /sync-replies endpoint fetches real replies from Gmail API
-        // and broadcasts SSE events, so the UI updates automatically without refresh.
+        // Poll Gmail for new inbound replies every 30 seconds for faster detection
         const syncRepliesInterval = setInterval(async () => {
             try {
                 await api.post('/inbox/sync-replies');
-                // No need to manually refresh — SSE inbox_update events will update the list
             } catch (err) {
-                // Silently ignore polling errors (e.g. temporary network issue)
                 console.warn('Auto sync-replies poll failed:', err?.response?.data?.error || err.message);
             }
-        }, 60_000); // every 60 seconds
+        }, 30_000); // every 30 seconds
 
         return () => {
             if (source) source.close();
-            clearInterval(syncRepliesInterval); // ISSUE 3 FIX: Clean up polling on unmount
+            clearInterval(syncRepliesInterval);
         };
     }, [filter, search]);
 
@@ -215,12 +213,15 @@ export default function InboxPage() {
         setReplying(true);
         try {
             await api.post(`/inbox/reply/${selectedMsg.gmailThreadId}`, {
-                htmlBody: replyBody.split('\n').map(line => `<p>${line || '&nbsp;'}</p>`).join(''),
+                htmlBody: replyBody.replace(/\n/g, '<br>'),
                 plainBody: replyBody
             });
             toast.success('Reply Sent Successfully');
             setReplyBody('');
-            // Optional: The SSE will push the new outbound msg back instantly anyway
+            // Re-open thread to show the new reply immediately
+            if (selectedMsg) {
+                setTimeout(() => openThread(selectedMsg), 500);
+            }
         } catch (err) {
             toast.error(err.response?.data?.error || 'Failed to dispatch reply');
         } finally {

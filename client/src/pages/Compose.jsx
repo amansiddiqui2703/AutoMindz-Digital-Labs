@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import api from '../api/client';
@@ -9,8 +10,40 @@ import {
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 
+/**
+ * Clean ReactQuill HTML output for email sending.
+ * ReactQuill wraps every line in <p> tags which makes emails look
+ * broken with extra spacing. This converts <p>...</p> sequences
+ * into inline content separated by <br> tags, which renders
+ * correctly in all email clients.
+ */
+const cleanHtmlForEmail = (html) => {
+    if (!html) return '';
+    let cleaned = html;
+
+    // Remove empty Quill placeholder: <p><br></p>
+    cleaned = cleaned.replace(/^(<p><br\s*\/?><\/p>\s*)+/gi, '');
+    cleaned = cleaned.replace(/(\s*<p><br\s*\/?><\/p>)+$/gi, '');
+
+    // Convert <p>content</p> blocks into content<br><br>
+    // This prevents emails from rendering with giant paragraph gaps
+    cleaned = cleaned.replace(/<p>(.*?)<\/p>/gi, (match, inner) => {
+        // If inner is just <br> or empty, keep as single line break
+        if (!inner || /^<br\s*\/?>$/i.test(inner.trim())) {
+            return '<br>';
+        }
+        return inner + '<br>';
+    });
+
+    // Remove trailing <br> tags
+    cleaned = cleaned.replace(/(<br\s*\/?>\s*)+$/gi, '');
+
+    return cleaned.trim();
+};
+
 export default function Compose() {
     const { user, fetchUser } = useAuth();
+    const navigate = useNavigate();
     const [to, setTo] = useState('');
     const [subject, setSubject] = useState('');
     const [cc, setCc] = useState('');
@@ -40,10 +73,14 @@ export default function Compose() {
         
         setSending(true);
         try {
-            await api.post('/emails/send-single', { to, subject, htmlBody, cc, bcc });
-            toast.success('Email sent successfully!');
+            // Clean the HTML to remove <p> wrappers that ReactQuill adds
+            const cleanedBody = cleanHtmlForEmail(htmlBody);
+            await api.post('/emails/send-single', { to, subject, htmlBody: cleanedBody, cc, bcc });
+            toast.success('Email sent successfully! Redirecting to inbox...');
             setTo(''); setSubject(''); setCc(''); setBcc('');
             setHtmlBody(user?.settings?.signature ? `<br><br>${user.settings.signature}` : '');
+            // Auto-navigate to inbox so user can see the sent email immediately
+            setTimeout(() => navigate('/inbox'), 800);
         } catch (e) {
             toast.error(e.response?.data?.error || 'Failed to send email. Check if your Gmail account is connected.');
         } finally { setSending(false); }

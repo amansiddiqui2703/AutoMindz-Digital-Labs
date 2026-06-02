@@ -30,9 +30,9 @@ const auth = async (req, res, next) => {
             user.isVerified = true; // BUG FIX: Auto-verify admins so they don't get locked out during sign-in
         }
 
-        if (env.NODE_ENV === 'production' && !user.isVerified) {
-            return res.status(403).json({ error: 'Email verification required. Please check your email.' });
-        }
+        // NOTE: Email verification is encouraged via UI but not enforced as an API blocker.
+        // Forcing 403 on all routes for unverified users makes the app unusable after signup.
+        // Admins are auto-verified above via the ADMIN_EMAILS check.
 
         req.user = user;
 

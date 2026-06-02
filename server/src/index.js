@@ -134,6 +134,10 @@ app.use(hpp());
 
 // Rate limiting
 app.use('/api/v1/', apiLimiter);
+// Rate limiting for specific routes (MUST be before route registration)
+app.use('/api/v1/inbox/sync', inboxSyncLimiter);
+app.use('/api/v1/inbox/sync-replies', inboxSyncLimiter);
+app.use('/api/v1/ai', aiLimiter);
 
 // -------------------------------------------------------------
 // Real-Time Event Stream (Server-Sent Events)
@@ -209,10 +213,6 @@ app.use('/api/v1/inbox', inboxRoutes);
 app.use('/api/v1/seo', seoRoutes);
 app.use('/api/v1/sequences', sequenceRoutes);
 
-// Rate limiting for specific routes
-app.use('/api/v1/inbox/sync', inboxSyncLimiter);
-app.use('/api/v1/inbox/sync-replies', inboxSyncLimiter);
-app.use('/api/v1/ai', aiLimiter);
 
 // BUG FIX #29: Legacy aliases for Google OAuth callbacks
 // Because we moved to /api/v1, Google Cloud Console's registered redirect URIs

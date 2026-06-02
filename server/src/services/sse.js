@@ -93,7 +93,9 @@ class SSEManager extends EventEmitter {
         const id = userId.toString();
 
         // DEDUPLICATION: skip if same event was sent within last 500ms
-        const dedupKey = `${id}:${event}:${JSON.stringify(payload)?._id || JSON.stringify(payload)}`;
+        // Use payload._id if available (for inbox_update events) for efficient key
+        const payloadKey = payload?._id || JSON.stringify(payload);
+        const dedupKey = `${id}:${event}:${payloadKey}`;
         const lastSent = this._recentEvents.get(dedupKey);
         if (lastSent && Date.now() - lastSent < 500) {
             return; // duplicate suppressed
