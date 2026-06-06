@@ -25,13 +25,18 @@ api.interceptors.response.use(
     },
     (error) => {
         if (error.response?.status === 401) {
-            // Don't auto-redirect for Google OAuth token exchange — 
-            // GoogleAuthSuccess.jsx handles its own error flow
             const url = error.config?.url || '';
-            if (!url.includes('/auth/google/token')) {
+            const isAuthEndpoint = url.includes('/auth/');
+            const isAuthPage = window.location.pathname.includes('/login') || window.location.pathname.includes('/register');
+            
+            // Do not intercept 401s for auth endpoints (let the component handle it, e.g., Invalid Password)
+            if (!isAuthEndpoint) {
                 localStorage.removeItem('automindz_token');
                 localStorage.removeItem('automindz_user');
-                window.location.href = '/login';
+                // Only redirect if we are not already on an auth page
+                if (!isAuthPage) {
+                    window.location.href = '/login';
+                }
             }
         }
         return Promise.reject(error);

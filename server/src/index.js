@@ -94,13 +94,13 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'", "https://api.razorpay.com"],
-      scriptSrc: ["'self'", "https://checkout.razorpay.com", (req, res) => `'nonce-${res.locals.cspNonce}'`],
+      scriptSrc: ["'self'", "https://checkout.razorpay.com", "https://www.googletagmanager.com", "'sha256-+OLzaZ92iFBbP5QC+GMx1GPRiHjf/zyVRhcgKaVGqXI='", (req, res) => `'nonce-${res.locals.cspNonce}'`],
       frameSrc: ["'self'", "https://api.razorpay.com"],
       workerSrc: ["'self'", "blob:"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://o4511246035976192.ingest.us.sentry.io", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://lumberjack-cx.razorpay.com"],
+      imgSrc: ["'self'", "data:", "https:", "https://www.google-analytics.com"],
+      connectSrc: ["'self'", "https://o4511246035976192.ingest.us.sentry.io", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://lumberjack-cx.razorpay.com", "https://www.google-analytics.com", "https://analytics.google.com"],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: [],
     },
