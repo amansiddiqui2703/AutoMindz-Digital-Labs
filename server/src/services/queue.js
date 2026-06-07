@@ -132,7 +132,8 @@ export const initQueue = () => {
             logger.warn('Email queue error', { message: err.message });
         });
 
-        emailQueue.process(async (job) => {
+        // Process up to 3 emails concurrently for faster delivery
+        emailQueue.process(3, async (job) => {
             return processEmailJob(job.data);
         });
 
@@ -154,8 +155,10 @@ export const initQueue = () => {
 
 /**
  * Generate a random delay between min and max seconds (in milliseconds).
+ * Defaults reduced to 5-15s to balance deliverability with speed.
+ * Gmail rate limit is ~2000/day, not per-second, so 5s gaps are safe.
  */
-const randomDelay = (minSec = 30, maxSec = 120) => {
+const randomDelay = (minSec = 5, maxSec = 15) => {
     return (Math.floor(Math.random() * (maxSec - minSec + 1)) + minSec) * 1000;
 };
 
@@ -301,14 +304,22 @@ const _enqueueCampaignInternal = async (campaign) => {
             inMemoryJobs.push({ jobData, delayMs: thisDelay });
         }
 
-        const isPro = userPlan === 'pro';
-        let minD = isPro ? 5 : 30;
-        let maxD = isPro ? 15 : 120;
+        const isPro = userPlan === 'pro' || userPlan === 'growth';
+        let minD, maxD;
 
-        // If in test mode (DISABLE_SENDING_WINDOW=true), remove the long anti-spam delay
         if (env.DISABLE_SENDING_WINDOW) {
-            minD = 1;
-            maxD = 3;
+            // Test/dev mode: near-instant sending
+            minD = 0.5;
+            maxD = 1;
+        } else if (isPro) {
+            // Pro/Growth plans: fast sending (2-5s between emails)
+            minD = 2;
+            maxD = 5;
+        } else {
+            // Free/Starter plans: moderate pace (5-15s between emails)
+            // Still fast enough — Gmail allows ~2000/day, these gaps are safe
+            minD = 5;
+            maxD = 15;
         }
 
         cumulativeDelay += randomDelay(minD, maxD);
