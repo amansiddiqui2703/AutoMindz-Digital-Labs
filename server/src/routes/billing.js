@@ -111,7 +111,8 @@ router.post('/create-subscription', auth, authorize('admin', 'manager', 'user'),
         });
     } catch (error) {
         console.error('Subscription creation error:', error);
-        res.status(500).json({ error: 'Failed to create subscription' });
+        const errMsg = error.error?.description || error.message || 'Failed to create subscription';
+        res.status(error.statusCode || 500).json({ error: errMsg });
     }
 });
 
@@ -136,7 +137,8 @@ router.post('/cancel-subscription', auth, authorize('admin', 'manager', 'user'),
         res.json({ message: 'Subscription cancelled successfully' });
     } catch (error) {
         console.error('Cancel subscription error:', error);
-        res.status(500).json({ error: 'Failed to cancel subscription' });
+        const errMsg = error.error?.description || error.message || 'Failed to cancel subscription';
+        res.status(error.statusCode || 500).json({ error: errMsg });
     }
 });
 
@@ -173,7 +175,8 @@ router.post('/verify-payment', auth, authorize('admin', 'manager', 'user'), asyn
         res.json({ success: true, message: 'Payment verified and plan activated' });
     } catch (error) {
         console.error('Payment verification error:', error);
-        res.status(500).json({ error: 'Failed to verify payment' });
+        const errMsg = error.error?.description || error.message || 'Failed to verify payment';
+        res.status(error.statusCode || 500).json({ error: errMsg });
     }
 });
 
@@ -215,7 +218,8 @@ router.post('/create-order', auth, authorize('admin', 'manager', 'user'), async 
         });
     } catch (error) {
         console.error('Order creation error:', error);
-        res.status(500).json({ error: 'Failed to create order' });
+        const errMsg = error.error?.description || error.message || 'Failed to create order';
+        res.status(error.statusCode || 500).json({ error: errMsg });
     }
 });
 
