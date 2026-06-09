@@ -28,7 +28,11 @@ const planLimits = async (req, res, next) => {
             const expiryDate = new Date(user.planExpiresAt);
             if (!isNaN(expiryDate.getTime()) && expiryDate < new Date()) {
                 plan = 'free';
-                await User.findByIdAndUpdate(req.user.id, { plan: 'free' });
+                await User.findByIdAndUpdate(req.user.id, { 
+                    plan: 'free',
+                    razorpaySubscriptionId: '',
+                    stripeSubscriptionId: ''
+                });
             }
         }
 

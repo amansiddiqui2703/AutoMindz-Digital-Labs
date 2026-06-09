@@ -21,6 +21,8 @@ import { apiLimiter, authLimiter, inboxSyncLimiter, campaignLaunchLimiter, aiLim
 import auth from './middleware/auth.js';
 import { startFollowUpScheduler } from './services/followUpScheduler.js';
 import { startCampaignScheduler } from './services/campaignScheduler.js';
+import logger from './utils/logger.js';
+import errorHandler from './middleware/errorHandler.js';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -59,19 +61,20 @@ const __dirname = dirname(__filename);
 const app = express();
 
 Sentry.init({
-  dsn: process.env.SENTRY_DSN || '',
-  integrations: [
-    nodeProfilingIntegration(),
-  ],
-  tracesSampleRate: 1.0,
-  profilesSampleRate: 1.0,
+    dsn: env.SENTRY_DSN || "",
+    integrations: [
+        // enable HTTP calls tracing
+        new Sentry.Integrations.Http({ tracing: true }),
+        // enable Express.js middleware tracing
+        new Sentry.Integrations.Express({ app }),
+        // Automatically instrument Node.js libraries and frameworks
+        ...Sentry.autoDiscoverNodePerformanceMonitoringIntegrations(),
+    ],
+    // Performance Monitoring
+    tracesSampleRate: env.NODE_ENV === 'production' ? 0.1 : 1.0, //  Capture 100% of the transactions
+    // Set sampling rate for profiling - this is relative to tracesSampleRate
+    profilesSampleRate: env.NODE_ENV === 'production' ? 0.1 : 1.0,
 });
-
-// Webhooks
-app.post('/api/v1/billing/webhook', express.json(), handleRazorpayWebhook);
-
-// Resend webhook needs raw body for signature verification
-app.post('/api/v1/webhooks/resend', express.raw({ type: 'application/json' }), handleResendWebhook);
 
 // Middleware
 app.use((req, res, next) => {
@@ -82,25 +85,24 @@ app.use(cors({ origin: env.APP_URL, credentials: true }));
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   // Bug #26 Fix: Explicitly deny camera, microphone, geolocation permissions
-  permissionsPolicy: {
-    features: {
-      camera: [],
-      microphone: [],
-      geolocation: [],
-      payment: [],
-      usb: [],
-    },
-  },
+            permissionsPolicy: {
+                features: {
+                    camera: ["'none'"],
+                    microphone: ["'none'"],
+                    geolocation: ["'none'"],
+                    payment: ["'self'", "https://checkout.razorpay.com", "https://api.razorpay.com"],
+                },
+            },
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'", "https://api.razorpay.com"],
-      scriptSrc: ["'self'", "https://checkout.razorpay.com", "https://cdn.razorpay.com", "https://www.googletagmanager.com", "'sha256-+OLzaZ92iFBbP5QC+GMx1GPRiHjf/zyVRhcgKaVGqXI='", (req, res) => `'nonce-${res.locals.cspNonce}'`],
-      frameSrc: ["'self'", "https://api.razorpay.com"],
+      defaultSrc: ["'self'", "https://*.razorpay.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://*.razorpay.com", "https://www.googletagmanager.com", "https://www.google-analytics.com"],
+      frameSrc: ["'self'", "https://*.razorpay.com"],
       workerSrc: ["'self'", "blob:"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https:", "https://www.google-analytics.com"],
-      connectSrc: ["'self'", "https://o4511246035976192.ingest.us.sentry.io", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://lumberjack-cx.razorpay.com", "https://lumberjack.razorpay.com", "https://api.razorpay.com", "https://www.google-analytics.com", "https://analytics.google.com"],
+      imgSrc: ["'self'", "data:", "https:", "http:", "blob:"],
+      connectSrc: ["'self'", "https://o4511246035976192.ingest.us.sentry.io", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://*.razorpay.com", "https://www.google-analytics.com", "https://analytics.google.com"],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: [],
     },
@@ -117,17 +119,19 @@ app.use((req, res, next) => {
   next();
 });
 
-import logger from './utils/logger.js';
+morgan.token('req-id', (req) => req.id);
+
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms [req-id: :req-id]', {
   stream: {
     write: (message) => logger.info(message.trim())
   }
 }));
 
-morgan.token('req-id', (req) => req.id);
+app.post('/api/v1/billing/webhook', express.raw({ type: 'application/json' }), handleRazorpayWebhook);
 
+// Add express-json only after the raw webhook route
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Security Hardening
 app.use(mongoSanitize());
@@ -144,7 +148,16 @@ app.use('/api/v1/ai', aiLimiter);
 // -------------------------------------------------------------
 // Real-Time Event Stream (Server-Sent Events)
 // -------------------------------------------------------------
-app.post('/api/v1/events/ticket', auth, async (req, res) => {
+import { rateLimit } from 'express-rate-limit';
+const sseTicketLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 10, // Limit each IP to 10 tickets per minute
+    message: { error: 'Too many SSE tickets created, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+app.post('/api/v1/events/ticket', auth, sseTicketLimiter, async (req, res) => {
     try {
         const ticket = crypto.randomBytes(32).toString('hex');
         const redis = getRedis();
@@ -247,7 +260,6 @@ app.get('/health', async (req, res) => {
 Sentry.setupExpressErrorHandler(app);
 
 // Global Error Handler
-import errorHandler from './middleware/errorHandler.js';
 app.use(errorHandler);
 
 // Serve frontend in production

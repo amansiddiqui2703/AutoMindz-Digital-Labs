@@ -3,6 +3,15 @@ import { recordOpen, recordClick, recordUnsubscribe, recordBounce } from '../ser
 
 const router = Router();
 
+const escapeHtml = (input = '') => {
+    return String(input)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+};
+
 // Tracking pixel (1x1 transparent GIF)
 const PIXEL = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
 
@@ -80,9 +89,10 @@ router.get('/unsubscribe/:trackingId', async (req, res) => {
           <h2>Unsubscribe</h2>
           <p>Click below to unsubscribe from future emails.</p>
           <button class="btn" onclick="doUnsubscribe()">Unsubscribe</button>
+          <div id="trackingData" data-id="${escapeHtml(req.params.trackingId)}" style="display:none;"></div>
         </div>
         <script>
-          const trackingId = ${JSON.stringify(req.params.trackingId)};
+          const trackingId = document.getElementById('trackingData').dataset.id;
           async function doUnsubscribe() {
             try {
               await fetch('/t/unsubscribe/' + encodeURIComponent(trackingId), { method: 'POST' });

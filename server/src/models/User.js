@@ -48,6 +48,8 @@ const userSchema = new mongoose.Schema({
     verificationToken: { type: String },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
+    loginAttempts: { type: Number, required: true, default: 0 },
+    lockUntil: { type: Date },
 }, {
     timestamps: true,
 });
@@ -58,9 +60,30 @@ userSchema.pre('save', async function (next) {
     next();
 });
 
+userSchema.virtual('isLocked').get(function() {
+    return !!(this.lockUntil && this.lockUntil > Date.now());
+});
+
 userSchema.methods.comparePassword = async function (candidatePassword) {
     if (!this.password) return false;
     return bcrypt.compare(candidatePassword, this.password);
+};
+
+userSchema.methods.incLoginAttempts = async function() {
+    // if locked, do nothing
+    if (this.lockUntil && this.lockUntil < Date.now()) {
+        return this.updateOne({
+            $set: { loginAttempts: 1 },
+            $unset: { lockUntil: 1 }
+        });
+    }
+    // otherwise increment
+    const updates = { $inc: { loginAttempts: 1 } };
+    // lock the account if we've reached 5 attempts
+    if (this.loginAttempts + 1 >= 5 && !this.isLocked) {
+        updates.$set = { lockUntil: Date.now() + 15 * 60 * 1000 }; // 15 minutes lockout
+    }
+    return this.updateOne(updates);
 };
 
 userSchema.methods.toJSON = function () {

@@ -32,7 +32,23 @@ router.get('/status', auth, authorize('admin', 'manager', 'user'), async (req, r
         const user = await User.findById(req.user.id).select('plan razorpayCustomerId razorpaySubscriptionId planExpiresAt').lean();
         if (!user) return res.status(404).json({ error: 'User not found' });
 
-        const limits = PLAN_LIMITS[user.plan || 'free'] || PLAN_LIMITS.free;
+        let currentPlan = user.plan || 'free';
+        if (currentPlan !== 'free' && user.planExpiresAt) {
+            const expiryDate = new Date(user.planExpiresAt);
+            if (!isNaN(expiryDate.getTime()) && expiryDate < new Date()) {
+                currentPlan = 'free';
+                user.plan = 'free';
+                user.razorpaySubscriptionId = '';
+                user.stripeSubscriptionId = '';
+                await User.findByIdAndUpdate(req.user.id, {
+                    plan: 'free',
+                    razorpaySubscriptionId: '',
+                    stripeSubscriptionId: ''
+                });
+            }
+        }
+
+        const limits = PLAN_LIMITS[currentPlan] || PLAN_LIMITS.free;
 
         // Get current daily usage
         const today = new Date();
@@ -48,9 +64,9 @@ router.get('/status', auth, authorize('admin', 'manager', 'user'), async (req, r
         const totalAccounts = await GmailAccount.countDocuments({ userId: req.user.id });
 
         res.json({
-            plan: user.plan || 'free',
+            plan: currentPlan,
             planExpiresAt: user.planExpiresAt,
-            hasSubscription: !!user.razorpaySubscriptionId,
+            hasSubscription: !!(user.razorpaySubscriptionId || user.stripeSubscriptionId),
             limits,
             usage: {
                 emailsSentToday,

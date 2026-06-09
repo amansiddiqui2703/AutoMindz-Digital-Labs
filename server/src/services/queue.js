@@ -15,6 +15,19 @@ let emailQueue = null;
 // In-process guard — campaign IDs are added before enqueue, removed after.
 const _enqueuingCampaigns = new Set();
 
+// BUG-H3 FIX: Per-user in-memory lock to prevent race conditions when selecting accounts concurrently
+const userLocks = new Map();
+const acquireLock = async (userId) => {
+    const idStr = userId.toString();
+    while (userLocks.get(idStr)) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    userLocks.set(idStr, true);
+};
+const releaseLock = (userId) => {
+    userLocks.delete(userId.toString());
+};
+
 export const processEmailJob = async (data) => {
     const { campaignId, recipient, userId, accountIds, subject, htmlBody, plainBody, cc, bcc, attachments, abVariant } = data;
 
@@ -24,8 +37,15 @@ export const processEmailJob = async (data) => {
         return { skipped: true, reason: 'suppressed', email: recipient.email };
     }
 
-    // Select account with available quota (round-robin)
-    const account = await selectAccount(userId, accountIds);
+    // BUG-H3 FIX: Acquire lock before selecting account to prevent concurrent quota exhaustion
+    await acquireLock(userId);
+    let account;
+    try {
+        account = await selectAccount(userId, accountIds);
+    } finally {
+        releaseLock(userId);
+    }
+    
     if (!account) {
         logger.error(`❌ No available Gmail accounts for user ${userId} — all accounts exhausted or unhealthy`);
         throw new Error('No available Gmail accounts (quota exhausted)');
@@ -101,6 +121,12 @@ export const processEmailJob = async (data) => {
         await Campaign.findByIdAndUpdate(campaignId, {
             $inc: { 'stats.failed': 1 },
         });
+        
+        // BUG-M6 FIX: Update recipient status to failed so the campaign doesn't get stuck
+        await Campaign.updateOne(
+            { _id: campaignId, 'recipients.email': recipient.email },
+            { $set: { 'recipients.$.status': 'failed' } }
+        );
     }
 
     return result;

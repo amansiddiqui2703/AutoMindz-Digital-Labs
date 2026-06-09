@@ -2,7 +2,7 @@ import { Router } from 'express';
 import User from '../models/User.js';
 import EmailLog from '../models/EmailLog.js';
 import auth from '../middleware/auth.js';
-import authorize from '../middleware/rbac.js';
+import authorize from '../middleware/authorize.js';
 import { apiLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();

@@ -54,12 +54,13 @@ router.post('/register', authLimiter, [
         }
 
         const verificationToken = crypto.randomBytes(32).toString('hex');
+        const hashedVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
 
         // Assign 'admin' role to emails listed in ADMIN_EMAILS env var
         const adminEmails = (env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
         const role = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'user';
 
-        const user = new User({ email, password, name, verificationToken, role });
+        const user = new User({ email, password, name, verificationToken: hashedVerificationToken, role });
         await user.save();
 
         const verifyUrl = `${env.APP_URL}/verify/${verificationToken}`;
@@ -71,7 +72,10 @@ router.post('/register', authLimiter, [
             { expiresIn: env.JWT_EXPIRES_IN }
         );
 
-        res.status(201).json({ user, token });
+        res.status(201).json({ 
+            user: { _id: user._id, email: user.email, name: user.name, role: user.role, plan: user.plan, isVerified: user.isVerified }, 
+            token 
+        });
     } catch (error) {
         res.status(500).json({ error: 'Registration failed' });
     }
@@ -91,13 +95,24 @@ router.post('/login', authLimiter, [
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
+        // SEC-H4: Per-account login lockout check
+        if (user.isLocked) {
+            return res.status(429).json({ error: 'Account temporarily locked due to too many failed attempts. Please try again later.' });
+        }
+
         // If account was created via Google OAuth only, email/password login won't work.
         if (user.googleId && !user.password) {
             return res.status(403).json({ error: 'This account uses Google sign-in. Please continue with Google.' });
         }
 
         if (!(await user.comparePassword(password))) {
+            await user.incLoginAttempts();
             return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        // Reset login attempts on successful login
+        if (user.loginAttempts > 0) {
+            await user.updateOne({ $set: { loginAttempts: 0 }, $unset: { lockUntil: 1 } });
         }
 
         // Admin Override: Permanently set admin accounts to unlimited upon login
@@ -115,7 +130,11 @@ router.post('/login', authLimiter, [
             { expiresIn: env.JWT_EXPIRES_IN }
         );
 
-        res.json({ user, token, isVerified: user.isVerified });
+        res.json({ 
+            user: { _id: user._id, email: user.email, name: user.name, role: user.role, plan: user.plan, isVerified: user.isVerified }, 
+            token, 
+            isVerified: user.isVerified 
+        });
     } catch (error) {
         res.status(500).json({ error: 'Login failed' });
     }
@@ -140,7 +159,8 @@ router.post('/resend-verification', authLimiter, [
         }
 
         const verificationToken = crypto.randomBytes(32).toString('hex');
-        user.verificationToken = verificationToken;
+        const hashedVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+        user.verificationToken = hashedVerificationToken;
         await user.save();
 
         const verifyUrl = `${env.APP_URL}/verify/${verificationToken}`;
@@ -161,7 +181,8 @@ router.post('/resend-verification', authLimiter, [
 // Verify Email
 router.post('/verify/:token', async (req, res) => {
     try {
-        const user = await User.findOne({ verificationToken: req.params.token });
+        const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+        const user = await User.findOne({ verificationToken: hashedToken });
         if (!user) return res.status(400).json({ error: 'Invalid verification token' });
 
         user.isVerified = true;
@@ -182,14 +203,18 @@ router.post('/verify/:token', async (req, res) => {
 });
 
 // Forgot Password
-router.post('/forgot-password', authLimiter, async (req, res) => {
+router.post('/forgot-password', authLimiter, [
+    body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+    validate,
+], async (req, res) => {
     try {
         const { email } = req.body;
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) return res.json({ success: true, message: 'If this account exists, an email has been sent.' });
 
         const resetToken = crypto.randomBytes(32).toString('hex');
-        user.resetPasswordToken = resetToken;
+        const hashedResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+        user.resetPasswordToken = hashedResetToken;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
         await user.save();
 
@@ -208,13 +233,17 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
 });
 
 // Reset Password
-router.post('/reset-password/:token', authLimiter, async (req, res) => {
+router.post('/reset-password/:token', authLimiter, [
+    body('password').isLength({ min: 6, max: 128 }).withMessage('Password must be 6-128 characters'),
+    validate,
+], async (req, res) => {
     try {
         const { password } = req.body;
         if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
 
+        const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
         const user = await User.findOne({
-            resetPasswordToken: req.params.token,
+            resetPasswordToken: hashedToken,
             resetPasswordExpires: { $gt: Date.now() }
         });
 
@@ -377,8 +406,9 @@ router.get('/google/callback', async (req, res) => {
             }
         }
 
-        // Fallback if Redis is down (less secure but keeps app working)
-        return res.redirect(`${env.APP_URL}/auth/google/success?token=${token}`);
+        // SECURITY FIX [CRITICAL-3]: Remove JWT-in-URL fallback
+        console.error('Redis is required for secure Google OAuth but is unavailable.');
+        return res.redirect(`${env.APP_URL}/login?error=redis_unavailable`);
     } catch (error) {
         console.error('Google callback error:', error);
         res.redirect(`${env.APP_URL}/login?error=google_auth_failed`);

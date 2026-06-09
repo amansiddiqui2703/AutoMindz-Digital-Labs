@@ -77,7 +77,10 @@ const campaignSchema = new mongoose.Schema({
         enum: ['draft', 'scheduled', 'running', 'paused', 'completed'],
         default: 'draft',
     },
-    recipients: [recipientSchema],
+    recipients: {
+        type: [recipientSchema],
+        validate: [v => v.length <= 10000, '{PATH} exceeds the limit of 10000 recipients per campaign']
+    },
     accountIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'GmailAccount' }],
     delay: { type: Number, default: 5 }, // seconds between emails
     dailyLimit: { type: Number, default: 200 },

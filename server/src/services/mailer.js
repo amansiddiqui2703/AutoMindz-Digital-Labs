@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import env from '../config/env.js';
+import logger from '../utils/logger.js';
 
 const resend = new Resend(env.RESEND_API_KEY || 're_mock');
 
@@ -59,7 +60,7 @@ const sendEmail = async ({ from, to, subject, html }) => {
     try {
         if (env.RESEND_API_KEY && env.RESEND_API_KEY !== 're_mock') {
             const info = await resend.emails.send({ from, to, subject, html });
-            console.log('Message sent: %s', info?.data?.id);
+            logger.info(`Message sent: ${info?.data?.id}`);
             return true;
         }
 
@@ -75,7 +76,7 @@ const sendEmail = async ({ from, to, subject, html }) => {
             return true;
         }
     } catch (err) {
-        console.error('Failed to send email:', err);
+        logger.error('Failed to send email:', err);
         return false;
     }
 };

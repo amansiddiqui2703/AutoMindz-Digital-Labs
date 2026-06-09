@@ -6,20 +6,54 @@ const key = env.ENCRYPTION_KEY;
 // SECURITY FIX [MEDIUM-1]: Throw error if ENCRYPTION_KEY is missing
 if (!key) throw new Error('ENCRYPTION_KEY not configured');
 
-// --- AES-256 Encryption for tokens at rest ---
+const ALGO = 'aes-256-gcm';
+// Ensure the key is exactly 32 bytes (256 bits)
+const KEY = Buffer.from(key.length === 64 ? key : crypto.createHash('sha256').update(key).digest('hex'), 'hex');
 
 export const encrypt = (text) => {
     if (!text) return '';
-    return 'enc:' + CryptoJS.AES.encrypt(text, key).toString();
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv(ALGO, KEY, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    const tag = cipher.getAuthTag().toString('hex');
+    return `enc2:${iv.toString('hex')}:${tag}:${encrypted}`;
 };
 
 export const decrypt = (ciphertext) => {
     if (!ciphertext) return '';
-    // Only decrypt if it was encrypted by us
-    if (!ciphertext.startsWith('enc:')) return ciphertext;
-    const raw = ciphertext.slice(4);
-    const bytes = CryptoJS.AES.decrypt(raw, key);
-    return bytes.toString(CryptoJS.enc.Utf8);
+    
+    // Legacy CryptoJS decryption
+    if (ciphertext.startsWith('enc:') && !ciphertext.startsWith('enc2:')) {
+        try {
+            const raw = ciphertext.slice(4);
+            const bytes = CryptoJS.AES.decrypt(raw, key);
+            return bytes.toString(CryptoJS.enc.Utf8);
+        } catch {
+            return '';
+        }
+    }
+    
+    // New AES-256-GCM decryption
+    if (ciphertext.startsWith('enc2:')) {
+        try {
+            const parts = ciphertext.split(':');
+            const iv = Buffer.from(parts[1], 'hex');
+            const tag = Buffer.from(parts[2], 'hex');
+            const encryptedText = parts[3];
+            
+            const decipher = crypto.createDecipheriv(ALGO, KEY, iv);
+            decipher.setAuthTag(tag);
+            let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+            decrypted += decipher.final('utf8');
+            return decrypted;
+        } catch {
+            return '';
+        }
+    }
+
+    // Unencrypted or unknown format
+    return ciphertext;
 };
 
 // --- HMAC-signed OAuth state parameter ---

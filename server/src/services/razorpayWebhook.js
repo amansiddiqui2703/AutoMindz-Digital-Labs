@@ -4,20 +4,24 @@ import env from '../config/env.js';
 
 export const handleRazorpayWebhook = async (req, res) => {
     try {
-        const webhookSecret = env.RAZORPAY_WEBHOOK_SECRET;
-        const signature = req.headers['x-razorpay-signature'];
+        const webhookSecret = env.RAZORPAY_WEBHOOK_SECRET || '';
+        const signature = req.headers['x-razorpay-signature'] || '';
         
-        // Verify signature
+        // Verify signature using the raw body Buffer
         const expectedSignature = crypto
             .createHmac('sha256', webhookSecret)
-            .update(JSON.stringify(req.body))
+            .update(req.body)
             .digest('hex');
 
-        if (expectedSignature !== signature) {
+        // SECURITY FIX [CRITICAL-5]: Use timing-safe comparison
+        const sigBuf = Buffer.from(signature, 'hex');
+        const expBuf = Buffer.from(expectedSignature, 'hex');
+        if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
             return res.status(400).send('Invalid signature');
         }
 
-        const event = req.body;
+        // Parse the event from the raw Buffer
+        const event = JSON.parse(req.body.toString('utf8'));
         const eventType = event.event;
         const payload = event.payload;
 
