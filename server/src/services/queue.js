@@ -193,36 +193,14 @@ const randomDelay = (minSec = 5, maxSec = 15) => {
  * in the user's configured timezone.
  */
 const isWithinSendingWindow = (timezone = 'UTC') => {
-    try {
-        const now = new Date();
-        const formatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: timezone });
-        const hour = parseInt(formatter.format(now), 10);
-        return hour >= 8 && hour < 18; // 8am to 6pm
-    } catch {
-        return true; // If timezone is invalid, allow sending
-    }
+    return true; // Window is now 24/7 for immediate sending
 };
 
 /**
  * Calculate milliseconds until the next 8am in the user's timezone.
  */
 const msUntilNextSendingWindow = (timezone = 'UTC') => {
-    try {
-        const now = new Date();
-        const formatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: timezone });
-        const currentHour = parseInt(formatter.format(now), 10);
-
-        if (currentHour >= 18) {
-            // After 6pm — next window is tomorrow 8am (14 hours from 6pm)
-            return (24 - currentHour + 8) * 60 * 60 * 1000;
-        } else if (currentHour < 8) {
-            // Before 8am — next window is today 8am
-            return (8 - currentHour) * 60 * 60 * 1000;
-        }
-        return 0; // Already in window
-    } catch {
-        return 0;
-    }
+    return 0; // Immediate
 };
 
 export const enqueueCampaign = async (campaign) => {
@@ -342,10 +320,9 @@ const _enqueueCampaignInternal = async (campaign) => {
             minD = 2;
             maxD = 5;
         } else {
-            // Free/Starter plans: moderate pace (5-15s between emails)
-            // Still fast enough — Gmail allows ~2000/day, these gaps are safe
-            minD = 5;
-            maxD = 15;
+            // Free/Starter plans: moderate pace (2-6s between emails)
+            minD = 2;
+            maxD = 6;
         }
 
         cumulativeDelay += randomDelay(minD, maxD);
