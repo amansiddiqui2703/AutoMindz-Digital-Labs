@@ -14,13 +14,28 @@ export default defineConfig({
     },
   },
   build: {
+    target: 'es2020',
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'ui-vendor': ['lucide-react', 'react-hot-toast'],
           'chart-vendor': ['recharts'],
-          'util-vendor': ['axios'],
+          'editor-vendor': [
+            '@tiptap/react',
+            '@tiptap/starter-kit',
+            '@tiptap/extension-link',
+            '@tiptap/extension-image',
+            '@tiptap/extension-placeholder',
+            '@tiptap/extension-color',
+            '@tiptap/extension-text-style',
+            '@tiptap/extension-text-align',
+            '@tiptap/extension-underline',
+            '@tiptap/extension-bullet-list',
+            '@tiptap/extension-ordered-list',
+          ],
+          'util-vendor': ['axios', 'date-fns'],
         },
       },
     },

@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import crypto from 'crypto';
+import compression from 'compression';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import fs from 'fs';
@@ -11,7 +12,6 @@ import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';
 import hpp from 'hpp';
 import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 import env from './config/env.js';
 import connectDB from './config/db.js';
@@ -60,15 +60,10 @@ const __dirname = dirname(__filename);
 
 const app = express();
 
-Sentry.init({
-    dsn: env.SENTRY_DSN || "",
-    // Performance Monitoring
-    tracesSampleRate: env.NODE_ENV === 'production' ? 0.1 : 1.0, //  Capture 100% of the transactions
-    // Set sampling rate for profiling - this is relative to tracesSampleRate
-    profilesSampleRate: env.NODE_ENV === 'production' ? 0.1 : 1.0,
-});
+// Sentry is initialized in instrument.js via --import flag (ESM requirement)
 
 // Middleware
+app.use(compression()); // gzip/brotli compression for all responses
 app.use((req, res, next) => {
     res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
     next();
@@ -257,9 +252,20 @@ app.use(errorHandler);
 // Serve frontend in production
 const distPath = resolve(__dirname, '../../client/dist');
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
+  // Immutable cache for hashed assets (JS/CSS/images) — 1 year
+  app.use('/assets', express.static(resolve(distPath, 'assets'), {
+    maxAge: '1y',
+    immutable: true,
+  }));
+  // Short cache for other static files (favicon, etc.)
+  app.use(express.static(distPath, {
+    maxAge: '1h',
+    etag: true,
+  }));
   app.get('*', (req, res) => {
     if (!req.path.startsWith('/api')) {
+      // no-cache for index.html so users always get the latest version
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.sendFile(resolve(distPath, 'index.html'));
     }
   });
