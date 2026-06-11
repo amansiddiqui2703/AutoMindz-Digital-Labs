@@ -36,43 +36,12 @@ const generatePlainText = (html) => {
         .trim();
 };
 
-/**
- * Clean HTML body from ReactQuill <p> wrappers.
- * ReactQuill wraps every line in <p>...</p> tags which causes
- * emails to render with excessive paragraph spacing.
- * This converts them to inline content with <br> breaks.
- */
-const cleanHtmlBody = (html) => {
-    if (!html) return html;
-    let cleaned = html;
-
-    // Remove empty Quill placeholders: <p><br></p>
-    cleaned = cleaned.replace(/^(<p><br\s*\/?><\/p>\s*)+/gi, '');
-    cleaned = cleaned.replace(/(\s*<p><br\s*\/?><\/p>)+$/gi, '');
-
-    // Convert <p>content</p> blocks into content<br>
-    cleaned = cleaned.replace(/<p>(.*?)<\/p>/gi, (match, inner) => {
-        if (!inner || /^<br\s*\/?>$/i.test(inner.trim())) {
-            return '<br>';
-        }
-        return inner + '<br>';
-    });
-
-    // Remove trailing <br> tags
-    cleaned = cleaned.replace(/(<br\s*\/?>\s*)+$/gi, '');
-
-    return cleaned.trim();
-};
-
 export const sendEmail = async (account, { to, subject, htmlBody, plainBody, contact, campaignId, userId, cc, bcc, attachments, abVariant }) => {
     const trackingId = uuidv4();
 
-    // Clean HTML body to remove <p> wrappers from ReactQuill
-    const cleanedHtmlBody = cleanHtmlBody(htmlBody);
-
     // Merge tags
     const mergedSubject = replaceMergeTags(subject, contact);
-    let mergedHtml = replaceMergeTags(cleanedHtmlBody, contact);
+    let mergedHtml = replaceMergeTags(htmlBody, contact);
 
     // Add tracking
     mergedHtml = wrapLinks(mergedHtml, trackingId);
@@ -85,6 +54,10 @@ export const sendEmail = async (account, { to, subject, htmlBody, plainBody, con
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    p { margin-top: 0; margin-bottom: 0.75em; }
+    img { max-width: 100%; height: auto; }
+  </style>
 </head>
 <body style="margin:0;padding:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;">
   ${mergedHtml}

@@ -73,20 +73,31 @@ export default function BlogIndex() {
                 </div>
             </Link>
 
-            {/* Placeholder Post 2 */}
-            <div className="group glass-card flex flex-col overflow-hidden border border-surface-200 dark:border-surface-800 opacity-60">
-                <div className="h-48 bg-surface-100 dark:bg-surface-800 flex items-center justify-center p-6 relative">
-                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-700 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md text-surface-600 shadow-sm">
+            {/* Post 2 */}
+            <Link to="/blog/deliverability-hacks" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
+                <div className="h-48 bg-gradient-to-br from-amber-500/10 to-orange-500/10 flex items-center justify-center p-6 relative overflow-hidden">
+                    <Zap className="w-16 h-16 text-amber-500/50 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md text-amber-600 shadow-sm">
                         Deliverability
                     </div>
                 </div>
                 <div className="p-6 flex-1 flex flex-col">
-                    <h3 className="text-xl font-bold text-surface-900 dark:text-white mb-3">
+                    <div className="flex items-center gap-2 text-xs text-surface-500 mb-3">
+                        <span>6 min read</span>
+                        <span>•</span>
+                        <span>Updated 2026</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-surface-900 dark:text-white mb-3 group-hover:text-primary-500 transition-colors">
                         12 Deliverability Hacks to Bypass Gmail's Spam Filters
                     </h3>
-                    <p className="text-sm text-surface-500 mb-6 flex-1">Coming soon...</p>
+                    <p className="text-sm text-surface-500 mb-6 flex-1 line-clamp-3">
+                        If your emails are landing in spam, your copy doesn't matter. Here are 12 technical and strategic hacks to get your cold emails into the primary inbox.
+                    </p>
+                    <div className="flex items-center text-primary-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                        Read Article <ArrowRight className="w-4 h-4 ml-1" />
+                    </div>
                 </div>
-            </div>
+            </Link>
 
             {/* Placeholder Post 3 */}
             <div className="group glass-card flex flex-col overflow-hidden border border-surface-200 dark:border-surface-800 opacity-60">

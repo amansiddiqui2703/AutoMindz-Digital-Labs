@@ -43,6 +43,7 @@ const Tools = lazy(() => import('./pages/Tools'));
 const GoogleAuthSuccess = lazy(() => import('./pages/GoogleAuthSuccess'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const BlogIndex = lazy(() => import('./pages/BlogIndex'));
+const BlogDeliverability = lazy(() => import('./pages/BlogDeliverability'));
 
 // Loading spinner for lazy-loaded routes
 function PageLoader() {
@@ -85,6 +86,7 @@ export default function App() {
               <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
               <Route path="/blog" element={<BlogIndex />} />
               <Route path="/blog/best-free-cold-email-software" element={<BlogPost />} />
+              <Route path="/blog/deliverability-hacks" element={<BlogDeliverability />} />
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/campaigns" element={<Campaigns />} />

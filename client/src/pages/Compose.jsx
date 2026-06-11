@@ -1,44 +1,86 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
-    Sparkles, Send, Eye, Wand2, X, Loader2
+    Sparkles, Send, Eye, Wand2, X, Loader2, Bold, Italic,
+    Underline as UIcon, Link2, AlignLeft, AlignCenter, AlignRight,
+    List, ListOrdered, Image as ImageIcon, Type
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { Underline } from '@tiptap/extension-underline';
+import { Link as TLink } from '@tiptap/extension-link';
+import { TextAlign } from '@tiptap/extension-text-align';
+import { Placeholder } from '@tiptap/extension-placeholder';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { FontFamily } from '@tiptap/extension-font-family';
+import { Color } from '@tiptap/extension-color';
+import { Image as TImage } from '@tiptap/extension-image';
 
-/**
- * Clean ReactQuill HTML output for email sending.
- * ReactQuill wraps every line in <p> tags which makes emails look
- * broken with extra spacing. This converts <p>...</p> sequences
- * into inline content separated by <br> tags, which renders
- * correctly in all email clients.
- */
-const cleanHtmlForEmail = (html) => {
-    if (!html) return '';
-    let cleaned = html;
+const ToolBtn = ({ icon: Icon, active, onClick, title }) => (
+    <button onClick={onClick} title={title} type="button"
+        className={`p-1.5 rounded-lg transition-all ${active ? 'bg-primary-100 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400' : 'text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-800'}`}>
+        <Icon className="w-4 h-4" />
+    </button>
+);
 
-    // Remove empty Quill placeholder: <p><br></p>
-    cleaned = cleaned.replace(/^(<p><br\s*\/?><\/p>\s*)+/gi, '');
-    cleaned = cleaned.replace(/(\s*<p><br\s*\/?><\/p>)+$/gi, '');
+const EditorToolbar = ({ editor }) => {
+    if (!editor) return null;
+    return (
+        <div className="flex items-center gap-1 px-3 py-2 border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50 flex-wrap">
+            <select 
+                onChange={(e) => editor.chain().focus().setFontFamily(e.target.value).run()}
+                className="text-xs bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded p-1 mr-1 outline-none"
+                title="Font Family"
+            >
+                <option value="inherit">Default Font</option>
+                <option value="Arial">Arial</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Trebuchet MS">Trebuchet MS</option>
+            </select>
+            
+            <input 
+                type="color" 
+                onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
+                value={editor.getAttributes('textStyle').color || '#000000'}
+                className="w-6 h-6 p-0 border-0 rounded cursor-pointer mr-1"
+                title="Text Color"
+            />
 
-    // Convert <p>content</p> blocks into content<br><br>
-    // This prevents emails from rendering with giant paragraph gaps
-    cleaned = cleaned.replace(/<p>(.*?)<\/p>/gi, (match, inner) => {
-        // If inner is just <br> or empty, keep as single line break
-        if (!inner || /^<br\s*\/?>$/i.test(inner.trim())) {
-            return '<br>';
-        }
-        return inner + '<br>';
-    });
-
-    // Remove trailing <br> tags
-    cleaned = cleaned.replace(/(<br\s*\/?>\s*)+$/gi, '');
-
-    return cleaned.trim();
+            <ToolBtn icon={Bold} active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} title="Bold" />
+            <ToolBtn icon={Italic} active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic" />
+            <ToolBtn icon={UIcon} active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline" />
+            <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
+            <ToolBtn icon={AlignLeft} active={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} title="Left" />
+            <ToolBtn icon={AlignCenter} active={editor.isActive({ textAlign: 'center' })} onClick={() => editor.chain().focus().setTextAlign('center').run()} title="Center" />
+            <ToolBtn icon={AlignRight} active={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} title="Right" />
+            <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
+            <ToolBtn icon={List} active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Bullets" />
+            <ToolBtn icon={ListOrdered} active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Numbered" />
+            <ToolBtn icon={Link2} active={editor.isActive('link')} onClick={() => { const url = prompt('URL:'); if (url) editor.chain().focus().setLink({ href: url }).run(); }} title="Link" />
+            <ToolBtn icon={ImageIcon} onClick={() => { const url = prompt('Image URL:'); if (url) editor.chain().focus().setImage({ src: url }).run(); }} title="Image" />
+            <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
+            <div className="relative group z-20">
+                <button type="button" className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 px-2 py-1 bg-primary-50 dark:bg-primary-900/20 rounded">
+                    {'{{ }}'} Tags
+                </button>
+                <div className="hidden group-hover:block absolute top-full left-0 mt-1 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl shadow-xl py-2 min-w-[130px]">
+                    {['name', 'first_name', 'email', 'company'].map(tag => (
+                        <button key={tag} type="button" onClick={() => editor.commands.insertContent(`{{${tag}}}`)}
+                            className="block w-full text-left px-3 py-1.5 text-xs text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700">
+                            {`{{${tag}}}`}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default function Compose() {
@@ -48,8 +90,6 @@ export default function Compose() {
     const [subject, setSubject] = useState('');
     const [cc, setCc] = useState('');
     const [bcc, setBcc] = useState('');
-    const [htmlBody, setHtmlBody] = useState('');
-    const [signature, setSignature] = useState(user?.settings?.signature || '');
     const [showPreview, setShowPreview] = useState(false);
     const [sending, setSending] = useState(false);
     const [savingSig, setSavingSig] = useState(false);
@@ -60,26 +100,44 @@ export default function Compose() {
     const [aiPrompt, setAiPrompt] = useState('');
     const [aiLoading, setAiLoading] = useState(false);
 
-    useEffect(() => {
-        if (user?.settings?.signature && !htmlBody) {
-            setHtmlBody(`<br><br>${user.settings.signature}`);
-            setSignature(user.settings.signature);
-        }
-    }, [user]);
+    const extensions = [
+        StarterKit,
+        Underline,
+        TextStyle,
+        FontFamily,
+        Color,
+        TImage,
+        TLink.configure({ openOnClick: false }),
+        TextAlign.configure({ types: ['heading', 'paragraph'] }),
+        Placeholder.configure({ placeholder: 'Write your email here...' }),
+    ];
+
+    const editor = useEditor({
+        extensions,
+        content: user?.settings?.signature ? `<p></p><p>${user.settings.signature}</p>` : '',
+    });
+
+    const sigEditor = useEditor({
+        extensions: [
+            StarterKit, Underline, TextStyle, FontFamily, Color, TLink.configure({ openOnClick: false })
+        ],
+        content: user?.settings?.signature || '',
+    });
 
     const handleSend = async () => {
         if (!to || !subject) return toast.error('To and subject are required');
-        if (!htmlBody || htmlBody === '<p><br></p>') return toast.error('Email body is required');
+        
+        const htmlBody = editor?.getHTML() || '';
+        if (!htmlBody || htmlBody === '<p></p>') return toast.error('Email body is required');
         
         setSending(true);
         try {
-            // Clean the HTML to remove <p> wrappers that ReactQuill adds
-            const cleanedBody = cleanHtmlForEmail(htmlBody);
-            await api.post('/emails/send-single', { to, subject, htmlBody: cleanedBody, cc, bcc });
+            await api.post('/emails/send-single', { to, subject, htmlBody, cc, bcc });
             toast.success('Email sent successfully! Redirecting to inbox...');
             setTo(''); setSubject(''); setCc(''); setBcc('');
-            setHtmlBody(user?.settings?.signature ? `<br><br>${user.settings.signature}` : '');
-            // Auto-navigate to inbox so user can see the sent email immediately
+            if (editor) {
+                editor.commands.setContent(user?.settings?.signature ? `<p></p><p>${user.settings.signature}</p>` : '');
+            }
             setTimeout(() => navigate('/inbox'), 800);
         } catch (e) {
             toast.error(e.response?.data?.error || 'Failed to send email. Check if your Gmail account is connected.');
@@ -89,6 +147,7 @@ export default function Compose() {
     const handleSaveSignature = async () => {
         setSavingSig(true);
         try {
+            const signature = sigEditor?.getHTML() || '';
             await api.put('/users/settings', { settings: { ...user.settings, signature } });
             await fetchUser();
             toast.success('Signature saved! It will be appended to new emails.');
@@ -102,6 +161,7 @@ export default function Compose() {
     const handleAi = async () => {
         setAiLoading(true);
         try {
+            const htmlBody = editor?.getHTML() || '';
             const params = { action: aiAction };
             if (aiAction === 'cold-email') {
                 params.purpose = aiPrompt; params.tone = 'professional';
@@ -120,33 +180,13 @@ export default function Compose() {
             if (aiAction === 'subject-lines' || aiAction === 'spam-check') {
                 toast(res.data.result, { duration: 10000, style: { maxWidth: '500px', whiteSpace: 'pre-wrap' } });
             } else {
-                // Ensure signature is preserved
-                const newBody = res.data.result + (user?.settings?.signature ? `<br><br>${user.settings.signature}` : '');
-                setHtmlBody(newBody);
+                const newBody = res.data.result + (user?.settings?.signature ? `<p></p><p>${user.settings.signature}</p>` : '');
+                if (editor) editor.commands.setContent(newBody);
                 toast.success('AI content generated!');
             }
         } catch (e) {
             toast.error(e.response?.data?.error || 'AI generation failed');
         } finally { setAiLoading(false); }
-    };
-
-    const insertMergeTag = (tag) => {
-        setHtmlBody(prev => prev + `{{${tag}}}`);
-    };
-
-    const quillModules = {
-        toolbar: [
-            [{ 'header': [1, 2, 3, false] }],
-            [{ 'font': [] }],
-            [{ 'size': ['small', false, 'large', 'huge'] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ 'color': [] }, { 'background': [] }],
-            [{ 'script': 'sub'}, { 'script': 'super' }],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            [{ 'align': [] }],
-            ['link', 'image'],
-            ['clean']
-        ],
     };
 
     return (
@@ -158,7 +198,6 @@ export default function Compose() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 glass-card overflow-hidden flex flex-col min-h-[600px]">
-                    {/* Top fields */}
                     <div className="border-b border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 z-10 relative">
                         <div className="flex items-center px-5 py-2.5 border-b border-surface-100 dark:border-surface-800">
                             <span className="text-sm font-medium text-surface-500 w-16">To</span>
@@ -178,22 +217,7 @@ export default function Compose() {
                         </div>
                     </div>
 
-                    {/* Toolbar Actions */}
                     <div className="flex items-center justify-between px-4 py-2 border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50">
-                        <div className="relative group z-20">
-                            <button className="btn-secondary !py-1.5 !px-3 !text-xs">
-                                {'{{ }}'} Merge Tags
-                            </button>
-                            <div className="hidden group-hover:block absolute top-full left-0 mt-1 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl shadow-xl py-2 min-w-[150px]">
-                                {['name', 'first_name', 'email', 'company'].map(tag => (
-                                    <button key={tag} onClick={() => insertMergeTag(tag)}
-                                        className="block w-full text-left px-4 py-1.5 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700">
-                                        {`{{${tag}}}`}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
                         <div className="flex gap-2">
                             <button onClick={() => setShowPreview(!showPreview)} className="btn-secondary !py-1.5 !px-3 !text-xs">
                                 <Eye className="w-3 h-3" /> Preview
@@ -204,7 +228,6 @@ export default function Compose() {
                         </div>
                     </div>
 
-                    {/* AI Panel */}
                     {showAi && (
                         <div className="p-4 border-b border-surface-200 dark:border-surface-700 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-500/5 dark:to-accent-500/5 animate-in">
                             <div className="flex items-center justify-between mb-3">
@@ -239,28 +262,22 @@ export default function Compose() {
                         </div>
                     )}
 
-                    {/* Editor area - Using ReactQuill */}
                     <div className="flex-1 flex flex-col bg-white dark:bg-surface-900 relative">
                         {showPreview ? (
                             <div className="p-6 flex-1 overflow-auto">
                                 <div className="prose dark:prose-invert max-w-none text-sm"
-                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlBody) }} />
+                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(editor?.getHTML() || '') }} />
                             </div>
                         ) : (
-                            <div className="flex-1 h-full editor-container">
-                                <ReactQuill 
-                                    theme="snow" 
-                                    value={htmlBody} 
-                                    onChange={setHtmlBody}
-                                    modules={quillModules}
-                                    className="h-full flex flex-col"
-                                    placeholder="Write your email here..."
-                                />
+                            <div className="flex-1 h-full editor-container flex flex-col">
+                                <EditorToolbar editor={editor} />
+                                <div className="p-4 flex-1 overflow-auto tiptap-editor h-full">
+                                    <EditorContent editor={editor} className="h-full min-h-[300px]" />
+                                </div>
                             </div>
                         )}
                     </div>
 
-                    {/* Footer */}
                     <div className="flex items-center justify-between px-5 py-4 border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50">
                         <div className="text-xs text-surface-400">
                             Unsubscribe link & tracking pixel will be auto-added
@@ -272,31 +289,21 @@ export default function Compose() {
                     </div>
                 </div>
 
-                {/* Sidebar for Signature */}
                 <div className="space-y-6">
                     <div className="glass-card p-5">
                         <h3 className="text-lg font-bold text-surface-900 dark:text-white mb-2">Email Signature</h3>
-                        <p className="text-xs text-surface-500 mb-4">This signature will be appended to all new emails automatically. You can use HTML formatting here.</p>
-                        <div className="mb-4">
-                            <ReactQuill 
-                                theme="snow" 
-                                value={signature} 
-                                onChange={setSignature}
-                                modules={{
-                                    toolbar: [
-                                        ['bold', 'italic', 'underline', 'link'],
-                                        [{ 'color': [] }]
-                                    ]
-                                }}
-                                className="bg-white dark:bg-surface-900 rounded-lg"
-                                placeholder="Best regards,&#10;Your Name..."
-                            />
+                        <p className="text-xs text-surface-500 mb-4">This signature will be appended to all new emails automatically.</p>
+                        <div className="mb-4 border border-surface-200 dark:border-surface-700 rounded-xl overflow-hidden">
+                            <EditorToolbar editor={sigEditor} />
+                            <div className="p-3 tiptap-editor bg-white dark:bg-surface-900">
+                                <EditorContent editor={sigEditor} className="min-h-[100px] text-sm" />
+                            </div>
                         </div>
                         <button onClick={handleSaveSignature} disabled={savingSig} className="btn-secondary w-full">
                             {savingSig ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Signature'}
                         </button>
                     </div>
-
+                    
                     <div className="glass-card p-5 bg-primary-50 dark:bg-primary-900/10 border-primary-100 dark:border-primary-800">
                         <h4 className="font-semibold text-primary-900 dark:text-primary-100 text-sm mb-2">Why is my email not sending?</h4>
                         <ul className="text-xs text-primary-700 dark:text-primary-300 space-y-2 list-disc pl-4">
@@ -308,34 +315,41 @@ export default function Compose() {
                 </div>
             </div>
             
-            {/* Custom CSS for Quill in Dark Mode and full height */}
             <style dangerouslySetInnerHTML={{__html: `
-                .editor-container .quill {
-                    display: flex;
-                    flex-direction: column;
-                    height: 100%;
-                    min-height: 400px;
+                .tiptap-editor .ProseMirror {
+                    min-height: 100%;
+                    outline: none;
                 }
-                .editor-container .ql-container {
-                    flex: 1;
-                    font-size: 14px;
-                    font-family: inherit;
-                    overflow-y: auto;
-                    border-bottom-left-radius: 0.5rem;
-                    border-bottom-right-radius: 0.5rem;
+                .tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+                    color: #9ca3af;
+                    content: attr(data-placeholder);
+                    float: left;
+                    height: 0;
+                    pointer-events: none;
                 }
-                .editor-container .ql-toolbar {
-                    border-top: none;
-                    border-left: none;
-                    border-right: none;
-                    background-color: transparent;
+                .tiptap-editor .ProseMirror p {
+                    margin-top: 0;
+                    margin-bottom: 0.75em;
                 }
-                .dark .ql-snow .ql-picker { color: #e5e7eb; }
-                .dark .ql-snow .ql-stroke { stroke: #e5e7eb; }
-                .dark .ql-snow .ql-fill { fill: #e5e7eb; }
-                .dark .ql-snow .ql-picker-options { background-color: #1f2937; border-color: #374151; }
-                .dark .ql-editor.ql-blank::before { color: #6b7280; }
-                .dark .ql-snow.ql-toolbar button:hover .ql-stroke, .dark .ql-snow .ql-toolbar button:hover .ql-stroke { stroke: #3b82f6; }
+                .tiptap-editor .ProseMirror img {
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 4px;
+                }
+                .tiptap-editor .ProseMirror a {
+                    color: #2563eb;
+                    text-decoration: underline;
+                }
+                .tiptap-editor .ProseMirror ul {
+                    list-style-type: disc;
+                    padding-left: 1.5rem;
+                    margin-bottom: 0.75em;
+                }
+                .tiptap-editor .ProseMirror ol {
+                    list-style-type: decimal;
+                    padding-left: 1.5rem;
+                    margin-bottom: 0.75em;
+                }
             `}} />
         </div>
     );
