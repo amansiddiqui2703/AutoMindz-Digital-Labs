@@ -24,13 +24,13 @@ jobs:
 
     # Build Server
     - name: Install Server Dependencies
-      run: npm ci
+      run: npm install
       working-directory: ./server
 
     # Build Client
     # react-quill@2 has a peer dep conflict with React 19, so we need --legacy-peer-deps
     - name: Install Client Dependencies
-      run: npm ci --legacy-peer-deps
+      run: npm install --legacy-peer-deps
       working-directory: ./client
 
     - name: Build Client
