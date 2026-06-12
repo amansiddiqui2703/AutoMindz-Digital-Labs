@@ -10,9 +10,9 @@ import {
 
 const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'manager', 'user', 'agent'] },
+    { to: '/compose', icon: Mail, label: 'Compose Email', roles: ['admin', 'manager', 'user', 'agent'] },
     { to: '/contacts', icon: Users, label: 'Master Audience', roles: ['admin', 'manager', 'user', 'agent'] },
     { to: '/sequences', icon: FileText, label: 'Sequences', roles: ['admin', 'manager', 'user', 'agent'] },
-
     { to: '/campaigns', icon: Send, label: 'Campaigns', roles: ['admin', 'manager', 'user', 'agent'] },
     { to: '/inbox', icon: Inbox, label: 'Unified Inbox', roles: ['admin', 'manager', 'user', 'agent'] },
     { divider: true },
