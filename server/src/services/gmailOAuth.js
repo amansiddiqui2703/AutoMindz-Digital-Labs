@@ -231,6 +231,7 @@ export const sendViaOAuth = async (account, { to, subject, htmlBody, plainBody, 
         '',
         htmlBody || plainPart,
         `--${boundary}--`,
+        '',
     ].join('\r\n');
 
     const encodedMessage = Buffer.from(rawEmail)
@@ -359,6 +360,7 @@ export const replyViaOAuth = async (
         '',
         htmlBody || plainPart,
         `--${boundary}--`,
+        '',
     ].join('\r\n');
 
     const encodedMessage = Buffer.from(rawEmail)
