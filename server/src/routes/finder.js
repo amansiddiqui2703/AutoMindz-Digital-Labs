@@ -88,14 +88,30 @@ router.post('/add-to-contacts', auth, planLimits, async (req, res) => {
         for (const item of emails) {
             if (remaining <= 0) break;
             try {
+                const updateData = {
+                    userId: req.user.id,
+                    email: item.email.toLowerCase(),
+                    company: item.domain || '',
+                    source: 'finder',
+                };
+
+                if (item.phone) updateData.phone = item.phone;
+                if (item.linkedin) updateData.linkedIn = item.linkedin;
+                if (item.twitter) updateData.twitter = item.twitter;
+                
+                const customFields = {};
+                if (item.facebook) customFields.facebook = item.facebook;
+                if (item.instagram) customFields.instagram = item.instagram;
+                if (item.title) customFields.websiteTitle = item.title;
+                if (item.description) customFields.websiteDescription = item.description;
+
+                if (Object.keys(customFields).length > 0) {
+                    updateData.customFields = customFields;
+                }
+
                 await Contact.findOneAndUpdate(
                     { userId: req.user.id, email: item.email.toLowerCase() },
-                    {
-                        userId: req.user.id,
-                        email: item.email.toLowerCase(),
-                        company: item.domain || '',
-                        source: 'finder',
-                    },
+                    { $set: updateData },
                     { upsert: true }
                 );
                 added++;

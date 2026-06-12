@@ -16,6 +16,7 @@ const HEADERS = {
 };
 
 const EMAIL_REGEX = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+const PHONE_REGEX = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
 
 const CATEGORY_MAP = {
     contact: ['contact', 'info', 'hello', 'hi', 'general', 'enquiry', 'enquiries', 'office'],
@@ -75,11 +76,46 @@ const isValidEmail = (email, rootDomain) => {
 
 const extractEmailsFromText = (text) => {
     const emails = new Set();
-    const matches = text.match(EMAIL_REGEX) || [];
+    const cleaned = text
+        .replace(/\s*\[at\]\s*/gi, '@')
+        .replace(/\s*\(at\)\s*/gi, '@')
+        .replace(/\s*\[dot\]\s*/gi, '.')
+        .replace(/\s*\(dot\)\s*/gi, '.');
+    
+    const matches = cleaned.match(EMAIL_REGEX) || [];
     for (const email of matches) {
         emails.add(email.toLowerCase());
     }
     return emails;
+};
+
+const extractPhonesFromText = (text) => {
+    const phones = new Set();
+    const matches = text.match(PHONE_REGEX) || [];
+    for (const p of matches) {
+        const digits = p.replace(/[^\d]/g, '');
+        if (digits.length >= 10 && digits.length <= 15) phones.add(p.trim());
+    }
+    return Array.from(phones).slice(0, 3);
+};
+
+const extractSocials = ($) => {
+    const socials = { linkedin: '', twitter: '', facebook: '', instagram: '' };
+    $('a').each((_, el) => {
+        const href = $(el).attr('href') || '';
+        const lower = href.toLowerCase();
+        if (!socials.linkedin && lower.includes('linkedin.com/company/')) socials.linkedin = href;
+        if (!socials.twitter && (lower.includes('twitter.com/') || lower.includes('x.com/')) && !lower.includes('/intent/')) socials.twitter = href;
+        if (!socials.facebook && lower.includes('facebook.com/') && !lower.includes('/sharer')) socials.facebook = href;
+        if (!socials.instagram && lower.includes('instagram.com/') && !lower.includes('/p/')) socials.instagram = href;
+    });
+    return socials;
+};
+
+const extractMeta = ($) => {
+    const title = $('title').text().trim().substring(0, 100);
+    const description = ($('meta[name="description"]').attr('content') || $('meta[property="og:description"]').attr('content') || '').trim().substring(0, 250);
+    return { title, description };
 };
 
 const categorizeEmails = (emailsSet, rootDomain) => {
@@ -214,7 +250,11 @@ export const crawlDomain = async (domainObj) => {
         pages_checked: [],
         source: null,
         confidence: null,
-        notes: ''
+        notes: '',
+        phones: [],
+        socials: { linkedin: '', twitter: '', facebook: '', instagram: '' },
+        title: '',
+        description: ''
     };
 
     let allFoundEmails = new Set();
@@ -227,14 +267,21 @@ export const crawlDomain = async (domainObj) => {
     // Loop through phases
     for (const phase of localPhases) {
         let foundInPhase = false;
+        
+        // Concurrent fetching within the phase
+        const pathsToFetch = phase.paths.filter(p => !payload.pages_checked.includes(p)).slice(0, 5); // limit concurrency to 5
+        payload.pages_checked.push(...pathsToFetch);
 
-        for (const path of phase.paths) {
-            if (payload.pages_checked.includes(path)) continue;
-
+        const fetchPromises = pathsToFetch.map(async (path) => {
             const pageUrl = `${baseUrl}${path}`;
-            payload.pages_checked.push(path);
-
             const { data, status, error } = await fetchPage(pageUrl);
+            return { path, pageUrl, data, status, error };
+        });
+
+        const phaseResults = await Promise.all(fetchPromises);
+
+        for (const res of phaseResults) {
+            const { path, pageUrl, data, status, error } = res;
 
             if (error && (error.includes('timeout') || error.includes('TIMEDOUT') || error.includes('ECONNABORTED'))) {
                 timeout = true;
@@ -247,8 +294,17 @@ export const crawlDomain = async (domainObj) => {
 
             const $ = cheerio.load(data);
 
-            // Dynamic Link Discovery on Homepage
             if (phase.name === 'homepage') {
+                const meta = extractMeta($);
+                payload.title = meta.title;
+                payload.description = meta.description;
+
+                const extractedSocials = extractSocials($);
+                if (extractedSocials.linkedin) payload.socials.linkedin = extractedSocials.linkedin;
+                if (extractedSocials.twitter) payload.socials.twitter = extractedSocials.twitter;
+                if (extractedSocials.facebook) payload.socials.facebook = extractedSocials.facebook;
+                if (extractedSocials.instagram) payload.socials.instagram = extractedSocials.instagram;
+
                 $('a').each((_, el) => {
                     const href = $(el).attr('href');
                     if (!href || href.startsWith('javascript:')) return;
@@ -269,6 +325,9 @@ export const crawlDomain = async (domainObj) => {
             }
 
             const extracted = extractEmailsFromText(data);
+            const extractedPhones = extractPhonesFromText(data);
+            extractedPhones.forEach(p => { if (!payload.phones.includes(p)) payload.phones.push(p); });
+
             $('a[href^="mailto:"]').each((_, el) => {
                 const href = $(el).attr('href') || '';
                 const email = href.replace('mailto:', '').split('?')[0].trim().toLowerCase();
@@ -287,12 +346,9 @@ export const crawlDomain = async (domainObj) => {
                     contactFormOnlyUrl = pageUrl;
                 }
             }
-
-            await new Promise(r => setTimeout(r, DELAY_BETWEEN_PAGES));
-
-            // Early exit if we have found plenty of emails or crawled too many pages
-            if (allFoundEmails.size >= 10 || payload.pages_checked.length >= 8) break;
         }
+
+        await new Promise(r => setTimeout(r, DELAY_BETWEEN_PAGES));
 
         if (foundInPhase && !payload.source) {
             payload.source = phase.source;

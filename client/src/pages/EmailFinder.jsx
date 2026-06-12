@@ -2,7 +2,8 @@ import { useState, useRef } from 'react';
 import api from '../api/client';
 import toast from 'react-hot-toast';
 import {
-    Search, Globe, Plus, Download, Loader2, CheckCircle, AlertCircle, Mail, XCircle, FileText, Play, StopCircle, PieChart
+    Search, Globe, Plus, Download, Loader2, CheckCircle, AlertCircle, Mail, XCircle, FileText, Play, StopCircle, PieChart,
+    Phone, Facebook, Linkedin, Twitter, Instagram, Info
 } from 'lucide-react';
 
 export default function EmailFinder() {
@@ -41,7 +42,11 @@ export default function EmailFinder() {
                         status: 'error',
                         error: e.response?.data?.error || 'Search failed',
                         emails: { contact: [], editorial: [], advertising: [], support: [], other: [] },
-                        all_emails_flat: []
+                        all_emails_flat: [],
+                        phones: [],
+                        socials: { linkedin: '', twitter: '', facebook: '', instagram: '' },
+                        title: '',
+                        description: ''
                     };
                 }
             });
@@ -90,7 +95,17 @@ export default function EmailFinder() {
         try {
             const emailsMapping = [...selectedEmails].map(email => {
                 const result = results.find(r => (r.all_emails_flat || []).includes(email));
-                return { email, domain: result?.domain || '' };
+                return { 
+                    email, 
+                    domain: result?.domain || '',
+                    phone: result?.phones?.[0] || '',
+                    linkedin: result?.socials?.linkedin || '',
+                    twitter: result?.socials?.twitter || '',
+                    facebook: result?.socials?.facebook || '',
+                    instagram: result?.socials?.instagram || '',
+                    title: result?.title || '',
+                    description: result?.description || '',
+                };
             });
             const res = await api.post('/finder/add-to-contacts', { emails: emailsMapping });
             toast.success(`Added ${res.data.added} contacts`);
@@ -99,13 +114,13 @@ export default function EmailFinder() {
     };
 
     const exportCSV = () => {
-        let csv = 'Website URL,Domain,Status,Contact Emails,Editorial Emails,Advertising Emails,Support Emails,Other Emails,All Emails (Combined),Contact Form URL,Pages Checked,Confidence,Notes\n';
+        let csv = 'Website URL,Domain,Title,Description,Phones,LinkedIn,Twitter,Facebook,Instagram,Status,Contact Emails,Editorial Emails,Advertising Emails,Support Emails,Other Emails,All Emails (Combined),Contact Form URL,Pages Checked,Confidence,Notes\n';
 
         results.forEach(r => {
             const escape = (str) => `"${(str || '').toString().replace(/"/g, '""')}"`;
             const joiner = (arr) => escape((arr || []).join('; '));
 
-            csv += `${escape(r.url)},${escape(r.domain)},${escape(r.status)},${joiner(r.emails?.contact)},${joiner(r.emails?.editorial)},${joiner(r.emails?.advertising)},${joiner(r.emails?.support)},${joiner(r.emails?.other)},${joiner(r.all_emails_flat)},${escape(r.contact_form_url)},${joiner(r.pages_checked)},${escape(r.confidence)},${escape(r.notes || r.error)}\n`;
+            csv += `${escape(r.url)},${escape(r.domain)},${escape(r.title)},${escape(r.description)},${joiner(r.phones)},${escape(r.socials?.linkedin)},${escape(r.socials?.twitter)},${escape(r.socials?.facebook)},${escape(r.socials?.instagram)},${escape(r.status)},${joiner(r.emails?.contact)},${joiner(r.emails?.editorial)},${joiner(r.emails?.advertising)},${joiner(r.emails?.support)},${joiner(r.emails?.other)},${joiner(r.all_emails_flat)},${escape(r.contact_form_url)},${joiner(r.pages_checked)},${escape(r.confidence)},${escape(r.notes || r.error)}\n`;
         });
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -252,6 +267,31 @@ export default function EmailFinder() {
                                     {getStatusBadge(r.status)}
                                 </div>
                             </div>
+
+                            {/* Enriched Data Section */}
+                            {(r.title || r.description || (r.phones && r.phones.length > 0) || (r.socials && Object.values(r.socials).some(Boolean))) && (
+                                <div className="mb-4 p-4 bg-surface-50 dark:bg-surface-800/50 rounded-lg border border-surface-100 dark:border-surface-700">
+                                    {r.title && <h4 className="font-bold text-surface-900 dark:text-white mb-1 flex items-center gap-2"><Info className="w-4 h-4 text-primary-500" /> {r.title}</h4>}
+                                    {r.description && <p className="text-sm text-surface-600 dark:text-surface-400 mb-3">{r.description}</p>}
+                                    
+                                    <div className="flex flex-wrap gap-4 mt-2">
+                                        {r.phones && r.phones.length > 0 && (
+                                            <div className="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-300">
+                                                <Phone className="w-4 h-4 text-emerald-500" />
+                                                <span>{r.phones.join(', ')}</span>
+                                            </div>
+                                        )}
+                                        {r.socials && Object.values(r.socials).some(Boolean) && (
+                                            <div className="flex items-center gap-2">
+                                                {r.socials.linkedin && <a href={r.socials.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-700"><Linkedin className="w-4 h-4" /></a>}
+                                                {r.socials.twitter && <a href={r.socials.twitter} target="_blank" rel="noreferrer" className="text-sky-500 hover:text-sky-600"><Twitter className="w-4 h-4" /></a>}
+                                                {r.socials.facebook && <a href={r.socials.facebook} target="_blank" rel="noreferrer" className="text-blue-700 hover:text-blue-800"><Facebook className="w-4 h-4" /></a>}
+                                                {r.socials.instagram && <a href={r.socials.instagram} target="_blank" rel="noreferrer" className="text-pink-600 hover:text-pink-700"><Instagram className="w-4 h-4" /></a>}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             {r.notes && <p className="text-xs leading-relaxed text-surface-500 mb-4">{r.notes}</p>}
 

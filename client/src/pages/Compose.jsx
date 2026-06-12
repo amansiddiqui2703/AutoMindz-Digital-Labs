@@ -6,7 +6,8 @@ import toast from 'react-hot-toast';
 import {
     Sparkles, Send, Eye, Wand2, X, Loader2, Bold, Italic,
     Underline as UIcon, Link2, AlignLeft, AlignCenter, AlignRight,
-    List, ListOrdered, Image as ImageIcon, Type
+    List, ListOrdered, Image as ImageIcon, Type,
+    Strikethrough, Quote, Heading1, Heading2, Code, Minus
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -43,6 +44,12 @@ const EditorToolbar = ({ editor }) => {
                 <option value="Georgia">Georgia</option>
                 <option value="Verdana">Verdana</option>
                 <option value="Trebuchet MS">Trebuchet MS</option>
+                <option value="Tahoma">Tahoma</option>
+                <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+                <option value="Impact">Impact</option>
+                <option value="'Lucida Console', Monaco, monospace">Lucida Console</option>
+                <option value="Garamond">Garamond</option>
+                <option value="Helvetica">Helvetica</option>
             </select>
             
             <input 
@@ -56,6 +63,12 @@ const EditorToolbar = ({ editor }) => {
             <ToolBtn icon={Bold} active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} title="Bold" />
             <ToolBtn icon={Italic} active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic" />
             <ToolBtn icon={UIcon} active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline" />
+            <ToolBtn icon={Strikethrough} active={editor.isActive('strike')} onClick={() => editor.chain().focus().toggleStrike().run()} title="Strikethrough" />
+            <ToolBtn icon={Code} active={editor.isActive('code')} onClick={() => editor.chain().focus().toggleCode().run()} title="Code" />
+            <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
+            <ToolBtn icon={Heading1} active={editor.isActive('heading', { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} title="Heading 1" />
+            <ToolBtn icon={Heading2} active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} title="Heading 2" />
+            <ToolBtn icon={Quote} active={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()} title="Blockquote" />
             <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
             <ToolBtn icon={AlignLeft} active={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} title="Left" />
             <ToolBtn icon={AlignCenter} active={editor.isActive({ textAlign: 'center' })} onClick={() => editor.chain().focus().setTextAlign('center').run()} title="Center" />
@@ -63,6 +76,8 @@ const EditorToolbar = ({ editor }) => {
             <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
             <ToolBtn icon={List} active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Bullets" />
             <ToolBtn icon={ListOrdered} active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Numbered" />
+            <ToolBtn icon={Minus} onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Horizontal Rule" />
+            <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
             <ToolBtn icon={Link2} active={editor.isActive('link')} onClick={() => { const url = prompt('URL:'); if (url) editor.chain().focus().setLink({ href: url }).run(); }} title="Link" />
             <ToolBtn icon={ImageIcon} onClick={() => { const url = prompt('Image URL:'); if (url) editor.chain().focus().setImage({ src: url }).run(); }} title="Image" />
             <div className="w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
@@ -319,6 +334,9 @@ export default function Compose() {
                 .tiptap-editor .ProseMirror {
                     min-height: 100%;
                     outline: none;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                    word-break: break-word;
                 }
                 .tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
                     color: #9ca3af;
@@ -349,6 +367,34 @@ export default function Compose() {
                     list-style-type: decimal;
                     padding-left: 1.5rem;
                     margin-bottom: 0.75em;
+                }
+                .tiptap-editor .ProseMirror blockquote {
+                    border-left: 3px solid #e5e7eb;
+                    padding-left: 1rem;
+                    color: #6b7280;
+                    font-style: italic;
+                    margin: 1em 0;
+                }
+                .tiptap-editor .ProseMirror hr {
+                    border: none;
+                    border-top: 1px solid #e5e7eb;
+                    margin: 1.5em 0;
+                }
+                .tiptap-editor .ProseMirror code {
+                    background-color: #f3f4f6;
+                    padding: 0.2em 0.4em;
+                    border-radius: 3px;
+                    font-size: 0.9em;
+                }
+                .dark .tiptap-editor .ProseMirror blockquote {
+                    border-left-color: #374151;
+                    color: #9ca3af;
+                }
+                .dark .tiptap-editor .ProseMirror hr {
+                    border-top-color: #374151;
+                }
+                .dark .tiptap-editor .ProseMirror code {
+                    background-color: #374151;
                 }
             `}} />
         </div>

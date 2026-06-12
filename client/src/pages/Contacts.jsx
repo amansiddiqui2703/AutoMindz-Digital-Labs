@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { useDropzone } from 'react-dropzone';
 import toast from 'react-hot-toast';
-import { Plus, Upload, Download, Trash2, Search, Users, X, Filter, Globe } from 'lucide-react';
+import { Plus, Upload, Download, Trash2, Search, Users, X, Filter, Globe, Phone, Facebook, Linkedin, Twitter, Instagram } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Contacts() {
@@ -198,7 +198,7 @@ export default function Contacts() {
                     <table className="data-table">
                         <thead>
                             <tr>
-                                <th>Email</th><th>Name</th><th>Company</th><th>Source</th><th>Status</th><th></th>
+                                <th>Email</th><th>Name</th><th>Company</th><th>Enrichment</th><th>Source</th><th>Status</th><th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -211,6 +211,16 @@ export default function Contacts() {
                                     <td className="font-medium text-primary-600 dark:text-primary-400 group-hover:underline">{c.email}</td>
                                     <td>{c.name || '—'}</td>
                                     <td>{c.company || '—'}</td>
+                                    <td>
+                                        <div className="flex gap-1.5 items-center">
+                                            {c.phone && <Phone className="w-3.5 h-3.5 text-emerald-500" title={c.phone} />}
+                                            {c.linkedIn && <Linkedin className="w-3.5 h-3.5 text-blue-600" title={c.linkedIn} />}
+                                            {c.twitter && <Twitter className="w-3.5 h-3.5 text-sky-500" title={c.twitter} />}
+                                            {c.customFields?.facebook && <Facebook className="w-3.5 h-3.5 text-blue-700" title={c.customFields.facebook} />}
+                                            {c.customFields?.instagram && <Instagram className="w-3.5 h-3.5 text-pink-600" title={c.customFields.instagram} />}
+                                            {!c.phone && !c.linkedIn && !c.twitter && !c.customFields?.facebook && !c.customFields?.instagram && <span className="text-surface-300 text-xs">—</span>}
+                                        </div>
+                                    </td>
                                     <td><span className="badge badge-info">{c.source}</span></td>
                                     <td>{c.isUnsubscribed ? <span className="badge badge-danger">Unsubscribed</span> : <span className="badge badge-success">Active</span>}</td>
                                     <td>
