@@ -99,20 +99,57 @@ export default function BlogIndex() {
                 </div>
             </Link>
 
-            {/* Placeholder Post 3 */}
-            <div className="group glass-card flex flex-col overflow-hidden border border-surface-200 dark:border-surface-800 opacity-60">
-                <div className="h-48 bg-surface-100 dark:bg-surface-800 flex items-center justify-center p-6 relative">
-                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-700 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md text-surface-600 shadow-sm">
-                        Templates
+            {/* Post 3: Solve Droughts */}
+            <Link to="/blog/solve-b2b-sales-droughts" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
+                <div className="h-48 bg-gradient-to-br from-green-500/10 to-teal-500/10 flex items-center justify-center p-6 relative overflow-hidden">
+                    <Zap className="w-16 h-16 text-green-500/50 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md text-green-600 shadow-sm">
+                        Sales Strategy
                     </div>
                 </div>
                 <div className="p-6 flex-1 flex flex-col">
-                    <h3 className="text-xl font-bold text-surface-900 dark:text-white mb-3">
-                        25 B2B Cold Email Templates for SaaS Sales
+                    <div className="flex items-center gap-2 text-xs text-surface-500 mb-3">
+                        <span>5 min read</span>
+                        <span>•</span>
+                        <span>Updated 2026</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-surface-900 dark:text-white mb-3 group-hover:text-primary-500 transition-colors">
+                        How to Solve B2B Sales Droughts with Automated Cold Outreach
                     </h3>
-                    <p className="text-sm text-surface-500 mb-6 flex-1">Coming soon...</p>
+                    <p className="text-sm text-surface-500 mb-6 flex-1 line-clamp-3">
+                        If your pipeline dries up at the end of the quarter, you are relying too much on referrals. Here is the public's guide to fixing the problem...
+                    </p>
+                    <div className="flex items-center text-primary-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                        Read Article <ArrowRight className="w-4 h-4 ml-1" />
+                    </div>
                 </div>
-            </div>
+            </Link>
+
+            {/* Post 4: Spam Issues */}
+            <Link to="/blog/escaping-spam-folder" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
+                <div className="h-48 bg-gradient-to-br from-red-500/10 to-pink-500/10 flex items-center justify-center p-6 relative overflow-hidden">
+                    <Zap className="w-16 h-16 text-red-500/50 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md text-red-600 shadow-sm">
+                        Email Reputation
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 text-xs text-surface-500 mb-3">
+                        <span>6 min read</span>
+                        <span>•</span>
+                        <span>Updated 2026</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-surface-900 dark:text-white mb-3 group-hover:text-primary-500 transition-colors">
+                        Escaping the Spam Folder: A Public Guide to Email Reputation
+                    </h3>
+                    <p className="text-sm text-surface-500 mb-6 flex-1 line-clamp-3">
+                        One of the most frustrating problems companies face is sending important emails that no one ever sees. Here is how you solve the spam problem once and for all.
+                    </p>
+                    <div className="flex items-center text-primary-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                        Read Article <ArrowRight className="w-4 h-4 ml-1" />
+                    </div>
+                </div>
+            </Link>
 
         </div>
 

@@ -49,6 +49,12 @@ export default function Landing() {
             <SEO 
                 title="Automated Email Outreach & Lead Generation"
                 description="AutoMindz is the ultimate cold email outreach and lead generation platform. Automate follow-ups, find B2B contacts, and scale your sales pipeline effortlessly."
+                customSchema={{
+                    "@context": "https://schema.org",
+                    "@type": "WebSite",
+                    "name": "AutoMindz",
+                    "url": "https://automindz.com"
+                }}
             />
             {/* Navbar */}
             <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-surface-950/80 border-b border-surface-200 dark:border-surface-800">
@@ -89,7 +95,7 @@ export default function Landing() {
                     </h1>
                     <p className="text-xl text-surface-500 mt-6 max-w-2xl mx-auto leading-relaxed">
                         Send AI-personalized emails at scale, track every open and click, automate follow-ups,
-                        and manage your pipeline — all from one powerful platform.
+                        and manage your pipeline — all from one powerful platform. Discover our <Link to="/blog" className="text-primary-500 hover:underline">Cold Outreach Strategies</Link>.
                     </p>
                     <div className="flex items-center justify-center gap-4 mt-10">
                         <Link to="/register" className="btn-primary text-base !py-3.5 !px-8 shadow-xl shadow-primary-500/25 hover:shadow-2xl hover:shadow-primary-500/30 transition-all">
