@@ -9,7 +9,6 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import fs from 'fs';
 import mongoSanitize from 'express-mongo-sanitize';
-import xss from 'xss-clean';
 import hpp from 'hpp';
 import * as Sentry from '@sentry/node';
 
@@ -122,7 +121,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Security Hardening
 app.use(mongoSanitize());
-app.use(xss());
+// Note: xss-clean was removed because it escapes valid HTML payloads (e.g. email bodies)
 app.use(hpp());
 
 // Rate limiting
