@@ -269,6 +269,27 @@ router.get('/me', auth, async (req, res) => {
     }
 });
 
+// Update user settings
+router.put('/settings', auth, async (req, res) => {
+    try {
+        const { settings } = req.body;
+        if (!settings) {
+            return res.status(400).json({ error: 'Settings object is required' });
+        }
+        const user = await User.findByIdAndUpdate(
+            req.user.id,
+            { $set: { settings } },
+            { new: true, runValidators: true }
+        ).select('-password -verificationToken -resetPasswordToken -resetPasswordExpires');
+        
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        res.json({ success: true, user });
+    } catch (error) {
+        console.error('Update settings error:', error);
+        res.status(500).json({ error: 'Failed to update settings' });
+    }
+});
+
 // ─── Google OAuth Login ──────────────────────────────────────────────
 
 // Step 1: Generate Google OAuth URL for login

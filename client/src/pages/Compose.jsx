@@ -163,7 +163,7 @@ export default function Compose() {
         setSavingSig(true);
         try {
             const signature = sigEditor?.getHTML() || '';
-            await api.put('/users/settings', { settings: { ...user.settings, signature } });
+            await api.put('/auth/settings', { settings: { ...user.settings, signature } });
             await fetchUser();
             toast.success('Signature saved! It will be appended to new emails.');
         } catch (e) {

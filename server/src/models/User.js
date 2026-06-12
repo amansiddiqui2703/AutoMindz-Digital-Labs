@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema({
         defaultDelay: { type: Number, default: 5 },
         defaultDailyLimit: { type: Number, default: 200 },
         timezone: { type: String, default: 'UTC' },
+        signature: { type: String, default: '' },
     },
     plan: {
         type: String,
