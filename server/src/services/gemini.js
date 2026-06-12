@@ -1,6 +1,6 @@
 import env from '../config/env.js';
 
-const getGeminiUrl = () => `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`;
+const getGeminiUrl = () => `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`;
 
 const MAX_PROMPT_INPUT_LENGTH = 5000;
 

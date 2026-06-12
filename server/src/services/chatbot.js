@@ -5,7 +5,7 @@ import Campaign from '../models/Campaign.js';
 import Contact from '../models/Contact.js';
 import TrackingEvent from '../models/TrackingEvent.js';
 
-const getGeminiUrl = () => `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`;
+const getGeminiUrl = () => `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`;
 
 /**
  * Gather live stats for the authenticated user.
