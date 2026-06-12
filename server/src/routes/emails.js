@@ -11,6 +11,7 @@ import { sendEmail } from '../services/emailSender.js';
 import { selectAccount, replyViaScript } from '../services/gmailScript.js';
 import { replyViaOAuth } from '../services/gmailOAuth.js';
 import { replaceMergeTags } from '../utils/mergetags.js';
+import User from '../models/User.js';
 import env from '../config/env.js';
 
 const router = Router();
@@ -82,9 +83,12 @@ router.post('/send-single', auth, async (req, res) => {
         if (!account) return res.status(400).json({ error: 'No Gmail account available' });
 
         const contact = { email: to, name: '', company: '' };
+        const user = await User.findById(req.user.id).select('settings.signature');
+        const signature = user?.settings?.signature || '';
+        const finalHtmlBody = htmlBody + (signature ? `<br><br>${signature}` : '');
 
         const result = await sendEmail(account, {
-            to, subject, htmlBody, plainBody, contact, userId: req.user.id, cc, bcc, attachments,
+            to, subject, htmlBody: finalHtmlBody, plainBody, contact, userId: req.user.id, cc, bcc, attachments,
         });
 
         if (result.success) {
@@ -120,7 +124,11 @@ router.post('/send-followup', auth, async (req, res) => {
         // Generate tracking for the follow-up
         const trackingId = uuidv4();
         const trackingPixel = `<img src="${env.SERVER_URL}/t/${trackingId}/open" width="1" height="1" style="display:none" alt="" />`;
-        let trackedHtml = htmlBody.replace(
+        const user = await User.findById(req.user.id).select('settings.signature');
+        const signature = user?.settings?.signature || '';
+        const bodyWithSig = htmlBody + (signature ? `<br><br>${signature}` : '');
+
+        let trackedHtml = bodyWithSig.replace(
             /href="(https?:\/\/[^"]+)"/g,
             (match, url) => `href="${env.SERVER_URL}/t/${trackingId}/click?url=${encodeURIComponent(url)}"`
         );
@@ -235,7 +243,11 @@ router.post('/send-bulk-followup', auth, async (req, res) => {
                 // Tracking
                 const trackingId = uuidv4();
                 const trackingPixel = `<img src="${env.SERVER_URL}/t/${trackingId}/open" width="1" height="1" style="display:none" alt="" />`;
-                let trackedHtml = htmlBody.replace(
+                const user = await User.findById(req.user.id).select('settings.signature');
+                const signature = user?.settings?.signature || '';
+                const bodyWithSig = htmlBody + (signature ? `<br><br>${signature}` : '');
+
+                let trackedHtml = bodyWithSig.replace(
                     /href="(https?:\/\/[^"]+)"/g,
                     (match, url) => `href="${env.SERVER_URL}/t/${trackingId}/click?url=${encodeURIComponent(url)}"`
                 );
