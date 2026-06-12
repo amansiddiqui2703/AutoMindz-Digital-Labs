@@ -9,19 +9,23 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import OnboardingModal from '../components/OnboardingModal';
 
 const StatCard = ({ icon: Icon, label, value, trend, color }) => (
-    <div className="stat-card group">
-        <div className="flex items-center justify-between mb-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
-                <Icon className="w-5 h-5 text-white" />
+    <div className="relative group">
+        <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 group-hover:opacity-10 blur-xl transition-all duration-500 rounded-2xl`}></div>
+        <div className="glass-card p-5 border border-surface-200/50 dark:border-surface-700/50 hover:border-primary-500/30 transition-all duration-300 relative z-10 overflow-hidden group-hover:-translate-y-1">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-gradient-to-br from-white/5 to-white/0 dark:from-white/5 dark:to-transparent rounded-full blur-2xl group-hover:blur-xl transition-all duration-500"></div>
+            <div className="flex items-center justify-between mb-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${color} shadow-lg shadow-primary-500/20`}>
+                    <Icon className="w-6 h-6 text-white" />
+                </div>
+                {trend && (
+                    <span className="flex items-center gap-1 text-xs font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded-full">
+                        <ArrowUpRight className="w-3 h-3" />{trend}
+                    </span>
+                )}
             </div>
-            {trend && (
-                <span className="flex items-center gap-1 text-xs font-semibold text-green-500">
-                    <ArrowUpRight className="w-3 h-3" />{trend}
-                </span>
-            )}
+            <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-surface-900 to-surface-600 dark:from-white dark:to-surface-300 tracking-tight">{value}</div>
+            <div className="text-sm font-medium text-surface-500 mt-1">{label}</div>
         </div>
-        <div className="text-2xl font-bold text-surface-900 dark:text-white">{value}</div>
-        <div className="text-sm text-surface-500 mt-1">{label}</div>
     </div>
 );
 
@@ -98,10 +102,10 @@ export default function Dashboard() {
         <div className="space-y-8">
             <OnboardingModal />
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
                 <div>
-                    <h1 className="text-3xl font-bold text-surface-900 dark:text-white">Dashboard</h1>
-                    <p className="text-surface-500 mt-1">Your email outreach at a glance</p>
+                    <h1 className="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-accent-500 drop-shadow-sm">Command Center</h1>
+                    <p className="text-surface-500 font-medium mt-1">Real-time telemetry for your outreach</p>
                 </div>
                 {billing && (
                     <Link to="/billing" className="flex items-center gap-3 bg-surface-50 dark:bg-surface-800/50 px-4 py-2 rounded-xl border border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors">
@@ -123,19 +127,21 @@ export default function Dashboard() {
                 )}
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-                <StatCard icon={Send} label="Emails Sent" value={o.totalSent || 0} color="bg-gradient-to-br from-primary-500 to-primary-600" />
-                <StatCard icon={LinkIcon} label="Links Built" value={o.totalLinksBuilt || 0} trend="+2%" color="bg-gradient-to-br from-indigo-500 to-indigo-600" />
-                <StatCard icon={Eye} label="Open Rate" value={`${o.openRate || 0}%`} trend="+5%" color="bg-gradient-to-br from-green-500 to-green-600" />
-                <StatCard icon={MousePointerClick} label="Click Rate" value={`${o.clickRate || 0}%`} color="bg-gradient-to-br from-accent-500 to-accent-600" />
-                <StatCard icon={AlertTriangle} label="Bounce Rate" value={`${o.bounceRate || 0}%`} color="bg-gradient-to-br from-orange-500 to-orange-600" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 relative z-10">
+                <StatCard icon={Send} label="Emails Sent" value={o.totalSent || 0} color="from-primary-500 to-primary-600" />
+                <StatCard icon={LinkIcon} label="Links Built" value={o.totalLinksBuilt || 0} trend="+2%" color="from-indigo-500 to-indigo-600" />
+                <StatCard icon={Eye} label="Open Rate" value={`${o.openRate || 0}%`} trend="+5%" color="from-emerald-500 to-emerald-600" />
+                <StatCard icon={MousePointerClick} label="Click Rate" value={`${o.clickRate || 0}%`} color="from-accent-500 to-accent-600" />
+                <StatCard icon={AlertTriangle} label="Bounce Rate" value={`${o.bounceRate || 0}%`} color="from-rose-500 to-rose-600" />
             </div>
 
             {/* Chart + Recent */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 glass-card p-6">
-                    <h3 className="text-lg font-semibold text-surface-900 dark:text-white mb-6">Weekly Activity</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+                <div className="lg:col-span-2 glass-card p-6 border border-surface-200/50 dark:border-surface-700/50 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 blur-3xl rounded-full"></div>
+                    <h3 className="text-lg font-bold text-surface-900 dark:text-white mb-6 flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5 text-primary-500" /> Activity Telemetry
+                    </h3>
                     <ResponsiveContainer width="100%" height={280}>
                         <AreaChart data={chartData}>
                             <defs>
@@ -170,9 +176,9 @@ export default function Dashboard() {
                                         <div className="text-sm font-medium text-surface-900 dark:text-white">{c.name}</div>
                                         <div className="text-xs text-surface-400">{c.stats?.sent || 0} sent</div>
                                     </div>
-                                    <span className={`badge ${c.status === 'running' ? 'badge-success' :
-                                        c.status === 'paused' ? 'badge-warning' :
-                                            c.status === 'completed' ? 'badge-info' : 'badge-purple'
+                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${c.status === 'running' ? 'bg-emerald-500/20 text-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)] animate-pulse' :
+                                        c.status === 'paused' ? 'bg-amber-500/20 text-amber-500' :
+                                            c.status === 'completed' ? 'bg-blue-500/20 text-blue-500' : 'bg-purple-500/20 text-purple-500'
                                         }`}>{c.status}</span>
                                 </Link>
                             ))

@@ -226,10 +226,12 @@ const _enqueueCampaignInternal = async (campaign) => {
     // Get user details for limits and timezone
     let userTimezone = 'UTC';
     let userPlan = 'free';
+    let userSignature = '';
     try {
-        const user = await User.findById(campaign.userId).select('plan settings.timezone');
+        const user = await User.findById(campaign.userId).select('plan settings.timezone settings.signature');
         if (user?.settings?.timezone) userTimezone = user.settings.timezone;
         if (user?.plan) userPlan = user.plan;
+        if (user?.settings?.signature) userSignature = user.settings.signature;
     } catch { /* use defaults */ }
 
     // Time-window check: if outside sending hours, calculate base delay offset
@@ -288,7 +290,7 @@ const _enqueueCampaignInternal = async (campaign) => {
             userId: campaign.userId,
             accountIds: campaign.accountIds,
             subject: selectedSubject,
-            htmlBody: campaign.htmlBody,
+            htmlBody: campaign.htmlBody + (userSignature ? `<p></p>${userSignature}` : ''),
             plainBody: campaign.plainBody,
             cc: campaign.cc,
             bcc: campaign.bcc,

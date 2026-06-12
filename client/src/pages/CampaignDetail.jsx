@@ -274,6 +274,16 @@ export default function CampaignDetail() {
         fetchTemplates();
     }, [fetchCampaign]);
 
+    // Poll for live stats when the campaign is running
+    useEffect(() => {
+        if (campaign?.status === 'running') {
+            const interval = setInterval(() => {
+                fetchCampaign();
+            }, 5000);
+            return () => clearInterval(interval);
+        }
+    }, [campaign?.status, fetchCampaign]);
+
     useEffect(() => {
         if (activeTab === 'sequence' && campaign?.followUps?.length > 0) {
             fetchSequenceStats();
