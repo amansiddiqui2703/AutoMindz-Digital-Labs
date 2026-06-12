@@ -6,8 +6,8 @@ const resend = new Resend(env.RESEND_API_KEY || 're_mock');
 
 // Resend requires verified sender domains. Use onboarding@resend.dev (free)
 // or set EMAIL_FROM in .env to your verified domain, e.g. "AutoMindz <noreply@yourdomain.com>"
-const SUPPORT_FROM = env.EMAIL_FROM_SUPPORT || `AutoMindz <onboarding@resend.dev>`;
-const ONBOARDING_FROM = env.EMAIL_FROM_ONBOARDING || `AutoMindz <onboarding@resend.dev>`;
+const SUPPORT_FROM = env.EMAIL_FROM_SUPPORT || `AutoMindz <noreply@automindzdigitallabs.online>`;
+const ONBOARDING_FROM = env.EMAIL_FROM_ONBOARDING || `AutoMindz <noreply@automindzdigitallabs.online>`;
 
 const escapeHtml = (input = '') => {
     return String(input)
