@@ -226,9 +226,20 @@ export default function Compose() {
                             <span className="text-sm font-medium text-surface-500 w-16">BCC</span>
                             <input value={bcc} onChange={e => setBcc(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-sm text-surface-900 dark:text-white" placeholder="bcc@example.com" />
                         </div>
-                        <div className="flex items-center px-5 py-2.5 border-b border-surface-200 dark:border-surface-700">
-                            <span className="text-sm font-medium text-surface-500 w-16">Subject</span>
-                            <input value={subject} onChange={e => setSubject(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-sm text-surface-900 dark:text-white font-medium" placeholder="Email subject" />
+                        <div className="flex items-center px-5 py-2.5 border-b border-surface-200 dark:border-surface-700 justify-between">
+                            <div className="flex items-center flex-1">
+                                <span className="text-sm font-medium text-surface-500 w-16">Subject</span>
+                                <input value={subject} onChange={e => setSubject(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-sm text-surface-900 dark:text-white font-medium" placeholder="Email subject" />
+                            </div>
+                            <div className="group relative flex items-center shrink-0 ml-4">
+                                <span className="bg-gradient-to-br from-primary-500/10 to-accent-500/10 text-primary-600 dark:text-primary-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-primary-500/20 flex items-center gap-1 cursor-help">
+                                    Spintax Supported
+                                </span>
+                                <div className="absolute top-full right-0 mt-2 w-64 p-3 bg-surface-900 dark:bg-surface-800 text-white text-xs rounded-xl shadow-lg shadow-primary-500/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                    Use Spintax to randomize variations! <br/><br/>
+                                    <span className="font-mono text-primary-300">{"{Hi|Hello|Hey}"}</span> {"{{first_name}}"}, we love your work!
+                                </div>
+                            </div>
                         </div>
                     </div>
 

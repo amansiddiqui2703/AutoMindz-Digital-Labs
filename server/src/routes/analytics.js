@@ -216,6 +216,54 @@ router.get('/team', auth, authorize('admin', 'manager'), async (req, res) => {
 });
 
 // ==========================================
+// Export analytics data (CSV)
+// ==========================================
+router.get('/export', auth, async (req, res) => {
+    try {
+        const logs = await EmailLog.find({ userId: req.user.id })
+            .select('to subject status sentAt trackingId isFollowUp followUpIndex')
+            .lean();
+
+        const trackingIds = logs.map(l => l.trackingId).filter(Boolean);
+        const events = await TrackingEvent.find({ trackingId: { $in: trackingIds } }).lean();
+
+        const eventsByTrackingId = {};
+        for (const e of events) {
+            if (!eventsByTrackingId[e.trackingId]) eventsByTrackingId[e.trackingId] = { opens: 0, clicks: 0, replies: 0, bounces: 0 };
+            if (e.type === 'open') eventsByTrackingId[e.trackingId].opens++;
+            if (e.type === 'click') eventsByTrackingId[e.trackingId].clicks++;
+            if (e.type === 'reply') eventsByTrackingId[e.trackingId].replies++;
+            if (e.type === 'bounce') eventsByTrackingId[e.trackingId].bounces++;
+        }
+
+        const csvRows = ['To,Subject,Status,SentAt,IsFollowUp,FollowUpIndex,Opens,Clicks,Replies,Bounces'];
+        for (const log of logs) {
+            const tracking = eventsByTrackingId[log.trackingId] || { opens: 0, clicks: 0, replies: 0, bounces: 0 };
+            const row = [
+                `"${log.to || ''}"`,
+                `"${(log.subject || '').replace(/"/g, '""')}"`,
+                log.status,
+                log.sentAt ? log.sentAt.toISOString() : '',
+                log.isFollowUp || false,
+                log.followUpIndex || 0,
+                tracking.opens,
+                tracking.clicks,
+                tracking.replies,
+                tracking.bounces
+            ];
+            csvRows.push(row.join(','));
+        }
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=analytics_export.csv');
+        res.send(csvRows.join('\n'));
+    } catch (error) {
+        console.error('Export error:', error);
+        res.status(500).json({ error: 'Failed to export analytics' });
+    }
+});
+
+// ==========================================
 // Sent emails log with tracking details
 // ==========================================
 router.get('/emails', auth, async (req, res) => {

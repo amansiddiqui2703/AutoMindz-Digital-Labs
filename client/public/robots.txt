@@ -14,4 +14,4 @@ Disallow: /tools
 Disallow: /sequences
 Disallow: /templates
 
-Sitemap: https://new-outreach-system.onrender.com/sitemap.xml
+Sitemap: https://automindz.com/sitemap.xml

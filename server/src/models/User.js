@@ -32,6 +32,8 @@ const userSchema = new mongoose.Schema({
         defaultDailyLimit: { type: Number, default: 200 },
         timezone: { type: String, default: 'UTC' },
         signature: { type: String, default: '' },
+        webhookUrl: { type: String, default: '' },
+        webhookEvents: { type: [String], default: ['delivered', 'opened', 'clicked', 'replied', 'bounced'] },
     },
     plan: {
         type: String,

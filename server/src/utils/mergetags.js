@@ -1,4 +1,22 @@
 /**
+ * Resolves spintax strings like {Hello|Hi|Hey} into a random variant.
+ * Supports nested spintax.
+ */
+export const parseSpintax = (text) => {
+    if (!text) return text;
+    let result = text;
+    const spintaxRegex = /\{([^{}]+)\}/g;
+    
+    while (result.match(spintaxRegex)) {
+        result = result.replace(spintaxRegex, (match, contents) => {
+            const choices = contents.split('|');
+            return choices[Math.floor(Math.random() * choices.length)];
+        });
+    }
+    return result;
+};
+
+/**
  * Replace merge tags like {{name}}, {{company}} etc. with contact data
  */
 export const replaceMergeTags = (text, contact) => {

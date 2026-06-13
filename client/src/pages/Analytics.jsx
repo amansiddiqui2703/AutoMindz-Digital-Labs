@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import {
     BarChart3, Send, Eye, MousePointerClick, AlertTriangle, TrendingUp,
     UserMinus, Mail, Clock, ExternalLink, RefreshCw, Users, Zap, Activity,
-    Inbox, Play, ChevronDown, ChevronUp, Hash, Reply, Loader2, CheckSquare, Square
+    Inbox, Play, ChevronDown, ChevronUp, Hash, Reply, Loader2, CheckSquare, Square, Download
 } from 'lucide-react';
 import {
     AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -71,6 +71,17 @@ export default function Analytics() {
             .then(r => setEmails(r.data.emails || []))
             .catch(() => toast.error('Failed to load sent emails'))
             .finally(() => setEmailsLoading(false));
+    };
+
+    const exportCSV = async () => {
+        try {
+            const res = await api.get('/analytics/export', { responseType: 'blob' });
+            const url = URL.createObjectURL(res.data);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'analytics_export.csv'; a.click();
+            URL.revokeObjectURL(url);
+            toast.success('Analytics exported');
+        } catch { toast.error('Export failed'); }
     };
 
     useEffect(() => { fetchData(); }, []);
@@ -227,10 +238,15 @@ export default function Analytics() {
                     <h1 className="text-3xl font-bold text-surface-900 dark:text-white">Analytics</h1>
                     <p className="text-surface-500 mt-1">Track your email outreach performance</p>
                 </div>
-                <button onClick={() => fetchData(true)} disabled={refreshing} className="btn-secondary">
-                    <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-                    {refreshing ? 'Refreshing...' : 'Refresh'}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button onClick={exportCSV} className="btn-secondary">
+                        <Download className="w-4 h-4" /> Export
+                    </button>
+                    <button onClick={() => fetchData(true)} disabled={refreshing} className="btn-secondary">
+                        <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                        {refreshing ? 'Refreshing...' : 'Refresh'}
+                    </button>
+                </div>
             </div>
 
             {/* Tabs */}

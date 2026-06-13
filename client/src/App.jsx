@@ -12,6 +12,8 @@ import { lazy, Suspense } from 'react';
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Pipeline = lazy(() => import('./pages/Pipeline'));
+const SuppressionList = lazy(() => import('./pages/SuppressionList'));
 const Campaigns = lazy(() => import('./pages/Campaigns'));
 const CampaignDetail = lazy(() => import('./pages/CampaignDetail'));
 const Compose = lazy(() => import('./pages/Compose'));
@@ -93,10 +95,12 @@ export default function App() {
               <Route path="/blog/escaping-spam-folder" element={<BlogSpamIssues />} />
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/pipeline" element={<Pipeline />} />
                 <Route path="/campaigns" element={<Campaigns />} />
                 <Route path="/campaigns/:id" element={<CampaignDetail />} />
                 <Route path="/compose" element={<Compose />} />
                 <Route path="/contacts" element={<Contacts />} />
+                <Route path="/suppression" element={<SuppressionList />} />
                 <Route path="/contacts/:id" element={<ContactDetail />} />
                 <Route path="/sequences" element={<Sequences />} />
 

@@ -5,13 +5,15 @@ import {
     LayoutDashboard, Send, Users, Search, Mail, BarChart3,
     Settings, LogOut, Moon, Sun, Zap, CreditCard, FileText, ShieldCheck,
     FolderKanban, ListFilter, Link as LinkIcon, UsersRound, CheckSquare, Activity,
-    Inbox, Globe
+    Inbox, Globe, ShieldOff
 } from 'lucide-react';
 
 const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'manager', 'user', 'agent'] },
+    { to: '/pipeline', icon: FolderKanban, label: 'Pipeline', roles: ['admin', 'manager', 'user', 'agent'] },
     { to: '/compose', icon: Mail, label: 'Compose Email', roles: ['admin', 'manager', 'user', 'agent'] },
     { to: '/contacts', icon: Users, label: 'Master Audience', roles: ['admin', 'manager', 'user', 'agent'] },
+    { to: '/suppression', icon: ShieldOff, label: 'Suppression List', roles: ['admin', 'manager', 'user', 'agent'] },
     { to: '/sequences', icon: FileText, label: 'Sequences', roles: ['admin', 'manager', 'user', 'agent'] },
     { to: '/campaigns', icon: Send, label: 'Campaigns', roles: ['admin', 'manager', 'user', 'agent'] },
     { to: '/inbox', icon: Inbox, label: 'Unified Inbox', roles: ['admin', 'manager', 'user', 'agent'] },

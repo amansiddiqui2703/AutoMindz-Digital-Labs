@@ -120,6 +120,67 @@ export default function SettingsPage() {
                     <p>• No spam bypass techniques are used</p>
                 </div>
             </div>
+            {/* Webhooks */}
+            <div className="glass-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                        <Globe className="w-5 h-5 text-indigo-500" />
+                        <h3 className="text-lg font-semibold text-surface-900 dark:text-white">Webhooks</h3>
+                    </div>
+                </div>
+                <div className="space-y-4">
+                    <div>
+                        <label className="text-sm text-surface-500 mb-1 block">Webhook URL</label>
+                        <div className="flex gap-2">
+                            <input 
+                                type="url" 
+                                className="input flex-1" 
+                                placeholder="https://your-server.com/webhook" 
+                                value={user?.settings?.webhookUrl || ''} 
+                                onChange={async (e) => {
+                                    const val = e.target.value;
+                                    // Normally we would have local state and a save button,
+                                    // but we can optimistic update via api if needed, or better, 
+                                    // let's just make it a controlled local state in a real app.
+                                    // For now we'll do a quick save.
+                                    try {
+                                        await api.put('/auth/settings', { settings: { ...user.settings, webhookUrl: val } });
+                                        toast.success('Webhook URL saved');
+                                    } catch {
+                                        toast.error('Failed to save webhook URL');
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="text-sm text-surface-500 mb-2 block">Events to send</label>
+                        <div className="flex flex-wrap gap-2">
+                            {['delivered', 'opened', 'clicked', 'replied', 'bounced'].map(evt => {
+                                const active = (user?.settings?.webhookEvents || []).includes(evt);
+                                return (
+                                    <button 
+                                        key={evt}
+                                        onClick={async () => {
+                                            const currentEvents = user?.settings?.webhookEvents || [];
+                                            const newEvents = active ? currentEvents.filter(e => e !== evt) : [...currentEvents, evt];
+                                            try {
+                                                await api.put('/auth/settings', { settings: { ...user.settings, webhookEvents: newEvents } });
+                                                toast.success('Webhook events updated');
+                                            } catch {
+                                                toast.error('Failed to update events');
+                                            }
+                                        }}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${active ? 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400' : 'bg-surface-50 dark:bg-surface-800 border-surface-200 dark:border-surface-700 text-surface-500'}`}
+                                    >
+                                        {evt}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

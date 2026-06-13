@@ -229,6 +229,46 @@ router.post('/bulk', auth, planLimits, async (req, res) => {
     }
 });
 
+// --- Suppression List Routes ---
+router.get('/suppression', auth, async (req, res) => {
+    try {
+        const suppressions = await Suppression.find({ userId: req.user.id }).sort({ createdAt: -1 });
+        res.json({ data: suppressions });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch suppressions' });
+    }
+});
+
+router.post('/suppression', auth, async (req, res) => {
+    try {
+        const { emails } = req.body;
+        if (!Array.isArray(emails)) return res.status(400).json({ error: 'Emails array required' });
+        
+        for (const rawEmail of emails) {
+            const email = rawEmail.toLowerCase().trim();
+            if (email) {
+                await Suppression.findOneAndUpdate(
+                    { userId: req.user.id, email },
+                    { userId: req.user.id, email },
+                    { upsert: true }
+                );
+            }
+        }
+        res.json({ message: 'Emails added to suppression list' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to add suppressions' });
+    }
+});
+
+router.delete('/suppression/:email', auth, async (req, res) => {
+    try {
+        await Suppression.findOneAndDelete({ userId: req.user.id, email: req.params.email.toLowerCase().trim() });
+        res.json({ message: 'Email removed from suppression list' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to remove suppression' });
+    }
+});
+
 // Get single contact with full timeline
 router.get('/:id', auth, async (req, res) => {
     try {

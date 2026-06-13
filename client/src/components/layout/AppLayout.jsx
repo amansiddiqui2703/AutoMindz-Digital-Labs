@@ -5,6 +5,7 @@ import api from '../../api/client';
 import Sidebar from './Sidebar';
 import ChatBot from '../ChatBot';
 import ProfileDropdown from './ProfileDropdown';
+import NotificationCenter from '../NotificationCenter';
 import { Bell, MailOpen, MousePointerClick, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -27,6 +28,11 @@ export default function AppLayout() {
                 source.addEventListener('notification', (e) => {
                     try {
                         const data = JSON.parse(e.data);
+                        
+                        // Dispatch custom event for NotificationCenter
+                        const customEvent = new CustomEvent('analytics_update_notif', { detail: data });
+                        window.dispatchEvent(customEvent);
+
                         toast((t) => (
                             <div className="flex items-start gap-3">
                                 <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -71,8 +77,9 @@ export default function AppLayout() {
         <div className="min-h-screen bg-surface-50 dark:bg-surface-950 transition-colors duration-300">
             <Sidebar />
             <main className="ml-64 relative flex flex-col min-h-screen">
-                {/* Header for Profile Dropdown */}
-                <header className="sticky top-0 z-20 w-full bg-surface-50/80 dark:bg-surface-950/80 backdrop-blur-md border-b border-surface-200 dark:border-surface-800 px-8 py-3 flex justify-end items-center transition-colors duration-300">
+                {/* Header for Profile Dropdown and Notifications */}
+                <header className="sticky top-0 z-20 w-full bg-surface-50/80 dark:bg-surface-950/80 backdrop-blur-md border-b border-surface-200 dark:border-surface-800 px-8 py-3 flex justify-end items-center gap-4 transition-colors duration-300">
+                    <NotificationCenter />
                     <ProfileDropdown />
                 </header>
                 
