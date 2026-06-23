@@ -18,6 +18,7 @@ export default function Login() {
 
     // Show error from Google OAuth redirect
     const googleError = searchParams.get('error');
+    const errorDetails = searchParams.get('details');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -113,8 +114,13 @@ export default function Login() {
                     <p className="text-surface-500 mb-8">Sign in to your account</p>
 
                     {(error || googleError) && (
-                        <div className="flex items-center gap-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm">
-                            <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error || 'Google sign-in failed. Please try again.'}
+                        <div className="flex flex-col gap-1 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm">
+                            <div className="flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error || 'Google sign-in failed. Please try again.'}
+                            </div>
+                            {errorDetails && (
+                                <div className="text-xs mt-1 ml-6 font-mono opacity-80 break-words">{errorDetails}</div>
+                            )}
                         </div>
                     )}
 
