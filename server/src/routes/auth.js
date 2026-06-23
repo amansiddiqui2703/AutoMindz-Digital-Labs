@@ -441,7 +441,7 @@ router.get('/google/callback', async (req, res) => {
         return res.redirect(`${env.APP_URL}/auth/google/success?token=${token}`);
     } catch (error) {
         console.error('Google callback error:', error);
-        res.redirect(`${env.APP_URL}/login?error=google_auth_failed&details=${encodeURIComponent(error.message)}`);
+        res.redirect(`${env.APP_URL}/login?error=google_auth_failed`);
     }
 });
 
