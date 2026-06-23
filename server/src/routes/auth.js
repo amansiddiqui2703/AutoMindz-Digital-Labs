@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import crypto from 'crypto';
 import { google } from 'googleapis';
+import axios from 'axios';
 import User from '../models/User.js';
 import auth from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimit.js';
@@ -356,13 +357,21 @@ router.get('/google/callback', async (req, res) => {
             }
         }
 
-        const oauth2Client = createLoginOAuth2Client();
-        const { tokens } = await oauth2Client.getToken(code);
-        oauth2Client.setCredentials(tokens);
+        // Use axios to fetch the token and profile to bypass Node 18 native fetch (undici) bugs in google-auth-library
+        const tokenRes = await axios.post('https://oauth2.googleapis.com/token', {
+            client_id: env.GOOGLE_CLIENT_ID,
+            client_secret: env.GOOGLE_CLIENT_SECRET,
+            code,
+            grant_type: 'authorization_code',
+            redirect_uri: `${env.SERVER_URL}/api/auth/google/callback`
+        });
+        const tokens = tokenRes.data;
 
         // Get Google user profile
-        const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
-        const { data: profile } = await oauth2.userinfo.get();
+        const profileRes = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: { Authorization: `Bearer ${tokens.access_token}` }
+        });
+        const profile = profileRes.data;
 
         if (!profile.email) {
             return res.redirect(`${env.APP_URL}/login?error=no_email`);
