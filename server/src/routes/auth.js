@@ -427,9 +427,9 @@ router.get('/google/callback', async (req, res) => {
             }
         }
 
-        // SECURITY FIX [CRITICAL-3]: Remove JWT-in-URL fallback
-        console.error('Redis is required for secure Google OAuth but is unavailable.');
-        return res.redirect(`${env.APP_URL}/login?error=redis_unavailable`);
+        // Fallback: If Redis is unavailable, send the token in the URL so users can still log in
+        console.warn('Redis is unavailable. Falling back to JWT in URL for Google OAuth.');
+        return res.redirect(`${env.APP_URL}/auth/google/success?token=${token}`);
     } catch (error) {
         console.error('Google callback error:', error);
         res.redirect(`${env.APP_URL}/login?error=google_auth_failed`);
