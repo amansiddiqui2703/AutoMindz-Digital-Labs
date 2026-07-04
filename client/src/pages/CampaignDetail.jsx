@@ -15,7 +15,7 @@ import {
     List, ListOrdered, Type, Code, Loader2, BarChart3, CheckCircle, XCircle,
     StopCircle, Timer, Sparkles, Wand2, X, GripVertical, Copy, FlaskConical,
     CalendarClock, Flame, FileText, Heading1, Heading2, Quote, Minus, Strikethrough, Image as ImageIcon,
-    Globe, Phone, ExternalLink, Tag, TrendingUp
+    Globe, Phone, ExternalLink, Tag, TrendingUp, BookTemplate
 } from 'lucide-react';
 
 import { TextStyle } from '@tiptap/extension-text-style';
@@ -155,6 +155,11 @@ export default function CampaignDetail() {
     const [scheduledAt, setScheduledAt] = useState('');
     const [templates, setTemplates] = useState([]);
     const [showTemplates, setShowTemplates] = useState(false);
+    
+    // Sequences
+    const [sequences, setSequences] = useState([]);
+    const [showSequences, setShowSequences] = useState(false);
+    const [loadingSequences, setLoadingSequences] = useState(false);
 
     // Follow-up editor state
     const [editingStep, setEditingStep] = useState(null);
@@ -269,6 +274,39 @@ export default function CampaignDetail() {
             const res = await api.get('/templates');
             setTemplates(res.data.templates || []);
         } catch { toast.error('Failed to load templates'); }
+    };
+
+    const fetchSequences = async () => {
+        if (sequences.length > 0) return;
+        setLoadingSequences(true);
+        try {
+            const res = await api.get('/sequences');
+            setSequences(res.data.sequences || []);
+        } catch { toast.error('Failed to load sequences'); }
+        finally { setLoadingSequences(false); }
+    };
+
+    const handleLoadSequence = (seq) => {
+        if (!seq.steps || seq.steps.length === 0) return;
+        const firstStep = seq.steps[0];
+        setSubject(firstStep.subject || '');
+        if (editor) {
+            editor.commands.setContent(firstStep.body || '');
+        }
+        
+        // Map the rest of the steps to followUps
+        const newFollowUps = seq.steps.slice(1).map((s, idx) => ({
+            _key: `new-${Date.now()}-${idx}`,
+            stepNumber: idx + 1,
+            delayDays: s.delayDays || 3,
+            condition: 'no_reply', // Default condition
+            subject: s.subject || '',
+            htmlBody: s.body || ''
+        }));
+        
+        setFollowUps(newFollowUps);
+        setShowSequences(false);
+        toast.success(`Loaded sequence: ${seq.name}`);
     };
 
     useEffect(() => {
@@ -692,24 +730,62 @@ export default function CampaignDetail() {
                             </div>
                         </div>
 
-                        {/* Load Template */}
-                        <div className="border-b border-surface-200 dark:border-surface-700">
-                            <div className="flex items-center px-5 py-2">
-                                <button onClick={() => setShowTemplates(!showTemplates)} className="flex items-center gap-2 text-xs font-medium text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 px-3 py-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-all">
+                        {/* Load Template & Sequence */}
+                        <div className="border-b border-surface-200 dark:border-surface-700 relative">
+                            <div className="flex items-center px-5 py-2 gap-2">
+                                <button onClick={() => { setShowTemplates(!showTemplates); setShowSequences(false); }} disabled={!isEditable} className="flex items-center gap-2 text-xs font-medium text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 px-3 py-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-all">
                                     <FileText className="w-3.5 h-3.5" /> Load Template
                                 </button>
+                                <button onClick={() => { 
+                                    const nextState = !showSequences;
+                                    setShowSequences(nextState); 
+                                    setShowTemplates(false); 
+                                    if(nextState) fetchSequences();
+                                }} disabled={!isEditable} className="flex items-center gap-2 text-xs font-medium text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 px-3 py-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-all">
+                                    <BookTemplate className="w-3.5 h-3.5" /> Load Sequence
+                                </button>
                             </div>
+                            
+                            {/* Templates Dropdown */}
                             {showTemplates && (
-                                <div className="px-5 pb-3 max-h-40 overflow-y-auto">
-                                    {templates.length === 0 ? (
-                                        <p className="text-xs text-surface-400">No templates saved yet. Go to Templates page to create one.</p>
-                                    ) : templates.map(t => (
-                                        <button key={t._id} onClick={() => loadTemplate(t)}
-                                            className="block w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-surface-100 dark:hover:bg-surface-800 transition-all">
-                                            <span className="font-medium text-surface-900 dark:text-white">{t.name}</span>
-                                            {t.subject && <span className="text-xs text-surface-400 ml-2">— {t.subject}</span>}
-                                        </button>
-                                    ))}
+                                <div className="absolute top-full left-5 mt-1 w-72 bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                                    <div className="flex items-center justify-between p-3 border-b border-surface-100 dark:border-surface-800 bg-surface-50 dark:bg-surface-800/50">
+                                        <h4 className="font-semibold text-sm text-surface-900 dark:text-white">Your Templates</h4>
+                                        <button onClick={() => setShowTemplates(false)} className="text-surface-400"><X className="w-4 h-4" /></button>
+                                    </div>
+                                    <div className="max-h-40 overflow-y-auto p-2">
+                                        {templates.length === 0 ? (
+                                            <p className="text-xs text-surface-400 p-2 text-center">No templates found.</p>
+                                        ) : templates.map(t => (
+                                            <button key={t._id} onClick={() => loadTemplate(t)}
+                                                className="block w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-surface-100 dark:hover:bg-surface-800 transition-all text-surface-900 dark:text-white">
+                                                {t.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Sequences Dropdown */}
+                            {showSequences && (
+                                <div className="absolute top-full left-32 mt-1 w-80 bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                                    <div className="flex items-center justify-between p-3 border-b border-surface-100 dark:border-surface-800 bg-surface-50 dark:bg-surface-800/50">
+                                        <h4 className="font-semibold text-sm text-surface-900 dark:text-white">Your Sequences</h4>
+                                        <button onClick={() => setShowSequences(false)} className="text-surface-400"><X className="w-4 h-4" /></button>
+                                    </div>
+                                    <div className="max-h-60 overflow-y-auto p-2">
+                                        {loadingSequences ? (
+                                            <p className="text-xs text-surface-400 p-4 text-center">Loading...</p>
+                                        ) : sequences.length === 0 ? (
+                                            <p className="text-xs text-surface-400 p-4 text-center">No sequences found.</p>
+                                        ) : sequences.map(seq => (
+                                            <button key={seq._id} onClick={() => handleLoadSequence(seq)}
+                                                className="block w-full text-left px-3 py-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-all">
+                                                <div className="text-sm font-medium text-surface-900 dark:text-white">{seq.name}</div>
+                                                <div className="text-xs text-surface-500 mt-0.5">{seq.steps?.length || 0} steps • overwrites current follow-ups</div>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>

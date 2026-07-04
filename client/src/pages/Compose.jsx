@@ -7,7 +7,7 @@ import {
     Sparkles, Send, Eye, Wand2, X, Loader2, Bold, Italic,
     Underline as UIcon, Link2, AlignLeft, AlignCenter, AlignRight,
     List, ListOrdered, Image as ImageIcon, Type,
-    Strikethrough, Quote, Heading1, Heading2, Code, Minus
+    Strikethrough, Quote, Heading1, Heading2, Code, Minus, BookTemplate
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -114,6 +114,35 @@ export default function Compose() {
     const [aiAction, setAiAction] = useState('cold-email');
     const [aiPrompt, setAiPrompt] = useState('');
     const [aiLoading, setAiLoading] = useState(false);
+
+    // Sequences
+    const [showSequences, setShowSequences] = useState(false);
+    const [sequences, setSequences] = useState([]);
+    const [loadingSequences, setLoadingSequences] = useState(false);
+
+    const loadSequences = async () => {
+        if (sequences.length > 0) return; // already loaded
+        setLoadingSequences(true);
+        try {
+            const res = await api.get('/sequences');
+            setSequences(res.data.sequences || []);
+        } catch (e) {
+            toast.error('Failed to load sequences');
+        } finally {
+            setLoadingSequences(false);
+        }
+    };
+
+    const handleLoadSequence = (seq) => {
+        if (!seq.steps || seq.steps.length === 0) return;
+        const firstStep = seq.steps[0];
+        setSubject(firstStep.subject || '');
+        if (editor) {
+            editor.commands.setContent(firstStep.body + (user?.settings?.signature ? `<p></p><p>${user.settings.signature}</p>` : ''));
+        }
+        setShowSequences(false);
+        toast.success(`Loaded sequence: ${seq.name}`);
+    };
 
     const extensions = [
         StarterKit,
@@ -244,13 +273,48 @@ export default function Compose() {
                     </div>
 
                     <div className="flex items-center justify-between px-4 py-2 border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 relative">
                             <button onClick={() => setShowPreview(!showPreview)} className="btn-secondary !py-1.5 !px-3 !text-xs">
                                 <Eye className="w-3 h-3" /> Preview
                             </button>
-                            <button onClick={() => setShowAi(!showAi)} className="btn-primary !py-1.5 !px-3 !text-xs">
+                            <button onClick={() => { setShowAi(!showAi); setShowSequences(false); }} className={`btn-primary !py-1.5 !px-3 !text-xs ${showAi ? 'ring-2 ring-primary-500 ring-offset-1' : ''}`}>
                                 <Sparkles className="w-3 h-3" /> AI Assistant
                             </button>
+                            <button 
+                                onClick={() => { 
+                                    const nextState = !showSequences;
+                                    setShowSequences(nextState); 
+                                    setShowAi(false);
+                                    if (nextState) loadSequences(); 
+                                }} 
+                                className={`btn-secondary !py-1.5 !px-3 !text-xs ${showSequences ? 'bg-surface-200 dark:bg-surface-700' : ''}`}
+                            >
+                                <BookTemplate className="w-3 h-3" /> Load Sequence
+                            </button>
+
+                            {/* Sequences Dropdown */}
+                            {showSequences && (
+                                <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                    <div className="flex items-center justify-between p-3 border-b border-surface-100 dark:border-surface-800 bg-surface-50 dark:bg-surface-800/50">
+                                        <h4 className="font-semibold text-sm text-surface-900 dark:text-white">Your Sequences</h4>
+                                        <button onClick={() => setShowSequences(false)} className="text-surface-400 hover:text-surface-600"><X className="w-4 h-4" /></button>
+                                    </div>
+                                    <div className="max-h-64 overflow-y-auto p-2">
+                                        {loadingSequences ? (
+                                            <div className="p-4 text-center text-sm text-surface-500"><Loader2 className="w-4 h-4 animate-spin mx-auto mb-2" /> Loading...</div>
+                                        ) : sequences.length === 0 ? (
+                                            <div className="p-4 text-center text-sm text-surface-500">No sequences found.<br/><a href="/sequences" className="text-primary-500 hover:underline mt-1 inline-block">Create one here</a></div>
+                                        ) : (
+                                            sequences.map(seq => (
+                                                <button key={seq._id} onClick={() => handleLoadSequence(seq)} className="w-full text-left p-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors group">
+                                                    <div className="font-medium text-sm text-surface-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400">{seq.name}</div>
+                                                    <div className="text-xs text-surface-500 truncate mt-0.5">{seq.steps?.length || 0} steps • {seq.steps?.[0]?.subject || 'No subject'}</div>
+                                                </button>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

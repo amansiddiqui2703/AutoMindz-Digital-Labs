@@ -550,4 +550,115 @@ router.get('/campaign/:id/stat-details/:type', auth, async (req, res) => {
     }
 });
 
+// ==========================================
+// Dashboard stat details — aggregate contact details across ALL campaigns for a stat type
+// ==========================================
+router.get('/dashboard/stat-details/:type', auth, async (req, res) => {
+    try {
+        const { type } = req.params;
+        const validTypes = ['sent', 'opened', 'clicked', 'replied', 'failed', 'bounced', 'unsubscribed'];
+        if (!validTypes.includes(type)) {
+            return res.status(400).json({ error: `Invalid stat type. Must be one of: ${validTypes.join(', ')}` });
+        }
+
+        const campaigns = await Campaign.find({ userId: req.user.id }).select('_id').lean();
+        const campaignIds = campaigns.map(c => c._id);
+
+        if (['sent', 'failed', 'bounced'].includes(type)) {
+            const statusMap = { sent: 'sent', failed: 'failed', bounced: 'bounced' };
+            const logs = await EmailLog.find({ campaignId: { $in: campaignIds }, status: statusMap[type] })
+                .select('to contactId sentAt subject status')
+                .sort({ sentAt: -1 })
+                .limit(500) // Limit to latest 500 for performance
+                .lean();
+
+            const contactIds = logs.map(l => l.contactId).filter(Boolean);
+            const contacts = await Contact.find({ _id: { $in: contactIds } })
+                .select('email name company website phone linkedIn tags source enrichment')
+                .lean();
+            const contactMap = {};
+            for (const c of contacts) { contactMap[c._id.toString()] = c; }
+
+            const details = logs.map(log => {
+                const contact = log.contactId ? contactMap[log.contactId.toString()] : null;
+                return {
+                    email: log.to,
+                    name: contact?.name || '',
+                    company: contact?.company || '',
+                    website: contact?.website || '',
+                    phone: contact?.phone || '',
+                    linkedIn: contact?.linkedIn || '',
+                    tags: contact?.tags || [],
+                    source: contact?.source || '',
+                    domainAuthority: contact?.enrichment?.domainAuthority || null,
+                    domainRating: contact?.enrichment?.domainRating || null,
+                    monthlyTraffic: contact?.enrichment?.monthlyTraffic || null,
+                    sentAt: log.sentAt,
+                    subject: log.subject,
+                    contactId: log.contactId,
+                };
+            });
+
+            return res.json({ type, count: details.length, details });
+        }
+
+        const eventTypeMap = { opened: 'open', clicked: 'click', replied: 'reply', unsubscribed: 'unsubscribe' };
+        const eventType = eventTypeMap[type];
+
+        const logs = await EmailLog.find({ campaignId: { $in: campaignIds } })
+            .select('trackingId to contactId sentAt subject').lean();
+        const trackingIds = logs.map(l => l.trackingId).filter(Boolean);
+
+        const events = await TrackingEvent.find({ trackingId: { $in: trackingIds }, type: eventType })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Get unique tracking IDs that have this event (limit to first 500 unique)
+        const eventTrackingIds = [...new Set(events.map(e => e.trackingId))].slice(0, 500);
+
+        const trackingToLog = {};
+        for (const log of logs) {
+            if (log.trackingId) trackingToLog[log.trackingId] = log;
+        }
+
+        const contactIds = eventTrackingIds.map(tid => trackingToLog[tid]?.contactId).filter(Boolean);
+        const contacts = await Contact.find({ _id: { $in: contactIds } })
+            .select('email name company website phone linkedIn tags source enrichment')
+            .lean();
+        const contactMap = {};
+        for (const c of contacts) { contactMap[c._id.toString()] = c; }
+
+        const details = eventTrackingIds.map(tid => {
+            const log = trackingToLog[tid];
+            if (!log) return null;
+            const contact = log.contactId ? contactMap[log.contactId.toString()] : null;
+            const eventInstances = events.filter(e => e.trackingId === tid);
+            return {
+                email: log.to,
+                name: contact?.name || '',
+                company: contact?.company || '',
+                website: contact?.website || '',
+                phone: contact?.phone || '',
+                linkedIn: contact?.linkedIn || '',
+                tags: contact?.tags || [],
+                source: contact?.source || '',
+                domainAuthority: contact?.enrichment?.domainAuthority || null,
+                domainRating: contact?.enrichment?.domainRating || null,
+                monthlyTraffic: contact?.enrichment?.monthlyTraffic || null,
+                sentAt: log.sentAt,
+                subject: log.subject,
+                contactId: log.contactId,
+                eventCount: eventInstances.length,
+                firstEventAt: eventInstances[eventInstances.length - 1]?.createdAt,
+                lastEventAt: eventInstances[0]?.createdAt,
+            };
+        }).filter(Boolean);
+
+        res.json({ type, count: details.length, details });
+    } catch (error) {
+        console.error('Dashboard Stat details error:', error);
+        res.status(500).json({ error: 'Failed to fetch dashboard stat details' });
+    }
+});
+
 export default router;

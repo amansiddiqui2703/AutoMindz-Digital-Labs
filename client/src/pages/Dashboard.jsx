@@ -3,15 +3,16 @@ import { Link } from 'react-router-dom';
 import api from '../api/client';
 import {
     Send, Users, Eye, MousePointerClick, BarChart3, TrendingUp,
-    ArrowUpRight, Mail, Zap, AlertTriangle, CreditCard, Link as LinkIcon
+    ArrowUpRight, Mail, Zap, AlertTriangle, CreditCard, Link as LinkIcon,
+    X, Loader2, Globe, Phone, ExternalLink, Tag
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import OnboardingModal from '../components/OnboardingModal';
 
-const StatCard = ({ icon: Icon, label, value, trend, color }) => (
+const StatCard = ({ icon: Icon, label, value, trend, color, onClick, clickable }) => (
     <div className="relative group">
         <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 group-hover:opacity-10 blur-xl transition-all duration-500 rounded-2xl`}></div>
-        <div className="glass-card p-5 border border-surface-200/50 dark:border-surface-700/50 hover:border-primary-500/30 transition-all duration-300 relative z-10 overflow-hidden group-hover:-translate-y-1">
+        <div className={`glass-card p-5 border border-surface-200/50 dark:border-surface-700/50 hover:border-primary-500/30 transition-all duration-300 relative z-10 overflow-hidden group-hover:-translate-y-1 ${clickable ? 'cursor-pointer' : ''}`} onClick={onClick}>
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-gradient-to-br from-white/5 to-white/0 dark:from-white/5 dark:to-transparent rounded-full blur-2xl group-hover:blur-xl transition-all duration-500"></div>
             <div className="flex items-center justify-between mb-4">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${color} shadow-lg shadow-primary-500/20`}>
@@ -23,7 +24,9 @@ const StatCard = ({ icon: Icon, label, value, trend, color }) => (
                     </span>
                 )}
             </div>
-            <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-surface-900 to-surface-600 dark:from-white dark:to-surface-300 tracking-tight">{value}</div>
+            <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-surface-900 to-surface-600 dark:from-white dark:to-surface-300 tracking-tight flex items-baseline gap-2">
+                {value}
+            </div>
             <div className="text-sm font-medium text-surface-500 mt-1">{label}</div>
         </div>
     </div>
@@ -33,6 +36,10 @@ export default function Dashboard() {
     const [data, setData] = useState(null);
     const [billing, setBilling] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    const [statDetailModal, setStatDetailModal] = useState(null);
+    const [statDetailData, setStatDetailData] = useState(null);
+    const [statDetailLoading, setStatDetailLoading] = useState(false);
 
     const loadData = () => {
         Promise.all([
@@ -128,11 +135,43 @@ export default function Dashboard() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 relative z-10">
-                <StatCard icon={Send} label="Emails Sent" value={o.totalSent || 0} color="from-primary-500 to-primary-600" />
+                <StatCard 
+                    icon={Send} label="Emails Sent" value={o.totalSent || 0} color="from-primary-500 to-primary-600" 
+                    clickable={true} onClick={async () => {
+                        setStatDetailModal({ type: 'sent', label: 'Sent' });
+                        setStatDetailLoading(true); setStatDetailData(null);
+                        try { const res = await api.get('/analytics/dashboard/stat-details/sent'); setStatDetailData(res.data); } 
+                        catch { setStatDetailModal(null); } finally { setStatDetailLoading(false); }
+                    }} 
+                />
                 <StatCard icon={LinkIcon} label="Links Built" value={o.totalLinksBuilt || 0} trend="+2%" color="from-indigo-500 to-indigo-600" />
-                <StatCard icon={Eye} label="Open Rate" value={`${o.openRate || 0}%`} trend="+5%" color="from-emerald-500 to-emerald-600" />
-                <StatCard icon={MousePointerClick} label="Click Rate" value={`${o.clickRate || 0}%`} color="from-accent-500 to-accent-600" />
-                <StatCard icon={AlertTriangle} label="Bounce Rate" value={`${o.bounceRate || 0}%`} color="from-rose-500 to-rose-600" />
+                <StatCard 
+                    icon={Eye} label="Open Rate" value={`${o.openRate || 0}%`} trend="+5%" color="from-emerald-500 to-emerald-600" 
+                    clickable={true} onClick={async () => {
+                        setStatDetailModal({ type: 'opened', label: 'Opened' });
+                        setStatDetailLoading(true); setStatDetailData(null);
+                        try { const res = await api.get('/analytics/dashboard/stat-details/opened'); setStatDetailData(res.data); } 
+                        catch { setStatDetailModal(null); } finally { setStatDetailLoading(false); }
+                    }} 
+                />
+                <StatCard 
+                    icon={MousePointerClick} label="Click Rate" value={`${o.clickRate || 0}%`} color="from-accent-500 to-accent-600" 
+                    clickable={true} onClick={async () => {
+                        setStatDetailModal({ type: 'clicked', label: 'Clicked' });
+                        setStatDetailLoading(true); setStatDetailData(null);
+                        try { const res = await api.get('/analytics/dashboard/stat-details/clicked'); setStatDetailData(res.data); } 
+                        catch { setStatDetailModal(null); } finally { setStatDetailLoading(false); }
+                    }} 
+                />
+                <StatCard 
+                    icon={AlertTriangle} label="Bounce Rate" value={`${o.bounceRate || 0}%`} color="from-rose-500 to-rose-600" 
+                    clickable={true} onClick={async () => {
+                        setStatDetailModal({ type: 'bounced', label: 'Bounced' });
+                        setStatDetailLoading(true); setStatDetailData(null);
+                        try { const res = await api.get('/analytics/dashboard/stat-details/bounced'); setStatDetailData(res.data); } 
+                        catch { setStatDetailModal(null); } finally { setStatDetailLoading(false); }
+                    }} 
+                />
             </div>
 
             {/* Chart + Recent */}
@@ -220,6 +259,95 @@ export default function Dashboard() {
                     </div>
                 )}
             </div>
+
+            {/* ====== Stat Detail Modal ====== */}
+            {statDetailModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setStatDetailModal(null)}>
+                    <div className="bg-white dark:bg-surface-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden border border-surface-200 dark:border-surface-700" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-200 dark:border-surface-700 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-500/10 dark:to-accent-500/10">
+                            <div>
+                                <h3 className="text-lg font-bold text-surface-900 dark:text-white flex items-center gap-2">
+                                    {statDetailModal.label} Details
+                                    {statDetailData && <span className="badge badge-info text-xs">{statDetailData.count} contacts</span>}
+                                </h3>
+                                <p className="text-xs text-surface-500 mt-0.5">Across all campaigns</p>
+                            </div>
+                            <button onClick={() => setStatDetailModal(null)} className="p-2 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-xl transition-all">
+                                <X className="w-5 h-5 text-surface-500" />
+                            </button>
+                        </div>
+                        <div className="overflow-y-auto max-h-[calc(85vh-80px)] p-4">
+                            {statDetailLoading ? (
+                                <div className="flex items-center justify-center py-16">
+                                    <div className="text-center">
+                                        <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-3" />
+                                        <p className="text-sm text-surface-400">Loading contact details...</p>
+                                    </div>
+                                </div>
+                            ) : statDetailData?.details?.length === 0 ? (
+                                <div className="text-center py-16">
+                                    <Users className="w-12 h-12 text-surface-300 mx-auto mb-3" />
+                                    <p className="text-surface-500">No contacts found</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {statDetailData?.details?.map((d, idx) => (
+                                        <div key={idx} className="glass-card p-4 hover:shadow-md transition-all border border-surface-100 dark:border-surface-700/50">
+                                            <div className="flex items-start gap-4">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center flex-shrink-0">
+                                                    <span className="text-white font-bold text-sm">{(d.name || d.email)?.[0]?.toUpperCase() || '?'}</span>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className="font-semibold text-surface-900 dark:text-white text-sm">{d.name || 'Unknown'}</span>
+                                                        {d.company && <span className="text-xs text-surface-500 bg-surface-100 dark:bg-surface-800 px-2 py-0.5 rounded-full">{d.company}</span>}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 mt-1">
+                                                        <Mail className="w-3 h-3 text-surface-400" />
+                                                        <a href={`mailto:${d.email}`} className="text-xs text-primary-500 hover:underline">{d.email}</a>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
+                                                        {d.website && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Globe className="w-3 h-3 text-blue-500" />
+                                                                <a href={d.website.startsWith('http') ? d.website : `https://${d.website}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline truncate">{d.website.replace(/^https?:\/\//, '')}</a>
+                                                            </div>
+                                                        )}
+                                                        {d.phone && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Phone className="w-3 h-3 text-green-500" />
+                                                                <span className="text-xs text-surface-600 dark:text-surface-400">{d.phone}</span>
+                                                            </div>
+                                                        )}
+                                                        {d.linkedIn && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <ExternalLink className="w-3 h-3 text-blue-600" />
+                                                                <a href={d.linkedIn.startsWith('http') ? d.linkedIn : `https://${d.linkedIn}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">LinkedIn</a>
+                                                            </div>
+                                                        )}
+                                                        {d.source && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Tag className="w-3 h-3 text-surface-400" />
+                                                                <span className="text-xs text-surface-500">Source: {d.source}</span>
+                                                            </div>
+                                                        )}
+                                                        {d.domainAuthority && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <BarChart3 className="w-3 h-3 text-amber-500" />
+                                                                <span className="text-xs text-surface-600 dark:text-surface-400">DA: {d.domainAuthority}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
