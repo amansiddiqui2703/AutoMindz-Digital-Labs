@@ -12,7 +12,7 @@ export const fireUserWebhook = async (userId, type, payload) => {
     try {
         const user = await User.findById(userId).select('settings');
         if (!user || !user.settings || !user.settings.webhookUrl) return;
-        
+
         const { webhookUrl, webhookEvents } = user.settings;
         if (!webhookEvents.includes(type)) return;
 
@@ -108,7 +108,7 @@ export const handleResendWebhook = async (req, res) => {
                         $inc: { 'stats.delivered': 1 }
                     });
                 }
-                
+
                 fireUserWebhook(emailLog.userId, 'delivered', { email: emailLog.to, subject: emailLog.subject, timestamp: new Date() });
                 break;
             }
@@ -144,7 +144,7 @@ export const handleResendWebhook = async (req, res) => {
                         $inc: { bounceCount: 1 }
                     });
                 }
-                
+
                 fireUserWebhook(emailLog.userId, 'bounced', { email: emailLog.to, subject: emailLog.subject, reason: emailLog.error, timestamp: new Date() });
                 break;
             }
@@ -188,7 +188,7 @@ export const handleResendWebhook = async (req, res) => {
                         { $set: { 'recipients.$.openedAt': new Date(), 'recipients.$.status': 'opened' } }
                     );
                 }
-                
+
                 fireUserWebhook(emailLog.userId, 'opened', { email: emailLog.to, subject: emailLog.subject, timestamp: new Date() });
                 break;
             }
@@ -208,7 +208,7 @@ export const handleResendWebhook = async (req, res) => {
                         $inc: { 'stats.clicked': 1 }
                     });
                 }
-                
+
                 fireUserWebhook(emailLog.userId, 'clicked', { email: emailLog.to, subject: emailLog.subject, url: data.click?.link, timestamp: new Date() });
                 break;
             }

@@ -21,10 +21,10 @@ router.post('/test-email', auth, async (req, res) => {
         const { to, accountId } = req.body;
         if (!to) return res.status(400).json({ error: 'To email is required' });
 
-        const account = await GmailAccount.findOne({ 
+        const account = await GmailAccount.findOne({
             ...(accountId ? { _id: accountId } : {}),
-            userId: req.user.id, 
-            isActive: true 
+            userId: req.user.id,
+            isActive: true
         });
 
         if (!account) return res.status(400).json({ error: 'No active Gmail account available for testing' });
@@ -34,9 +34,9 @@ router.post('/test-email', auth, async (req, res) => {
         try {
             mxRecords = await resolveMx(domain);
         } catch (e) {
-            return res.status(400).json({ 
-                error: `DNS resolution failed for domain ${domain}`, 
-                details: e.message 
+            return res.status(400).json({
+                error: `DNS resolution failed for domain ${domain}`,
+                details: e.message
             });
         }
 
@@ -48,8 +48,8 @@ router.post('/test-email', auth, async (req, res) => {
         const subject = 'AutoMindz Delivery Diagnostic Test';
 
         const result = await sendEmail(account, {
-            to, subject, htmlBody, plainBody: 'This is a diagnostic test email.', 
-            contact: { email: to, name: 'Test User' }, 
+            to, subject, htmlBody, plainBody: 'This is a diagnostic test email.',
+            contact: { email: to, name: 'Test User' },
             userId: req.user.id
         });
 

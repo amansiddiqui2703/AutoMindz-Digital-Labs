@@ -7,7 +7,7 @@ export const useTheme = () => useContext(ThemeContext);
 export function ThemeProvider({ children }) {
     const [dark, setDark] = useState(() => {
         const saved = localStorage.getItem('automindz_theme');
-        return saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        return saved ? saved === 'dark' : false; // Default to light mode to prevent unwanted dark theme on mobile
     });
 
     useEffect(() => {
