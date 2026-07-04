@@ -85,15 +85,15 @@ export default function Contacts() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-surface-900 dark:text-white">Master Audience</h1>
                     <p className="text-surface-500 mt-1">{total} total contacts in your CRM</p>
                 </div>
                 {activeTab === 'contacts' && (
-                    <div className="flex gap-2">
-                        <button onClick={exportCSV} className="btn-secondary"><Download className="w-4 h-4" /> Export</button>
-                        <button onClick={() => setShowAdd(true)} className="btn-primary"><Plus className="w-4 h-4" /> Add Contact</button>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <button onClick={exportCSV} className="btn-secondary flex-1 sm:flex-none justify-center"><Download className="w-4 h-4" /> Export</button>
+                        <button onClick={() => setShowAdd(true)} className="btn-primary flex-1 sm:flex-none justify-center"><Plus className="w-4 h-4" /> Add Contact</button>
                     </div>
                 )}
             </div>
@@ -195,7 +195,8 @@ export default function Contacts() {
                 </div>
             ) : (
                 <div className="glass-card overflow-hidden">
-                    <table className="data-table">
+                    <div className="overflow-x-auto">
+                        <table className="data-table min-w-[800px]">
                         <thead>
                             <tr>
                                 <th>Email</th><th>Name</th><th>Company</th><th>Enrichment</th><th>Source</th><th>Status</th><th></th>
@@ -232,6 +233,7 @@ export default function Contacts() {
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 </div>
             )}
 

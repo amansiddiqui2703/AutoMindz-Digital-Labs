@@ -5,7 +5,7 @@ import {
     LayoutDashboard, Send, Users, Search, Mail, BarChart3,
     Settings, LogOut, Moon, Sun, Zap, CreditCard, FileText, ShieldCheck,
     FolderKanban, ListFilter, Link as LinkIcon, UsersRound, CheckSquare, Activity,
-    Inbox, Globe, ShieldOff
+    Inbox, Globe, ShieldOff, X
 } from 'lucide-react';
 
 const navItems = [
@@ -21,7 +21,7 @@ const navItems = [
     { to: '/tools', icon: Zap, label: 'Tools', roles: ['admin', 'manager', 'user', 'agent'] },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
     const { logout, user } = useAuth();
     const { dark, toggle } = useTheme();
     const navigate = useNavigate();
@@ -32,19 +32,33 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col bg-white dark:bg-surface-900 border-r border-surface-200 dark:border-surface-800 z-30 transition-colors duration-300">
-            {/* Logo */}
-            <div className="flex items-center gap-3 px-6 py-6 border-b border-surface-200 dark:border-surface-800">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center pulse-glow">
-                    <Zap className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                    <h1 className="text-lg font-bold bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">AutoMindz</h1>
-                    <p className="text-[10px] text-surface-500 font-medium tracking-wider uppercase">Email Outreach</p>
-                </div>
-            </div>
+        <>
+            {/* Mobile Overlay */}
+            {isOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+                    onClick={onClose}
+                />
+            )}
 
-            {/* Navigation */}
+            <aside className={`fixed left-0 top-0 h-screen w-64 flex flex-col bg-white dark:bg-surface-900 border-r border-surface-200 dark:border-surface-800 z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+                {/* Logo */}
+                <div className="flex items-center justify-between px-6 py-6 border-b border-surface-200 dark:border-surface-800">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center pulse-glow">
+                            <Zap className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-lg font-bold bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">AutoMindz</h1>
+                            <p className="text-[10px] text-surface-500 font-medium tracking-wider uppercase">Email Outreach</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 md:hidden text-surface-500">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Navigation */}
             <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
                 {navItems.map((item, idx) => {
                     if (item.divider) {
@@ -107,6 +121,7 @@ export default function Sidebar() {
                     </NavLink>
                 )}
             </nav>
-        </aside>
+            </aside>
+        </>
     );
 }

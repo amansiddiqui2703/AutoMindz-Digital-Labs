@@ -69,7 +69,7 @@ export default function Sequences() {
     if (view === 'edit') {
         return (
             <div className="space-y-6 max-w-4xl mx-auto">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <button onClick={() => setView('list')} className="p-2 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-lg transition-colors">
                             <ArrowLeft className="w-5 h-5 text-surface-600 dark:text-surface-400" />
@@ -78,7 +78,7 @@ export default function Sequences() {
                             {editingSeq._id ? 'Edit Sequence' : 'New Sequence'}
                         </h1>
                     </div>
-                    <button onClick={saveSequence} className="btn-primary">
+                    <button onClick={saveSequence} className="btn-primary w-full sm:w-auto justify-center">
                         <Save className="w-4 h-4" /> Save Sequence
                     </button>
                 </div>
@@ -174,7 +174,7 @@ export default function Sequences() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-surface-900 dark:text-white">Sequences</h1>
                     <p className="text-surface-500 mt-1">Multi-step drip campaigns to automate your outreach</p>
@@ -184,7 +184,7 @@ export default function Sequences() {
                         setEditingSeq({ name: '', steps: [{ subject: '', body: '', delayDays: 0 }] });
                         setView('edit');
                     }} 
-                    className="btn-primary"
+                    className="btn-primary w-full sm:w-auto justify-center"
                 >
                     <Plus className="w-4 h-4" /> Create Sequence
                 </button>

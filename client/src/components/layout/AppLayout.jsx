@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/client';
@@ -6,11 +6,12 @@ import Sidebar from './Sidebar';
 import ChatBot from '../ChatBot';
 import ProfileDropdown from './ProfileDropdown';
 import NotificationCenter from '../NotificationCenter';
-import { Bell, MailOpen, MousePointerClick, MessageSquare } from 'lucide-react';
+import { Bell, MailOpen, MousePointerClick, MessageSquare, Menu, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function AppLayout() {
     const { isAuthenticated, loading } = useAuth();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated) return;
@@ -75,15 +76,31 @@ export default function AppLayout() {
 
     return (
         <div className="min-h-screen bg-surface-50 dark:bg-surface-950 transition-colors duration-300">
-            <Sidebar />
-            <main className="ml-64 relative flex flex-col min-h-screen">
+            <Sidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+            <main className="md:ml-64 relative flex flex-col min-h-screen transition-all duration-300">
+                {/* Mobile Top Bar */}
+                <div className="md:hidden sticky top-0 z-20 w-full bg-white dark:bg-surface-900 border-b border-surface-200 dark:border-surface-800 px-4 py-3 flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
+                            <Zap className="w-4 h-4 text-white" />
+                        </div>
+                        <h1 className="text-base font-bold bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">AutoMindz</h1>
+                    </div>
+                    <button 
+                        onClick={() => setIsMobileMenuOpen(true)}
+                        className="p-2 -mr-2 rounded-lg text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800"
+                    >
+                        <Menu className="w-6 h-6" />
+                    </button>
+                </div>
+
                 {/* Header for Profile Dropdown and Notifications */}
-                <header className="sticky top-0 z-20 w-full bg-surface-50/80 dark:bg-surface-950/80 backdrop-blur-md border-b border-surface-200 dark:border-surface-800 px-8 py-3 flex justify-end items-center gap-4 transition-colors duration-300">
+                <header className="hidden md:flex sticky top-0 z-20 w-full bg-surface-50/80 dark:bg-surface-950/80 backdrop-blur-md border-b border-surface-200 dark:border-surface-800 px-8 py-3 justify-end items-center gap-4 transition-colors duration-300">
                     <NotificationCenter />
                     <ProfileDropdown />
                 </header>
                 
-                <div className="flex-1 p-8 animate-in">
+                <div className="flex-1 p-4 md:p-8 animate-in w-full max-w-full overflow-x-hidden">
                     <Outlet />
                 </div>
             </main>

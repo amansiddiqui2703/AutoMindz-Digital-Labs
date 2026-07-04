@@ -231,11 +231,11 @@ export default function InboxPage() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-8rem)] gap-4">
+        <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] md:h-[calc(100vh-8rem)] gap-4">
             {/* Sidebar Filters */}
-            <div className="w-56 flex-shrink-0 space-y-1">
-                <div className="glass-card p-3 mb-3">
-                    <h3 className="text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">Inbox</h3>
+            <div className={`w-full md:w-56 flex-shrink-0 space-y-2 ${selectedMsg ? 'hidden md:block' : 'block'}`}>
+                <div className="glass-card p-2 md:p-3 mb-2 flex md:block overflow-x-auto gap-2 no-scrollbar">
+                    <h3 className="hidden md:block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">Inbox</h3>
                     {FILTERS.map(f => (
                         <button
                             key={f.key}
@@ -244,8 +244,8 @@ export default function InboxPage() {
                                 ? 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400'
                                 : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-800'}`}
                         >
-                            <f.icon className="w-4 h-4" />
-                            <span className="flex-1 text-left">{f.label}</span>
+                            <f.icon className="w-4 h-4 flex-shrink-0" />
+                            <span className="flex-1 text-left whitespace-nowrap">{f.label}</span>
                             {f.key === 'unread' && counts.unread > 0 && (
                                 <span className="bg-primary-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{counts.unread}</span>
                             )}
@@ -255,18 +255,18 @@ export default function InboxPage() {
                         </button>
                     ))}
                 </div>
-                <div className="space-y-2 px-1">
-                    <button onClick={handleSync} disabled={syncing} className="btn-secondary w-full text-xs">
+                <div className="space-y-2 px-1 flex md:block gap-2">
+                    <button onClick={handleSync} disabled={syncing} className="btn-secondary flex-1 md:w-full text-xs justify-center whitespace-nowrap">
                         <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} /> Sync Emails
                     </button>
-                    <button onClick={() => setShowSimulate(!showSimulate)} className="btn-secondary w-full text-xs">
+                    <button onClick={() => setShowSimulate(!showSimulate)} className="btn-secondary flex-1 md:w-full text-xs justify-center whitespace-nowrap">
                         <Play className="w-3.5 h-3.5" /> Simulate Inbound
                     </button>
                 </div>
             </div>
 
             {/* Message List */}
-            <div className={`${selectedMsg ? 'w-80' : 'flex-1'} flex-shrink-0 flex flex-col glass-card overflow-hidden transition-all`}>
+            <div className={`${selectedMsg ? 'hidden md:flex w-80' : 'flex flex-1'} flex-shrink-0 flex-col glass-card overflow-hidden transition-all`}>
                 {/* Search */}
                 <div className="p-3 border-b border-surface-200 dark:border-surface-700">
                     <div className="relative">
