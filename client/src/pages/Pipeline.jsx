@@ -27,9 +27,9 @@ export default function Pipeline() {
     const fetchCampaigns = async () => {
         try {
             const { data } = await api.get('/campaigns');
-            setCampaigns(data.data || []);
-            if (data.data?.length > 0) {
-                setSelectedCampaign(data.data[0]._id);
+            setCampaigns(data.campaigns || []);
+            if (data.campaigns?.length > 0) {
+                setSelectedCampaign(data.campaigns[0]._id);
             }
         } catch (error) {
             toast.error('Failed to load campaigns');
@@ -39,7 +39,7 @@ export default function Pipeline() {
     const fetchPipeline = async (campaignId) => {
         setLoading(true);
         try {
-            const { data } = await api.get(`/contacts?campaign=${campaignId}`);
+            const { data } = await api.get(`/contacts?campaignId=${campaignId}`);
             setContacts(data.contacts || []);
         } catch (error) {
             toast.error('Failed to load pipeline');
