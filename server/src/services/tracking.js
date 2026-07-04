@@ -69,9 +69,13 @@ export const recordUnsubscribe = async (trackingId) => {
             { upsert: true }
         );
 
-        await Campaign.findByIdAndUpdate(emailLog.campaignId, {
-            $inc: { 'stats.unsubscribed': 1 },
-        });
+        await Campaign.findOneAndUpdate(
+            { _id: emailLog.campaignId, 'recipients.email': emailLog.to },
+            { 
+                $inc: { 'stats.unsubscribed': 1 },
+                $set: { 'recipients.$.sequenceStatus': 'stopped_unsubscribe' }
+            }
+        );
     }
 };
 
@@ -94,9 +98,13 @@ export const recordBounce = async (trackingId) => {
             { upsert: true }
         );
 
-        await Campaign.findByIdAndUpdate(emailLog.campaignId, {
-            $inc: { 'stats.bounced': 1 },
-        });
+        await Campaign.findOneAndUpdate(
+            { _id: emailLog.campaignId, 'recipients.email': emailLog.to },
+            { 
+                $inc: { 'stats.bounced': 1 },
+                $set: { 'recipients.$.sequenceStatus': 'stopped_bounce' }
+            }
+        );
         
         sse.sendEventToUser(emailLog.userId, 'analytics_update', { event: 'bounce' });
     }
