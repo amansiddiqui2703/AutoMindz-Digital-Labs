@@ -10,6 +10,7 @@ export default function EmailFinder() {
     const [domainInput, setDomainInput] = useState('');
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [advancedMode, setAdvancedMode] = useState(false);
     const [selectedEmails, setSelectedEmails] = useState(new Set());
     const [progress, setProgress] = useState({ current: 0, total: 0, scanningUrl: '' });
 
@@ -33,7 +34,8 @@ export default function EmailFinder() {
             // Send requests concurrently and await all per batch
             const batchPromises = batch.map(async (domain) => {
                 try {
-                    const res = await api.post('/finder/search', { domain });
+                    const endpoint = advancedMode ? '/advanced-finder/search' : '/finder/search';
+                    const res = await api.post(endpoint, { domain });
                     return res.data.result;
                 } catch (e) {
                     return {
@@ -172,7 +174,20 @@ export default function EmailFinder() {
                     disabled={loading}
                 />
 
-                <div className="flex gap-3 mt-4">
+                <div className="flex items-center gap-3 mt-4 mb-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            checked={advancedMode}
+                            onChange={(e) => setAdvancedMode(e.target.checked)}
+                            className="w-4 h-4 rounded border-surface-300 text-primary-500 focus:ring-primary-500"
+                            disabled={loading}
+                        />
+                        <span className="text-sm font-medium text-surface-700 dark:text-surface-300">Enable Advanced Stealth Mode (Bypass Cloudflare/Bots)</span>
+                    </label>
+                </div>
+
+                <div className="flex gap-3 mt-2">
                     {!loading ? (
                         <button onClick={handleSearch} className="btn-primary w-full sm:w-auto px-8">
                             <Play className="w-4 h-4 mr-2" fill="currentColor" />
