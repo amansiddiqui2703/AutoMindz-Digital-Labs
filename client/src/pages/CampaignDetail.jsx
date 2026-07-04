@@ -14,7 +14,8 @@ import {
     Bold, Italic, Underline as UIcon, Link2, AlignLeft, AlignCenter, AlignRight,
     List, ListOrdered, Type, Code, Loader2, BarChart3, CheckCircle, XCircle,
     StopCircle, Timer, Sparkles, Wand2, X, GripVertical, Copy, FlaskConical,
-    CalendarClock, Flame, FileText, Heading1, Heading2, Quote, Minus, Strikethrough, Image as ImageIcon
+    CalendarClock, Flame, FileText, Heading1, Heading2, Quote, Minus, Strikethrough, Image as ImageIcon,
+    Globe, Phone, ExternalLink, Tag, TrendingUp
 } from 'lucide-react';
 
 import { TextStyle } from '@tiptap/extension-text-style';
@@ -132,6 +133,9 @@ export default function CampaignDetail() {
     const [accounts, setAccounts] = useState([]);
     const [contacts, setContacts] = useState([]);
     const [sequenceStats, setSequenceStats] = useState(null);
+    const [statDetailModal, setStatDetailModal] = useState(null); // { type: 'opened', label: 'Opened' }
+    const [statDetailData, setStatDetailData] = useState(null);
+    const [statDetailLoading, setStatDetailLoading] = useState(false);
 
     // Form state
     const [name, setName] = useState('');
@@ -592,22 +596,41 @@ export default function CampaignDetail() {
                 </div>
             </div>
 
-            {/* Stats bar */}
+            {/* Stats bar — clickable numbers */}
             {campaign?.status !== 'draft' && (
                 <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
                     {[
-                        { label: 'Total', value: campaign?.stats?.total || 0, icon: Users },
-                        { label: 'Sent', value: campaign?.stats?.sent || 0, icon: Send },
-                        { label: 'Opened', value: campaign?.stats?.opened || 0, icon: Eye },
-                        { label: 'Clicked', value: campaign?.stats?.clicked || 0, icon: Link2 },
-                        { label: 'Replied', value: campaign?.stats?.replied || 0, icon: CheckCircle },
-                        { label: 'Failed', value: campaign?.stats?.failed || 0, icon: XCircle },
-                        { label: 'Unsubs', value: campaign?.stats?.unsubscribed || 0, icon: StopCircle },
-                    ].map(({ label, value, icon: Icon }) => (
-                        <div key={label} className="glass-card p-3 text-center">
+                        { label: 'Total', value: campaign?.stats?.total || 0, icon: Users, statType: null },
+                        { label: 'Sent', value: campaign?.stats?.sent || 0, icon: Send, statType: 'sent' },
+                        { label: 'Opened', value: campaign?.stats?.opened || 0, icon: Eye, statType: 'opened' },
+                        { label: 'Clicked', value: campaign?.stats?.clicked || 0, icon: Link2, statType: 'clicked' },
+                        { label: 'Replied', value: campaign?.stats?.replied || 0, icon: CheckCircle, statType: 'replied' },
+                        { label: 'Failed', value: campaign?.stats?.failed || 0, icon: XCircle, statType: 'failed' },
+                        { label: 'Unsubs', value: campaign?.stats?.unsubscribed || 0, icon: StopCircle, statType: 'unsubscribed' },
+                    ].map(({ label, value, icon: Icon, statType }) => (
+                        <div
+                            key={label}
+                            className={`glass-card p-3 text-center transition-all ${statType && value > 0 ? 'cursor-pointer hover:ring-2 hover:ring-primary-400/50 hover:shadow-lg hover:scale-[1.03] active:scale-[0.98]' : ''}`}
+                            onClick={async () => {
+                                if (!statType || value === 0) return;
+                                setStatDetailModal({ type: statType, label });
+                                setStatDetailLoading(true);
+                                setStatDetailData(null);
+                                try {
+                                    const res = await api.get(`/analytics/campaign/${id}/stat-details/${statType}`);
+                                    setStatDetailData(res.data);
+                                } catch (err) {
+                                    toast.error('Failed to load details');
+                                    setStatDetailModal(null);
+                                } finally {
+                                    setStatDetailLoading(false);
+                                }
+                            }}
+                        >
                             <Icon className="w-4 h-4 mx-auto text-surface-400 mb-1" />
-                            <div className="text-lg font-bold text-surface-900 dark:text-white">{value}</div>
+                            <div className={`text-lg font-bold text-surface-900 dark:text-white ${statType && value > 0 ? 'underline decoration-dotted decoration-surface-300 dark:decoration-surface-600 underline-offset-2' : ''}`}>{value}</div>
                             <div className="text-xs text-surface-500">{label}</div>
+                            {statType && value > 0 && <div className="text-[9px] text-primary-500 mt-0.5 font-medium">Click to view</div>}
                         </div>
                     ))}
                 </div>
@@ -1270,6 +1293,141 @@ export default function CampaignDetail() {
                 .dark .tiptap-editor .ProseMirror code {
                     background-color: #374151;
                 }
+            `}} />
+
+            {/* ====== Stat Detail Modal ====== */}
+            {statDetailModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in" onClick={() => setStatDetailModal(null)}>
+                    <div className="bg-white dark:bg-surface-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden border border-surface-200 dark:border-surface-700" onClick={e => e.stopPropagation()}>
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-200 dark:border-surface-700 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-500/10 dark:to-accent-500/10">
+                            <div>
+                                <h3 className="text-lg font-bold text-surface-900 dark:text-white flex items-center gap-2">
+                                    {statDetailModal.label} Details
+                                    {statDetailData && <span className="badge badge-info text-xs">{statDetailData.count} contacts</span>}
+                                </h3>
+                                <p className="text-xs text-surface-500 mt-0.5">People who {statDetailModal.type === 'sent' ? 'received' : statDetailModal.type} your email</p>
+                            </div>
+                            <button onClick={() => setStatDetailModal(null)} className="p-2 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-xl transition-all">
+                                <X className="w-5 h-5 text-surface-500" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="overflow-y-auto max-h-[calc(85vh-80px)] p-4">
+                            {statDetailLoading ? (
+                                <div className="flex items-center justify-center py-16">
+                                    <div className="text-center">
+                                        <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-3" />
+                                        <p className="text-sm text-surface-400">Loading contact details...</p>
+                                    </div>
+                                </div>
+                            ) : statDetailData?.details?.length === 0 ? (
+                                <div className="text-center py-16">
+                                    <Users className="w-12 h-12 text-surface-300 mx-auto mb-3" />
+                                    <p className="text-surface-500">No contacts found</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {statDetailData?.details?.map((d, idx) => (
+                                        <div key={idx} className="glass-card p-4 hover:shadow-md transition-all border border-surface-100 dark:border-surface-700/50">
+                                            <div className="flex items-start gap-4">
+                                                {/* Avatar */}
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center flex-shrink-0">
+                                                    <span className="text-white font-bold text-sm">{(d.name || d.email)?.[0]?.toUpperCase() || '?'}</span>
+                                                </div>
+
+                                                {/* Main Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className="font-semibold text-surface-900 dark:text-white text-sm">{d.name || 'Unknown'}</span>
+                                                        {d.company && <span className="text-xs text-surface-500 bg-surface-100 dark:bg-surface-800 px-2 py-0.5 rounded-full">{d.company}</span>}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 mt-1">
+                                                        <Mail className="w-3 h-3 text-surface-400" />
+                                                        <a href={`mailto:${d.email}`} className="text-xs text-primary-500 hover:underline">{d.email}</a>
+                                                    </div>
+
+                                                    {/* Detail Grid */}
+                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
+                                                        {d.website && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Globe className="w-3 h-3 text-blue-500" />
+                                                                <a href={d.website.startsWith('http') ? d.website : `https://${d.website}`} target="_blank" rel="noopener noreferrer"
+                                                                    className="text-xs text-blue-500 hover:underline truncate">{d.website.replace(/^https?:\/\//, '')}</a>
+                                                            </div>
+                                                        )}
+                                                        {d.phone && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Phone className="w-3 h-3 text-green-500" />
+                                                                <span className="text-xs text-surface-600 dark:text-surface-400">{d.phone}</span>
+                                                            </div>
+                                                        )}
+                                                        {d.linkedIn && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <ExternalLink className="w-3 h-3 text-blue-600" />
+                                                                <a href={d.linkedIn.startsWith('http') ? d.linkedIn : `https://${d.linkedIn}`} target="_blank" rel="noopener noreferrer"
+                                                                    className="text-xs text-blue-600 hover:underline">LinkedIn</a>
+                                                            </div>
+                                                        )}
+                                                        {d.source && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Tag className="w-3 h-3 text-surface-400" />
+                                                                <span className="text-xs text-surface-500">Source: {d.source}</span>
+                                                            </div>
+                                                        )}
+                                                        {d.domainAuthority && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <BarChart3 className="w-3 h-3 text-amber-500" />
+                                                                <span className="text-xs text-surface-600 dark:text-surface-400">DA: {d.domainAuthority}</span>
+                                                            </div>
+                                                        )}
+                                                        {d.monthlyTraffic && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <TrendingUp className="w-3 h-3 text-cyan-500" />
+                                                                <span className="text-xs text-surface-600 dark:text-surface-400">Traffic: {d.monthlyTraffic?.toLocaleString()}/mo</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Tags */}
+                                                    {d.tags?.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1 mt-2">
+                                                            {d.tags.map((tag, ti) => (
+                                                                <span key={ti} className="text-[10px] bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 px-2 py-0.5 rounded-full">{tag}</span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Event metadata */}
+                                                    {d.eventCount && (
+                                                        <div className="flex items-center gap-3 mt-2 text-[10px] text-surface-400">
+                                                            <span>{d.eventCount} event{d.eventCount > 1 ? 's' : ''}</span>
+                                                            {d.firstEventAt && <span>First: {new Date(d.firstEventAt).toLocaleString()}</span>}
+                                                            {d.lastEventAt && d.eventCount > 1 && <span>Last: {new Date(d.lastEventAt).toLocaleString()}</span>}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* View Contact Button */}
+                                                {d.contactId && (
+                                                    <button
+                                                        onClick={() => { setStatDetailModal(null); navigate(`/contacts/${d.contactId}`); }}
+                                                        className="flex-shrink-0 p-2 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-lg text-surface-500 hover:text-primary-500 transition-all"
+                                                        title="View Contact"
+                                                    >
+                                                        <ExternalLink className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
             `}} />
         </div>
     );

@@ -32,7 +32,16 @@ export default function Accounts() {
             setSearchParams(searchParams, { replace: true });
         }
         if (searchParams.get('error')) {
-            toast.error('Gmail connection failed. Please try again.');
+            const errorCode = searchParams.get('error');
+            const errorMessages = {
+                'access_denied': 'Gmail connection was cancelled. Please click "Advanced" → "Go to (unsafe)" → "Continue" to connect.',
+                'missing_params': 'Missing parameters from Google. Please try connecting again.',
+                'invalid_state': 'Session expired. Please try connecting again.',
+                'no_access_token': 'Google did not return an access token. Please try again.',
+                'profile_fetch_failed': 'Could not fetch your Gmail profile. Please try again.',
+                'connection_failed': 'Gmail connection failed. Please try again and follow the steps above.',
+            };
+            toast.error(errorMessages[errorCode] || `Gmail connection failed: ${errorCode}. Please try again.`, { duration: 6000 });
             searchParams.delete('error');
             setSearchParams(searchParams, { replace: true });
         }
@@ -104,6 +113,39 @@ export default function Accounts() {
                             : <><Chrome className="w-5 h-5" /> Connect Gmail</>
                         }
                     </button>
+                </div>
+            </div>
+
+            {/* ⚠️ Important: Google Consent Screen Warning Guide */}
+            <div className="glass-card p-5 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-500/5 dark:to-yellow-500/5 border border-amber-200 dark:border-amber-500/20">
+                <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-amber-600 text-lg">⚠️</span>
+                    </div>
+                    <div>
+                        <h4 className="font-semibold text-surface-900 dark:text-white text-sm mb-2">Important: Google "Unverified App" Screen</h4>
+                        <p className="text-xs text-surface-600 dark:text-surface-400 mb-3">
+                            When connecting Gmail, Google may show a warning that says <strong>"Google hasn't verified this app"</strong>. 
+                            This is normal for new apps. Follow these steps to proceed:
+                        </p>
+                        <div className="space-y-2">
+                            <div className="flex items-start gap-2">
+                                <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center flex-shrink-0 font-bold mt-0.5">1</span>
+                                <p className="text-xs text-surface-600 dark:text-surface-400">Click <strong>"Advanced"</strong> (at the bottom-left of the warning page)</p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                                <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center flex-shrink-0 font-bold mt-0.5">2</span>
+                                <p className="text-xs text-surface-600 dark:text-surface-400">Click <strong>"Go to new-outreach-system.onrender.com (unsafe)"</strong></p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                                <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center flex-shrink-0 font-bold mt-0.5">3</span>
+                                <p className="text-xs text-surface-600 dark:text-surface-400">Click <strong>"Continue"</strong> to grant Gmail access</p>
+                            </div>
+                        </div>
+                        <p className="text-[10px] text-surface-400 mt-3">
+                            ℹ️ This warning appears because the app is in development mode. Your data is secure — we only use Gmail to send emails on your behalf.
+                        </p>
+                    </div>
                 </div>
             </div>
 
