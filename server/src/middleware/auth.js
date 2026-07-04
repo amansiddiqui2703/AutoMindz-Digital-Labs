@@ -33,6 +33,16 @@ const auth = async (req, res, next) => {
         // NOTE: Email verification is encouraged via UI but not enforced as an API blocker.
         // Forcing 403 on all routes for unverified users makes the app unusable after signup.
         // Admins are auto-verified above via the ADMIN_EMAILS check.
+        if (!user.isVerified) {
+            // Allow /auth/me to pass so the frontend can retrieve the user state and show a verification prompt.
+            // Block all other API routes.
+            if (!req.originalUrl.endsWith('/auth/me')) {
+                return res.status(403).json({ 
+                    error: 'Please verify your email address to access this feature.',
+                    isVerified: false 
+                });
+            }
+        }
 
         req.user = user;
 
