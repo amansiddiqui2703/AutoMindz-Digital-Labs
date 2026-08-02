@@ -1,7 +1,17 @@
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import { existsSync } from 'fs';
 
 puppeteer.use(StealthPlugin());
+
+// Detect system Chrome (Render/Linux uses Puppeteer buildpack or apt-installed Chrome)
+const CHROME_PATHS = [
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+];
+const getSystemChromePath = () => CHROME_PATHS.find(p => existsSync(p)) || undefined;
 
 const EMAIL_REGEX = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
 const BAD_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.css', '.js', '.pdf']);
@@ -41,6 +51,7 @@ export const crawlDomainStealth = async (domainObj) => {
         // Launch headless browser
         browser = await puppeteer.launch({
             headless: "new",
+            executablePath: getSystemChromePath(),
             args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
         });
         const page = await browser.newPage();

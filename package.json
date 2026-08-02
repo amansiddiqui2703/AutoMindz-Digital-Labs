@@ -7,7 +7,7 @@
     },
     "scripts": {
         "setup": "cd server && npm install && cd ../client && npm install",
-        "build": "npm install --prefix server && npm install --prefix client && npm run build --prefix client",
+        "build": "PUPPETEER_SKIP_DOWNLOAD=true npm install --prefix server && npm install --prefix client && npm run build --prefix client",
         "start": "npm start --prefix server",
         "dev:server": "cd server && npm run dev",
         "dev:client": "cd client && npm run dev",
