@@ -19,6 +19,7 @@ const env = {
     REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',
     JWT_SECRET: process.env.JWT_SECRET || 'dev-secret-change-me',
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
+    REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET || (process.env.JWT_SECRET ? process.env.JWT_SECRET + '_refresh' : 'dev-refresh-secret'),
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     APP_URL: normalizeBaseUrl(process.env.APP_URL || process.env.RENDER_EXTERNAL_URL, process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5173'),

@@ -13,6 +13,29 @@ import { getRedis } from '../config/redis.js';
 
 const router = Router();
 
+// ─── Refresh Token Helpers ───────────────────────────────────────────
+const REFRESH_TOKEN_EXPIRY_DAYS = 365;
+
+/**
+ * Generate a refresh token, hash it, store in user's refreshTokens array,
+ * and return the raw token (to send to client).
+ */
+const generateRefreshToken = async (user) => {
+    const rawToken = crypto.randomBytes(48).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+
+    // Clean up expired tokens and keep only last 5 active sessions
+    user.refreshTokens = (user.refreshTokens || [])
+        .filter(t => t.expiresAt > new Date())
+        .slice(-4); // keep last 4, we're about to add 1 more
+
+    user.refreshTokens.push({ tokenHash, expiresAt });
+    await user.save();
+
+    return rawToken;
+};
+
 /**
  * Create a separate OAuth2 client for login (different redirect URI than Gmail connection).
  */
@@ -73,9 +96,13 @@ router.post('/register', authLimiter, [
             { expiresIn: env.JWT_EXPIRES_IN }
         );
 
+        // Generate persistent refresh token (365 days)
+        const refreshToken = await generateRefreshToken(user);
+
         res.status(201).json({ 
             user: { _id: user._id, email: user.email, name: user.name, role: user.role, plan: user.plan, isVerified: user.isVerified }, 
-            token 
+            token,
+            refreshToken,
         });
     } catch (error) {
         res.status(500).json({ error: 'Registration failed' });
@@ -131,9 +158,13 @@ router.post('/login', authLimiter, [
             { expiresIn: env.JWT_EXPIRES_IN }
         );
 
+        // Generate persistent refresh token (365 days)
+        const refreshToken = await generateRefreshToken(user);
+
         res.json({ 
             user: { _id: user._id, email: user.email, name: user.name, role: user.role, plan: user.plan, isVerified: user.isVerified }, 
-            token, 
+            token,
+            refreshToken,
             isVerified: user.isVerified 
         });
     } catch (error) {
@@ -314,7 +345,7 @@ router.get('/google/url', async (req, res) => {
         const oauth2Client = createLoginOAuth2Client();
         const url = oauth2Client.generateAuthUrl({
             access_type: 'offline',
-            prompt: 'consent',
+            prompt: 'select_account', // Changed from 'consent' to save Google token quota
             state, // SECURITY FIX [HIGH-2]
             scope: [
                 'https://www.googleapis.com/auth/userinfo.email',
@@ -425,27 +456,31 @@ router.get('/google/callback', async (req, res) => {
             { expiresIn: env.JWT_EXPIRES_IN }
         );
 
+        // Generate persistent refresh token (365 days) — no more Google re-auth needed!
+        const refreshToken = await generateRefreshToken(user);
+
         // SECURITY FIX [CRITICAL-2]: One-time code exchange instead of token in URL
         const authCode = crypto.randomBytes(32).toString('hex');
         if (redis) {
             try {
-                await redis.set(`google_auth_code:${authCode}`, token, 'EX', 30);
+                // Store both tokens in Redis for one-time exchange
+                await redis.set(`google_auth_code:${authCode}`, JSON.stringify({ token, refreshToken }), 'EX', 30);
                 return res.redirect(`${env.APP_URL}/auth/google/success?code=${authCode}`);
             } catch (err) {
                 console.warn('Failed to store Google auth code (Redis unavailable):', err.message);
             }
         }
 
-        // Fallback: If Redis is unavailable, send the token in the URL so users can still log in
+        // Fallback: If Redis is unavailable, send tokens in the URL so users can still log in
         console.warn('Redis is unavailable. Falling back to JWT in URL for Google OAuth.');
-        return res.redirect(`${env.APP_URL}/auth/google/success?token=${token}`);
+        return res.redirect(`${env.APP_URL}/auth/google/success?token=${token}&refreshToken=${refreshToken}`);
     } catch (error) {
         console.error('Google callback error:', error);
         res.redirect(`${env.APP_URL}/login?error=google_auth_failed`);
     }
 });
 
-// Step 3: Exchange short-lived code for JWT
+// Step 3: Exchange short-lived code for JWT + Refresh Token
 router.get('/google/token', async (req, res) => {
     try {
         const { code } = req.query;
@@ -454,13 +489,90 @@ router.get('/google/token', async (req, res) => {
         const redis = getRedis();
         if (!redis) return res.status(503).json({ error: 'Service Unavailable' });
 
-        const token = await redis.get(`google_auth_code:${code}`);
-        if (!token) return res.status(401).json({ error: 'Invalid or expired code' });
+        const stored = await redis.get(`google_auth_code:${code}`);
+        if (!stored) return res.status(401).json({ error: 'Invalid or expired code' });
 
         await redis.del(`google_auth_code:${code}`);
-        res.json({ token });
+
+        // Parse stored data — may be JSON (new) or plain string (legacy)
+        let token, refreshToken;
+        try {
+            const parsed = JSON.parse(stored);
+            token = parsed.token;
+            refreshToken = parsed.refreshToken;
+        } catch {
+            // Legacy fallback — stored value is just the JWT string
+            token = stored;
+        }
+
+        res.json({ token, refreshToken });
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// ─── Refresh Token Endpoint ──────────────────────────────────────────
+// Client calls this when JWT expires — issues new JWT + rotated refresh token
+// NO Google re-auth needed!
+router.post('/refresh', async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+            return res.status(400).json({ error: 'Refresh token is required' });
+        }
+
+        const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+
+        // Find user with this refresh token hash
+        const user = await User.findOne({
+            'refreshTokens.tokenHash': tokenHash,
+            'refreshTokens.expiresAt': { $gt: new Date() },
+        });
+
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid or expired refresh token' });
+        }
+
+        // Remove the used refresh token (rotation — each token is single-use)
+        user.refreshTokens = user.refreshTokens.filter(t => t.tokenHash !== tokenHash);
+
+        // Issue new JWT
+        const newAccessToken = jwt.sign(
+            { id: user._id, email: user.email, role: user.role },
+            env.JWT_SECRET,
+            { expiresIn: env.JWT_EXPIRES_IN }
+        );
+
+        // Issue new refresh token (rotation)
+        const newRefreshToken = await generateRefreshToken(user);
+
+        res.json({
+            token: newAccessToken,
+            refreshToken: newRefreshToken,
+            user: { _id: user._id, email: user.email, name: user.name, role: user.role, plan: user.plan, isVerified: user.isVerified },
+        });
+    } catch (err) {
+        console.error('Refresh token error:', err);
+        res.status(500).json({ error: 'Token refresh failed' });
+    }
+});
+
+// ─── Server-side Logout — Revoke Refresh Token ───────────────────────
+router.post('/logout', auth, async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+
+        if (refreshToken) {
+            const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+            await User.updateOne(
+                { _id: req.user._id },
+                { $pull: { refreshTokens: { tokenHash } } }
+            );
+        }
+
+        res.json({ success: true, message: 'Logged out successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Logout failed' });
     }
 });
 

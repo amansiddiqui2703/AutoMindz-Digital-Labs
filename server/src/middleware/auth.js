@@ -17,9 +17,14 @@ const auth = async (req, res, next) => {
         const decoded = jwt.verify(token, env.JWT_SECRET);
         
         // Optional: Check if user still exists in DB
-        const user = await User.findById(decoded.id).select('_id email role isVerified plan planExpiresAt');
+        const user = await User.findById(decoded.id).select('_id email role isVerified plan planExpiresAt forceLogoutAt');
         if (!user) {
             return res.status(401).json({ error: 'User no longer exists' });
+        }
+
+        // Check admin force-logout: if JWT was issued before forceLogoutAt, reject it
+        if (user.forceLogoutAt && decoded.iat * 1000 < user.forceLogoutAt.getTime()) {
+            return res.status(401).json({ error: 'Session invalidated by admin. Please log in again.' });
         }
 
         // Admin Override: If user is in ADMIN_EMAILS, force role to admin, plan to unlimited, and auto-verify

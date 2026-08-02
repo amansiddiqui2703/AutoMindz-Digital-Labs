@@ -18,19 +18,22 @@ export default function GoogleAuthSuccess() {
     useEffect(() => {
         const token = searchParams.get('token');
         const code = searchParams.get('code');
+        const urlRefreshToken = searchParams.get('refreshToken');
 
         const handle = async () => {
             try {
                 let jwt = token;
+                let refreshToken = urlRefreshToken;
 
                 if (!jwt && code) {
-                    // Exchange short-lived server code for JWT
+                    // Exchange short-lived server code for JWT + Refresh Token
                     const res = await api.get(`/auth/google/token?code=${code}`);
                     jwt = res.data.token;
+                    refreshToken = res.data.refreshToken;
                 }
 
                 if (jwt) {
-                    await setTokenAndUser(jwt);
+                    await setTokenAndUser(jwt, refreshToken);
                     navigate('/dashboard', { replace: true });
                     return;
                 }

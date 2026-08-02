@@ -53,6 +53,14 @@ const userSchema = new mongoose.Schema({
     resetPasswordExpires: { type: Date },
     loginAttempts: { type: Number, required: true, default: 0 },
     lockUntil: { type: Date },
+    // Persistent sessions — refresh tokens (hashed) with expiry
+    refreshTokens: [{
+        tokenHash: { type: String, required: true },
+        expiresAt: { type: Date, required: true },
+        createdAt: { type: Date, default: Date.now },
+    }],
+    // Admin force-logout — any JWT issued before this timestamp is invalid
+    forceLogoutAt: { type: Date },
 }, {
     timestamps: true,
 });

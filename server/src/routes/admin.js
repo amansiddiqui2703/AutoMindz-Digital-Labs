@@ -71,4 +71,23 @@ router.get('/users', async (req, res) => {
     }
 });
 
+// Force-logout a specific user (invalidates all sessions)
+router.post('/users/:id/force-logout', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        // Set forceLogoutAt to now — any JWT issued before this is rejected
+        user.forceLogoutAt = new Date();
+        // Clear all refresh tokens — user cannot silently refresh anymore
+        user.refreshTokens = [];
+        await user.save();
+
+        res.json({ success: true, message: `User ${user.email} has been force-logged out from all sessions.` });
+    } catch (err) {
+        console.error('Force-logout error:', err);
+        res.status(500).json({ error: 'Failed to force-logout user' });
+    }
+});
+
 export default router;

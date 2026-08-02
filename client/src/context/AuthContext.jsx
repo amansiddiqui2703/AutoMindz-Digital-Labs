@@ -41,6 +41,10 @@ export function AuthProvider({ children }) {
         // Set user directly from login response (no need for /auth/me re-fetch)
         skipMeFetch.current = true;
         localStorage.setItem('automindz_token', res.data.token);
+        // Store refresh token for persistent sessions (365 days)
+        if (res.data.refreshToken) {
+            localStorage.setItem('automindz_refresh_token', res.data.refreshToken);
+        }
         setUser(res.data.user);
         setToken(res.data.token);
         return res.data;
@@ -51,14 +55,22 @@ export function AuthProvider({ children }) {
         // Set user directly from register response (no need for /auth/me re-fetch)
         skipMeFetch.current = true;
         localStorage.setItem('automindz_token', res.data.token);
+        // Store refresh token for persistent sessions (365 days)
+        if (res.data.refreshToken) {
+            localStorage.setItem('automindz_refresh_token', res.data.refreshToken);
+        }
         setUser(res.data.user);
         setToken(res.data.token);
         return res.data;
     };
 
-    // For Google OAuth — receives JWT token directly and fetches user profile
-    const setTokenAndUser = async (jwtToken) => {
+    // For Google OAuth — receives JWT token + refresh token directly and fetches user profile
+    const setTokenAndUser = async (jwtToken, refreshToken) => {
         localStorage.setItem('automindz_token', jwtToken);
+        // Store refresh token for persistent sessions (365 days)
+        if (refreshToken) {
+            localStorage.setItem('automindz_refresh_token', refreshToken);
+        }
         try {
             setLoading(true);
             const res = await api.get('/auth/me');
@@ -74,8 +86,18 @@ export function AuthProvider({ children }) {
         }
     };
 
-    const logout = () => {
+    const logout = async () => {
+        // Server-side logout: revoke the refresh token in DB
+        const refreshToken = localStorage.getItem('automindz_refresh_token');
+        if (refreshToken && localStorage.getItem('automindz_token')) {
+            try {
+                await api.post('/auth/logout', { refreshToken });
+            } catch {
+                // Non-critical — token will expire naturally
+            }
+        }
         localStorage.removeItem('automindz_token');
+        localStorage.removeItem('automindz_refresh_token');
         setToken(null);
         setUser(null);
     };
