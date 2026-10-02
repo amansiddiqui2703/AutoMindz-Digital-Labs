@@ -11,7 +11,7 @@ export const cacheMiddleware = (ttlSeconds = 300) => async (req, res, next) => {
     }
 
     const redis = getRedis();
-    if (!redis || redis.status !== 'ready') {
+    if (!redis) {
         return next();
     }
 
@@ -45,7 +45,7 @@ export const cacheMiddleware = (ttlSeconds = 300) => async (req, res, next) => {
 
 export const clearCache = async (userId, pattern) => {
     const redis = getRedis();
-    if (!redis || redis.status !== 'ready') return;
+    if (!redis) return;
 
     try {
         const keys = await redis.keys(`cache:${userId}:${pattern}`);

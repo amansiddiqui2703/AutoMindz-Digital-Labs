@@ -15,7 +15,7 @@ const recipientSchema = new mongoose.Schema({
     nextFollowUpAt: Date,
     sequenceStatus: {
         type: String,
-        enum: ['active', 'completed', 'stopped_reply', 'stopped_unsubscribe', 'paused'],
+        enum: ['active', 'completed', 'stopped_reply', 'stopped_unsubscribe', 'stopped_bounce', 'paused'],
         default: 'active',
     },
     sentAt: Date,

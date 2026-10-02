@@ -52,8 +52,7 @@ import { handleRazorpayWebhook } from './services/razorpayWebhook.js';
 import { handleResendWebhook } from './services/webhookHandler.js';
 import sse from './services/sse.js';
 
-// Tracking & unsubscribe (public)
-import { recordUnsubscribe } from './services/tracking.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -115,6 +114,7 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms [r
 }));
 
 app.post('/api/v1/billing/webhook', express.raw({ type: 'application/json' }), handleRazorpayWebhook);
+app.post('/api/v1/webhooks/resend', express.json(), handleResendWebhook);
 
 // Add express-json only after the raw webhook route
 app.use(express.json({ limit: '10mb' }));

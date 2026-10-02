@@ -25,13 +25,14 @@ const config = {
         fromSupport: env.EMAIL_FROM_SUPPORT || '"AutoMindz Support" <support@automindz.com>',
         fromOnboarding: env.EMAIL_FROM_ONBOARDING || '"AutoMindz Team" <onboarding@automindz.com>',
     },
-    stripe: {
-        secretKey: env.STRIPE_SECRET_KEY,
-        webhookSecret: env.STRIPE_WEBHOOK_SECRET,
-        prices: {
-            starter: env.STRIPE_PRICE_STARTER,
-            growth: env.STRIPE_PRICE_GROWTH,
-            pro: env.STRIPE_PRICE_PRO,
+    razorpay: {
+        keyId: env.RAZORPAY_KEY_ID,
+        keySecret: env.RAZORPAY_KEY_SECRET,
+        webhookSecret: env.RAZORPAY_WEBHOOK_SECRET,
+        plans: {
+            starter: env.RAZORPAY_PLAN_STARTER,
+            growth: env.RAZORPAY_PLAN_GROWTH,
+            pro: env.RAZORPAY_PLAN_PRO,
         },
     },
     google: {

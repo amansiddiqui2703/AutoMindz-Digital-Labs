@@ -55,10 +55,10 @@ const gmailAccountSchema = new mongoose.Schema({
 
 // --- Auto-encrypt tokens before saving ---
 gmailAccountSchema.pre('save', function (next) {
-    if (this.isModified('accessToken') && this.accessToken && !this.accessToken.startsWith('enc:')) {
+    if (this.isModified('accessToken') && this.accessToken && !this.accessToken.startsWith('enc:') && !this.accessToken.startsWith('enc2:')) {
         this.accessToken = encrypt(this.accessToken);
     }
-    if (this.isModified('refreshToken') && this.refreshToken && !this.refreshToken.startsWith('enc:')) {
+    if (this.isModified('refreshToken') && this.refreshToken && !this.refreshToken.startsWith('enc:') && !this.refreshToken.startsWith('enc2:')) {
         this.refreshToken = encrypt(this.refreshToken);
     }
     next();

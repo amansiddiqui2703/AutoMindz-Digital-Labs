@@ -22,9 +22,9 @@ const trackingEventSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-const TrackingEvent = mongoose.model('TrackingEvent', trackingEventSchema);
-
 // Compound index for efficient event lookups
 trackingEventSchema.index({ trackingId: 1, type: 1 });
+
+const TrackingEvent = mongoose.model('TrackingEvent', trackingEventSchema);
 
 export default TrackingEvent;
