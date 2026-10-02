@@ -60,6 +60,9 @@ const __dirname = dirname(__filename);
 
 const app = express();
 
+// SECURITY FIX: Trust proxy so rate limiters don't block all users sharing the same LB IP
+app.set('trust proxy', 1);
+
 // Sentry is initialized in instrument.js via --import flag (ESM requirement)
 
 // Middleware
