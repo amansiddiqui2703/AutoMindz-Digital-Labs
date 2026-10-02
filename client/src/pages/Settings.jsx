@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import api from '../api/client';
 import toast from 'react-hot-toast';
 import {
     User, Shield, Moon, Sun, Mail, Globe, BookOpen, CheckCircle, ExternalLink
