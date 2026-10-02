@@ -4,6 +4,24 @@ import Link from '../models/Link.js';
 
 const router = Router();
 
+const isSafeUrl = (urlStr) => {
+    try {
+        const url = new URL(urlStr);
+        if (!['http:', 'https:'].includes(url.protocol)) return false;
+        
+        const host = url.hostname.toLowerCase();
+        const blocklist = ['localhost', '127.0.0.1', '169.254.169.254', '0.0.0.0', '::1'];
+        if (blocklist.includes(host)) return false;
+        if (host.startsWith('10.') || host.startsWith('192.168.')) return false;
+        if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)) return false;
+        if (host.endsWith('.local') || host.endsWith('.internal')) return false;
+
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 // List links
 router.get('/', auth, async (req, res) => {
     try {
@@ -103,6 +121,9 @@ router.post('/:id/check', auth, async (req, res) => {
         let httpStatus = 0;
 
         try {
+            if (!isSafeUrl(link.targetUrl)) {
+                throw new Error('Unsafe URL');
+            }
             const response = await fetch(link.targetUrl, {
                 headers: { 'User-Agent': 'AutoMindz Link Checker/1.0' },
                 signal: AbortSignal.timeout(15000),
@@ -167,6 +188,9 @@ router.post('/bulk-check', auth, async (req, res) => {
         // Run checks asynchronously (don't block response)
         for (const link of links) {
             try {
+                if (!isSafeUrl(link.targetUrl)) {
+                    throw new Error('Unsafe URL');
+                }
                 const response = await fetch(link.targetUrl, {
                     headers: { 'User-Agent': 'AutoMindz Link Checker/1.0' },
                     signal: AbortSignal.timeout(10000),
