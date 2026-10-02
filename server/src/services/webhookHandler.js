@@ -7,6 +7,7 @@ import logger from '../utils/logger.js';
 import env from '../config/env.js';
 import axios from 'axios';
 import User from '../models/User.js';
+import Contact from '../models/Contact.js';
 
 export const fireUserWebhook = async (userId, type, payload) => {
     try {
@@ -137,6 +138,10 @@ export const handleResendWebhook = async (req, res) => {
                         { $set: { 'recipients.$.status': 'bounced', 'recipients.$.sequenceStatus': 'completed' } }
                     );
                 }
+                
+                if (emailLog.contactId) {
+                    await Contact.findByIdAndUpdate(emailLog.contactId, { status: 'bounced' });
+                }
 
                 // Increment bounce count on the sending account
                 if (emailLog.accountId) {
@@ -166,6 +171,10 @@ export const handleResendWebhook = async (req, res) => {
                     await Campaign.findByIdAndUpdate(emailLog.campaignId, {
                         $inc: { 'stats.unsubscribed': 1 }
                     });
+                }
+                
+                if (emailLog.contactId) {
+                    await Contact.findByIdAndUpdate(emailLog.contactId, { isUnsubscribed: true, status: 'unsubscribed' });
                 }
                 break;
             }
