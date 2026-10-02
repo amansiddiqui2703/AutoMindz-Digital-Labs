@@ -27,6 +27,7 @@ export const apiLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     skipSuccessfulRequests: false,
+    passOnStoreError: true,
     store: createStore(),
 });
 
@@ -36,6 +37,7 @@ export const authLimiter = rateLimit({
     message: { error: 'Too many auth attempts, please try again later.' },
     standardHeaders: true,
     legacyHeaders: false,
+    passOnStoreError: true,
     store: createStore(),
 });
 
@@ -45,6 +47,7 @@ export const inboxSyncLimiter = rateLimit({
     message: { error: 'Inbox sync rate limit exceeded. Please wait before syncing again.' },
     standardHeaders: true,
     legacyHeaders: false,
+    passOnStoreError: true,
     store: createStore(),
 });
 
@@ -54,6 +57,7 @@ export const campaignLaunchLimiter = rateLimit({
     message: { error: 'Too many campaign launches. Please wait before launching again.' },
     standardHeaders: true,
     legacyHeaders: false,
+    passOnStoreError: true,
     store: createStore(),
 });
 
@@ -63,5 +67,6 @@ export const aiLimiter = rateLimit({
     message: { error: 'AI rate limit reached. Please slow down.' },
     standardHeaders: true,
     legacyHeaders: false,
+    passOnStoreError: true,
     store: createStore(),
 });

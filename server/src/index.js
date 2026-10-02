@@ -59,6 +59,13 @@ const __dirname = dirname(__filename);
 
 const app = express();
 
+// Trust proxy so req.ip returns the real client IP behind reverse proxies (Render, nginx, etc.)
+// TRUST_PROXY env: '1' = trust first proxy (default), '2' = two hops, 'false' = disable
+const trustProxy = process.env.TRUST_PROXY ?? '1';
+if (trustProxy !== 'false' && trustProxy !== '0') {
+    app.set('trust proxy', isNaN(Number(trustProxy)) ? trustProxy : Number(trustProxy));
+}
+
 // Sentry is initialized in instrument.js via --import flag (ESM requirement)
 
 // Middleware
