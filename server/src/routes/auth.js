@@ -68,13 +68,7 @@ router.post('/register', authLimiter, [
 
         const existingUser = await User.findOne({ email: email.toLowerCase() });
         if (existingUser) {
-            if (existingUser.googleId && !existingUser.password) {
-                return res.status(400).json({ error: 'This email is linked to Google sign-in. Please continue with Google.' });
-            }
-            if (!existingUser.isVerified) {
-                return res.status(409).json({ error: 'Email already registered but not verified. Please verify your email or resend the verification link.' });
-            }
-            return res.status(400).json({ error: 'Email already registered' });
+            return res.status(400).json({ error: 'Registration failed. Please check your details or try logging in.' });
         }
 
         const verificationToken = crypto.randomBytes(32).toString('hex');
@@ -143,12 +137,11 @@ router.post('/login', authLimiter, [
             await user.updateOne({ $set: { loginAttempts: 0 }, $unset: { lockUntil: 1 } });
         }
 
-        // Admin Override: Permanently set admin accounts to unlimited upon login
+        // Admin Override: Permanently set admin accounts to unlimited upon login (only if verified)
         const adminEmails = (env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-        if (adminEmails.includes(user.email.toLowerCase())) {
+        if (adminEmails.includes(user.email.toLowerCase()) && user.isVerified) {
             user.role = 'admin';
             user.plan = 'unlimited';
-            user.isVerified = true;
             await user.save();
         }
 
@@ -284,6 +277,8 @@ router.post('/reset-password/:token', authLimiter, [
         user.password = password;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
+        user.refreshTokens = [];
+        user.forceLogoutAt = new Date();
         await user.save();
 
         res.json({ success: true, message: 'Password reset successful' });
@@ -373,9 +368,9 @@ router.get('/google/callback', async (req, res) => {
                 if (!valid) {
                     console.warn('Invalid OAuth state received');
                     // Temporarily bypassing strict state validation to prevent login failures
-                    // if (env.NODE_ENV === 'production') {
-                    //     return res.redirect(`${env.APP_URL}/login?error=invalid_state`);
-                    // }
+                    if (env.NODE_ENV === 'production') {
+                        return res.redirect(`${env.APP_URL}/login?error=invalid_state`);
+                    }
                 } else {
                     await redis.del(`oauth_state:${state}`);
                 }
@@ -425,11 +420,16 @@ router.get('/google/callback', async (req, res) => {
             if (!user.googleId) {
                 user.googleId = profile.id;
                 needsSave = true;
+                if (!user.isVerified) {
+                    user.isVerified = true;
+                    user.password = undefined;
+                    user.verificationToken = undefined;
+                    user.refreshTokens = [];
+                }
             }
-            if (isAdmin && (user.role !== 'admin' || user.plan !== 'unlimited')) {
+            if (isAdmin && user.isVerified && (user.role !== 'admin' || user.plan !== 'unlimited')) {
                 user.role = 'admin';
                 user.plan = 'unlimited';
-                user.isVerified = true;
                 needsSave = true;
             }
             if (needsSave) await user.save();
@@ -531,6 +531,17 @@ router.post('/refresh', async (req, res) => {
 
         if (!user) {
             return res.status(401).json({ error: 'Invalid or expired refresh token' });
+        }
+        
+        // Respect forceLogoutAt
+        if (user.forceLogoutAt) {
+            const tokenRecord = user.refreshTokens.find(t => t.tokenHash === tokenHash);
+            if (tokenRecord) {
+                const issuedAt = new Date(tokenRecord.expiresAt.getTime() - (REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000));
+                if (issuedAt < user.forceLogoutAt) {
+                    return res.status(401).json({ error: 'Session invalidated. Please log in again.' });
+                }
+            }
         }
 
         // Remove the used refresh token (rotation — each token is single-use)

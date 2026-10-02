@@ -27,12 +27,11 @@ const auth = async (req, res, next) => {
             return res.status(401).json({ error: 'Session invalidated by admin. Please log in again.' });
         }
 
-        // Admin Override: If user is in ADMIN_EMAILS, force role to admin, plan to unlimited, and auto-verify
+        // Admin Override: If user is in ADMIN_EMAILS and verified, force role to admin, plan to unlimited
         const adminEmails = (env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-        if (adminEmails.includes(user.email.toLowerCase())) {
+        if (adminEmails.includes(user.email.toLowerCase()) && user.isVerified) {
             user.role = 'admin';
             user.plan = 'unlimited';
-            user.isVerified = true; // BUG FIX: Auto-verify admins so they don't get locked out during sign-in
         }
 
         // NOTE: Email verification is encouraged via UI but not enforced as an API blocker.
