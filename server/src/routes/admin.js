@@ -8,7 +8,12 @@ import { apiLimiter } from '../middleware/rateLimit.js';
 const router = Router();
 
 // Apply auth, rate limiting, and admin-only access to all admin routes
-router.use(auth, apiLimiter, authorize('admin'));
+router.use(auth, apiLimiter, (req, res, next) => {
+    if (req.user?.role !== 'admin') {
+        return res.status(403).json({ error: 'Forbidden: Admin access required' });
+    }
+    next();
+});
 
 // Get summary admin stats
 router.get('/stats', async (req, res) => {
