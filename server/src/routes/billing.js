@@ -181,6 +181,11 @@ router.post('/verify-payment', auth, authorize('admin', 'manager', 'user'), asyn
         // Fetch subscription from Razorpay to get the plan notes
         const rzp = getRazorpay();
         const sub = await rzp.subscriptions.fetch(razorpay_subscription_id);
+
+        if (sub.notes?.userId !== user._id.toString()) {
+            return res.status(403).json({ error: 'This subscription does not belong to you.' });
+        }
+
         const plan = sub.notes?.plan || 'starter';
 
         user.plan = plan;

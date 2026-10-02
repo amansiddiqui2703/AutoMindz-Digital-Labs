@@ -5,6 +5,7 @@ import env from '../config/env.js';
 export const handleRazorpayWebhook = async (req, res) => {
     try {
         const webhookSecret = env.RAZORPAY_WEBHOOK_SECRET || '';
+        if (!webhookSecret) return res.status(400).send('Webhook secret not configured');
         const signature = req.headers['x-razorpay-signature'] || '';
         
         // Verify signature using the raw body Buffer
@@ -25,14 +26,25 @@ export const handleRazorpayWebhook = async (req, res) => {
         const eventType = event.event;
         const payload = event.payload;
 
-        if (eventType === 'subscription.charged') {
+        if (eventType === 'subscription.charged' || eventType === 'subscription.activated') {
             const subscriptionId = payload.subscription.entity.id;
             const currentEnd = payload.subscription.entity.current_end;
+            const notes = payload.subscription.entity.notes || {};
+            const userId = notes.userId;
+            const plan = notes.plan || 'starter';
             
-            await User.findOneAndUpdate(
-                { razorpaySubscriptionId: subscriptionId },
-                { planExpiresAt: new Date(currentEnd * 1000) }
-            );
+            if (userId) {
+                await User.findByIdAndUpdate(userId, { 
+                    plan,
+                    razorpaySubscriptionId: subscriptionId,
+                    planExpiresAt: new Date(currentEnd * 1000) 
+                });
+            } else {
+                await User.findOneAndUpdate(
+                    { razorpaySubscriptionId: subscriptionId },
+                    { planExpiresAt: new Date(currentEnd * 1000) }
+                );
+            }
         } else if (eventType === 'subscription.cancelled' || eventType === 'subscription.halted') {
             const subscriptionId = payload.subscription.entity.id;
             
