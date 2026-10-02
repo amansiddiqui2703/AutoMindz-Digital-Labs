@@ -15,6 +15,26 @@ const escapeHtml = (input = '') => {
 // Tracking pixel (1x1 transparent GIF)
 const PIXEL = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
 
+router.param('trackingId', (req, res, next, id) => {
+    if (!/^[a-zA-Z0-9-]{24,36}$/.test(id)) {
+        if (req.path.endsWith('/open')) {
+            res.set({
+                'Content-Type': 'image/gif',
+                'Content-Length': PIXEL.length,
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+            });
+            return res.send(PIXEL);
+        }
+        if (req.path.endsWith('/click')) {
+            return res.redirect('/');
+        }
+        return res.status(400).send('Invalid tracking ID');
+    }
+    next();
+});
+
 router.get('/:trackingId/open', async (req, res) => {
     try {
         await recordOpen(req.params.trackingId, req.ip, req.headers['user-agent']);
