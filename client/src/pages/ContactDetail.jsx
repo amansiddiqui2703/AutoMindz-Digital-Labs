@@ -31,6 +31,8 @@ export default function ContactDetail() {
     const [saving, setSaving] = useState(false);
 
     const [followUpSending, setFollowUpSending] = useState(false);
+    const [followUpBody, setFollowUpBody] = useState('');
+    const [followUpEmailId, setFollowUpEmailId] = useState(null);
 
     // Stage
     const [updatingStage, setUpdatingStage] = useState(false);

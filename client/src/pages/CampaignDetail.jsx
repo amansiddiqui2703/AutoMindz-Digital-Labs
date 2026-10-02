@@ -1504,7 +1504,6 @@ export default function CampaignDetail() {
                     </div>
                 </div>
             )}
-            `}} />
         </div>
     );
 }

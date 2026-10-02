@@ -17,6 +17,17 @@ export function AuthProvider({ children }) {
     // Solution: use a ref to skip the /auth/me fetch when user is already set.
     const skipMeFetch = useRef(false);
 
+    const logout = async () => {
+        const refreshToken = localStorage.getItem('automindz_refresh_token');
+        if (refreshToken && localStorage.getItem('automindz_token')) {
+            try { await api.post('/auth/logout', { refreshToken }); } catch {}
+        }
+        localStorage.removeItem('automindz_token');
+        localStorage.removeItem('automindz_refresh_token');
+        setToken(null);
+        setUser(null);
+    };
+
     useEffect(() => {
         if (skipMeFetch.current) {
             // User was set directly in login/register — no need to re-fetch /auth/me
@@ -84,22 +95,6 @@ export function AuthProvider({ children }) {
             setLoading(false);
             throw err;
         }
-    };
-
-    const logout = async () => {
-        // Server-side logout: revoke the refresh token in DB
-        const refreshToken = localStorage.getItem('automindz_refresh_token');
-        if (refreshToken && localStorage.getItem('automindz_token')) {
-            try {
-                await api.post('/auth/logout', { refreshToken });
-            } catch {
-                // Non-critical — token will expire naturally
-            }
-        }
-        localStorage.removeItem('automindz_token');
-        localStorage.removeItem('automindz_refresh_token');
-        setToken(null);
-        setUser(null);
     };
 
     const fetchUser = async () => {
