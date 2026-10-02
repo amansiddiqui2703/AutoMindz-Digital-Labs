@@ -182,7 +182,7 @@ export const getAuthenticatedClient = async (account) => {
 /**
  * Send an email via Google Gmail API using OAuth2.
  */
-export const sendViaOAuth = async (account, { to, subject, htmlBody, plainBody, cc, bcc, displayName }) => {
+export const sendViaOAuth = async (account, { to, subject, htmlBody, plainBody, cc, bcc, displayName, trackingId }) => {
     // FIX 11: Validate required send fields
     if (!to || !subject) {
         throw new Error('Missing required fields: to, subject');
@@ -207,10 +207,11 @@ export const sendViaOAuth = async (account, { to, subject, htmlBody, plainBody, 
         `Subject: ${encodeMimeHeader(subject)}`,
         `MIME-Version: 1.0`,
         `Message-ID: ${customMessageId}`,
-        // BUG FIX #36: Add List-Unsubscribe header for better deliverability & compliance
-        `List-Unsubscribe: <${env.SERVER_URL}/t/unsubscribe/${customMessageId.replace(/[<>]/g, '')}>`,
-        `List-Unsubscribe-Post: List-Unsubscribe=One-Click`,
     ];
+    if (trackingId) {
+        mimeHeaders.push(`List-Unsubscribe: <${env.SERVER_URL}/t/unsubscribe/${trackingId}>`);
+        mimeHeaders.push(`List-Unsubscribe-Post: List-Unsubscribe=One-Click`);
+    }
     if (cc) mimeHeaders.push(`Cc: ${cc}`);
     if (bcc) mimeHeaders.push(`Bcc: ${bcc}`);
     mimeHeaders.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
@@ -258,7 +259,7 @@ export const sendViaOAuth = async (account, { to, subject, htmlBody, plainBody, 
  */
 export const replyViaOAuth = async (
     account,
-    { to, originalSubject, htmlBody, plainBody, displayName, previousMessageId, threadId: providedThreadId }
+    { to, originalSubject, htmlBody, plainBody, displayName, previousMessageId, threadId: providedThreadId, trackingId }
 ) => {
     // FIX 14: Validate required reply fields
     if (!to || !originalSubject) {
@@ -340,6 +341,10 @@ export const replyViaOAuth = async (
         `Message-ID: ${customMessageId}`,
         `Content-Type: multipart/alternative; boundary="${boundary}"`,
     ];
+    if (trackingId) {
+        mimeHeaders.push(`List-Unsubscribe: <${env.SERVER_URL}/t/unsubscribe/${trackingId}>`);
+        mimeHeaders.push(`List-Unsubscribe-Post: List-Unsubscribe=One-Click`);
+    }
     if (inReplyTo) {
         mimeHeaders.push(`In-Reply-To: ${inReplyTo}`);
         mimeHeaders.push(`References: ${inReplyTo}`);

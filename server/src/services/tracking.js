@@ -2,6 +2,7 @@ import TrackingEvent from '../models/TrackingEvent.js';
 import EmailLog from '../models/EmailLog.js';
 import Campaign from '../models/Campaign.js';
 import Suppression from '../models/Suppression.js';
+import Contact from '../models/Contact.js';
 import sse from './sse.js';
 
 export const recordOpen = async (trackingId, ip, userAgent) => {
@@ -62,6 +63,10 @@ export const recordUnsubscribe = async (trackingId) => {
 
     const emailLog = await EmailLog.findOne({ trackingId });
     if (emailLog) {
+        if (emailLog.contactId) {
+            await Contact.findByIdAndUpdate(emailLog.contactId, { isUnsubscribed: true });
+        }
+
         // Add to suppression list
         await Suppression.findOneAndUpdate(
             { userId: emailLog.userId, email: emailLog.to },

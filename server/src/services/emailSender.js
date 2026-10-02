@@ -96,6 +96,7 @@ export const sendEmail = async (account, { to, subject, htmlBody, plainBody, con
                 cc,
                 bcc,
                 displayName: account.displayName || account.email,
+                trackingId,
             });
         } else {
             result = await sendViaScript(account.scriptUrl, {

@@ -299,6 +299,7 @@ const processRecipientFollowUp = async (campaign, recipient) => {
             displayName: account.displayName || account.email,
             previousMessageId,
             threadId,
+            trackingId,
         };
 
         if (account.connectionType === 'oauth') {
