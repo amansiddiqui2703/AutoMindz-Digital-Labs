@@ -167,8 +167,26 @@ export const initQueue = () => {
             logger.info(`Email job ${job.id} completed`, { sent: result?.success, skipped: result?.skipped });
         });
 
-        emailQueue.on('failed', (job, err) => {
+        emailQueue.on('failed', async (job, err) => {
             logger.error(`Email job ${job.id} failed`, err, { email: job.data?.recipient?.email });
+            if (job.attemptsMade >= job.opts.attempts) {
+                try {
+                    await Campaign.updateOne(
+                        { _id: job.data.campaignId, 'recipients.email': job.data.recipient.email },
+                        { $set: { 'recipients.$.status': 'failed' } }
+                    );
+                    const campaign = await Campaign.findById(job.data.campaignId);
+                    if (campaign) {
+                        const pendingCount = campaign.recipients.filter(r => r.status === 'pending').length;
+                        if (pendingCount === 0 && campaign.followUps.length === 0) {
+                            campaign.status = 'completed';
+                            await campaign.save();
+                        }
+                    }
+                } catch (e) {
+                    logger.error(`Failed to mark recipient failed after max retries`, e);
+                }
+            }
         });
 
         console.log('✓ Email queue initialized');
@@ -246,9 +264,12 @@ const _enqueueCampaignInternal = async (campaign) => {
     let maxToday = campaign.dailyLimit || 200;
     // For Pro users, if dailyLimit is default, use a higher value
     if (userPlan === 'pro' && maxToday === 200) maxToday = 5000;
-    if (campaign.warmupMode && campaign.warmupDailyIncrease > 0) {
-        const daysSinceCreation = Math.max(1, Math.ceil((Date.now() - new Date(campaign.createdAt).getTime()) / (1000 * 60 * 60 * 24)));
-        maxToday = Math.min(maxToday, campaign.warmupDailyIncrease * daysSinceCreation);
+    if (campaign.warmupMode) {
+        const increase = campaign.warmupDailyIncrease > 0 ? campaign.warmupDailyIncrease : 10;
+        const startAmount = 10;
+        const daysSinceCreation = Math.max(0, Math.floor((Date.now() - new Date(campaign.createdAt).getTime()) / (1000 * 60 * 60 * 24)));
+        const warmupLimit = startAmount + (increase * daysSinceCreation);
+        maxToday = Math.min(maxToday, warmupLimit);
     }
 
     // Build set of already-contacted emails to skip duplicates
@@ -305,6 +326,7 @@ const _enqueueCampaignInternal = async (campaign) => {
             await emailQueue.add(jobData, {
                 delay: thisDelay,
                 priority: 10, // Normal priority; follow-ups use priority 5 (higher)
+                jobId: `${campaign._id}_${recipient.email.toLowerCase()}`,
             });
         } else {
             inMemoryJobs.push({ jobData, delayMs: thisDelay });
@@ -317,14 +339,10 @@ const _enqueueCampaignInternal = async (campaign) => {
             // Test/dev mode: near-instant sending
             minD = 0.5;
             maxD = 1;
-        } else if (isPro) {
-            // Pro/Growth plans: fast sending (2-5s between emails)
-            minD = 2;
-            maxD = 5;
         } else {
-            // Free/Starter plans: moderate pace (2-6s between emails)
-            minD = 2;
-            maxD = 6;
+            // Safe sending pace
+            minD = 30;
+            maxD = 120;
         }
 
         cumulativeDelay += randomDelay(minD, maxD);

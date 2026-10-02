@@ -118,10 +118,8 @@ export const sendEmail = async (account, { to, subject, htmlBody, plainBody, con
         if (result.gmailThreadId) emailLog.gmailThreadId = result.gmailThreadId;
         await emailLog.save();
 
-        // Update account stats
-        account.dailySentCount += 1;
-        account.totalSent += 1;
-        await account.save();
+        // Update account stats atomically
+        await account.updateOne({ $inc: { dailySentCount: 1, totalSent: 1 } });
 
         // BUG FIX #5/#7: Use actual Gmail IDs for InboxMessage, not the custom RFC message-id
         const inboxMsg = await InboxMessage.create({

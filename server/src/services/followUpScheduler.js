@@ -316,10 +316,8 @@ const processRecipientFollowUp = async (campaign, recipient) => {
         if (result.gmailThreadId) followUpLog.gmailThreadId = result.gmailThreadId;
         await followUpLog.save();
 
-        // 10. Update account stats
-        account.dailySentCount += 1;
-        account.totalSent += 1;
-        await account.save();
+        // 10. Update account stats atomically
+        await account.updateOne({ $inc: { dailySentCount: 1, totalSent: 1 } });
 
         // 11. Update campaign stats
         await Campaign.findByIdAndUpdate(campaign._id, { $inc: { 'stats.sent': 1 } });
