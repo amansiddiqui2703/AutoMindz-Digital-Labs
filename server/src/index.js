@@ -198,6 +198,24 @@ app.get('/api/v1/events', async (req, res) => {
 // Static files for uploads
 app.use('/uploads', express.static(resolve(__dirname, '../uploads')));
 
+// SEO endpoints
+app.get('/robots.txt', (req, res) => {
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.send(`User-agent: *\nAllow: /\nSitemap: ${env.APP_URL}/sitemap.xml`);
+});
+
+app.get('/sitemap.xml', (req, res) => {
+    res.setHeader('Content-Type', 'application/xml');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${env.APP_URL}/</loc><priority>1.0</priority></url>
+  <url><loc>${env.APP_URL}/login</loc><priority>0.8</priority></url>
+  <url><loc>${env.APP_URL}/register</loc><priority>0.8</priority></url>
+</urlset>`);
+});
+
 // API routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/accounts', accountRoutes);
@@ -248,6 +266,7 @@ app.get('/health', async (req, res) => {
   } catch { checks.redis = 'unknown'; }
 
   const isHealthy = checks.db === 'connected';
+  if (!isHealthy) checks.status = 'error';
   res.status(isHealthy ? 200 : 503).json(checks);
 });
 
