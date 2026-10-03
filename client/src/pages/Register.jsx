@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Zap, User, Mail, Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../api/client';
+import SEO from '../components/SEO.jsx';
 
 export default function Register() {
     const [name, setName] = useState('');
@@ -66,6 +67,10 @@ export default function Register() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-950 px-4">
+            <SEO 
+                title="Create Account | AutoMindz"
+                description="Sign up for AutoMindz to start your free trial. The ultimate AI-powered cold email outreach platform."
+            />
             <div className="w-full max-w-md animate-in">
                 <div className="flex items-center gap-3 mb-8 justify-center">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">

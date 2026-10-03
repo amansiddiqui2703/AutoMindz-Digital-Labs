@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Zap, Mail, Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../api/client';
+import SEO from '../components/SEO.jsx';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -69,6 +70,10 @@ export default function Login() {
 
     return (
         <div className="min-h-screen flex bg-surface-50 dark:bg-surface-950">
+            <SEO 
+                title="Login | AutoMindz"
+                description="Sign in to your AutoMindz account to launch and manage your cold email outreach campaigns."
+            />
             {/* Left decorative panel */}
             <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600 relative overflow-hidden flex-col justify-center px-16">
                 <div className="absolute inset-0 opacity-10">
