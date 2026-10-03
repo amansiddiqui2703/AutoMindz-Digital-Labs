@@ -1,0 +1,14 @@
+name = "keep-alive-pinger"
+main = "src/index.js"
+compatibility_date = "2023-10-02"
+
+[triggers]
+crons = ["*/10 * * * *"] # Runs every 10 minutes
+
+[vars]
+# Add your render app health URL here
+PING_URLS = "https://YOUR-APP.onrender.com/health"
+
+[[kv_namespaces]]
+binding = "PING_RESULTS"
+id = "REPLACE_WITH_YOUR_KV_ID"
