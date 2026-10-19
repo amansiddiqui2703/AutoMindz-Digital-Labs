@@ -48,6 +48,9 @@ const BlogIndex = lazy(() => import('./pages/BlogIndex'));
 const BlogDeliverability = lazy(() => import('./pages/BlogDeliverability'));
 const BlogSolveDroughts = lazy(() => import('./pages/BlogSolveDroughts'));
 const BlogSpamIssues = lazy(() => import('./pages/BlogSpamIssues'));
+const BlogEmailFinder = lazy(() => import('./pages/BlogEmailFinder'));
+const BlogAiOutreach = lazy(() => import('./pages/BlogAiOutreach'));
+const BlogMultiInbox = lazy(() => import('./pages/BlogMultiInbox'));
 
 // Loading spinner for lazy-loaded routes
 function PageLoader() {
@@ -93,6 +96,9 @@ export default function App() {
               <Route path="/blog/deliverability-hacks" element={<BlogDeliverability />} />
               <Route path="/blog/solve-b2b-sales-droughts" element={<BlogSolveDroughts />} />
               <Route path="/blog/escaping-spam-folder" element={<BlogSpamIssues />} />
+              <Route path="/blog/how-to-find-business-emails-from-website" element={<BlogEmailFinder />} />
+              <Route path="/blog/ai-cold-email-outreach-strategy" element={<BlogAiOutreach />} />
+              <Route path="/blog/multi-inbox-cold-email-rotation" element={<BlogMultiInbox />} />
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/pipeline" element={<Pipeline />} />

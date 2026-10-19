@@ -47,6 +47,96 @@ export default function BlogIndex() {
         {/* Blog Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             
+            {/* New Post 1: B2B Email Finder */}
+            <Link to="/blog/how-to-find-business-emails-from-website" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
+                <div className="h-48 overflow-hidden relative">
+                    <img 
+                        src="/blog/b2b-email-finder-guide.jpg" 
+                        alt="How to Find Business Emails From Any Website for Free" 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-4 left-4 bg-white/90 dark:bg-surface-900/90 backdrop-blur-md text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md text-primary-600 shadow-sm">
+                        Lead Generation
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 text-xs text-surface-500 mb-3">
+                        <span className="font-semibold text-primary-600">Aman Siddiqui</span>
+                        <span>•</span>
+                        <span>9 min read</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-surface-900 dark:text-white mb-3 group-hover:text-primary-500 transition-colors">
+                        How to Find Business Emails From Any Website for Free (2026 Guide)
+                    </h3>
+                    <p className="text-sm text-surface-500 mb-6 flex-1 line-clamp-3">
+                        Step-by-step blueprint to find direct decision-maker emails without paying for expensive contact databases.
+                    </p>
+                    <div className="flex items-center text-primary-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                        Read Article <ArrowRight className="w-4 h-4 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
+            {/* New Post 2: AI Cold Email Outreach */}
+            <Link to="/blog/ai-cold-email-outreach-strategy" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
+                <div className="h-48 overflow-hidden relative">
+                    <img 
+                        src="/blog/ai-cold-email-outreach.jpg" 
+                        alt="AI Cold Email Outreach Strategy for B2B Sales" 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-4 left-4 bg-white/90 dark:bg-surface-900/90 backdrop-blur-md text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md text-purple-600 shadow-sm">
+                        AI Outreach
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 text-xs text-surface-500 mb-3">
+                        <span className="font-semibold text-primary-600">Aman Siddiqui</span>
+                        <span>•</span>
+                        <span>10 min read</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-surface-900 dark:text-white mb-3 group-hover:text-primary-500 transition-colors">
+                        AI Cold Email Outreach: How to 5x Your B2B Reply Rates in 2026
+                    </h3>
+                    <p className="text-sm text-surface-500 mb-6 flex-1 line-clamp-3">
+                        Learn how revenue teams deploy Gemini AI to compose hyper-personalized emails that convert at 20%+ rates.
+                    </p>
+                    <div className="flex items-center text-primary-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                        Read Article <ArrowRight className="w-4 h-4 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
+            {/* New Post 3: Multi-Inbox Rotation */}
+            <Link to="/blog/multi-inbox-cold-email-rotation" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
+                <div className="h-48 overflow-hidden relative">
+                    <img 
+                        src="/blog/multi-inbox-rotation-guide.jpg" 
+                        alt="Multi-Inbox Cold Email Rotation Deliverability" 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-4 left-4 bg-white/90 dark:bg-surface-900/90 backdrop-blur-md text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md text-green-600 shadow-sm">
+                        Deliverability
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 text-xs text-surface-500 mb-3">
+                        <span className="font-semibold text-primary-600">Aman Siddiqui</span>
+                        <span>•</span>
+                        <span>8 min read</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-surface-900 dark:text-white mb-3 group-hover:text-primary-500 transition-colors">
+                        Multi-Inbox Cold Email Rotation: Scale Without Spam Filters
+                    </h3>
+                    <p className="text-sm text-surface-500 mb-6 flex-1 line-clamp-3">
+                        How to horizontally scale outreach across multiple accounts, configure DNS, and protect your primary domain reputation.
+                    </p>
+                    <div className="flex items-center text-primary-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                        Read Article <ArrowRight className="w-4 h-4 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
             {/* Post 1 */}
             <Link to="/blog/best-free-cold-email-software" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
                 <div className="h-48 bg-gradient-to-br from-primary-500/10 to-accent-500/10 flex items-center justify-center p-6 relative overflow-hidden">
