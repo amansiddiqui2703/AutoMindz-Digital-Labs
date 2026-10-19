@@ -3,11 +3,10 @@ main = "src/index.js"
 compatibility_date = "2023-10-02"
 
 [triggers]
-crons = ["*/10 * * * *"] # Runs every 10 minutes
+crons = ["*/5 * * * *"] # Runs every 5 minutes so Render never sleeps!
 
 [vars]
-# Add your render app health URL here
-PING_URLS = "https://YOUR-APP.onrender.com/health"
+PING_URLS = "https://new-outreach-system.onrender.com/health,https://new-outreach-system.onrender.com/"
 
 [[kv_namespaces]]
 binding = "PING_RESULTS"

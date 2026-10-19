@@ -147,12 +147,23 @@ const sseTicketLimiter = rateLimit({
     legacyHeaders: false,
 });
 
+// In-memory ticket storage fallback for SSE when Redis is unavailable or quota exceeded
+const memoryTickets = new Map();
+
 app.post('/api/v1/events/ticket', auth, sseTicketLimiter, async (req, res) => {
     try {
         const ticket = crypto.randomBytes(32).toString('hex');
         const redis = getRedis();
-        if (!redis) return res.status(503).json({ error: 'Redis is not available for SSE ticket.' });
-        await redis.set(`sse_ticket:${ticket}`, req.user.id, 'EX', 30);
+        if (redis) {
+            try {
+                await redis.set(`sse_ticket:${ticket}`, req.user.id, 'EX', 30);
+                return res.json({ ticket });
+            } catch {
+                // Fallback to memory below if Redis call fails
+            }
+        }
+        memoryTickets.set(ticket, { userId: req.user.id, expiresAt: Date.now() + 30000 });
+        setTimeout(() => memoryTickets.delete(ticket), 35000);
         res.json({ ticket });
     } catch (err) {
         res.status(500).json({ error: 'Failed to generate SSE ticket' });
@@ -164,20 +175,32 @@ app.get('/api/v1/events', async (req, res) => {
     if (!ticket) return res.status(401).json({ error: 'Auth ticket missing' });
 
     try {
+        let userId = null;
         const redis = getRedis();
-        if (!redis) return res.status(503).json({ error: 'Redis is not available.' });
-        
-        const userId = await redis.get(`sse_ticket:${ticket}`);
+        if (redis) {
+            try {
+                userId = await redis.get(`sse_ticket:${ticket}`);
+                if (userId) await redis.del(`sse_ticket:${ticket}`);
+            } catch {
+                // Fallback to memory below if Redis call fails
+            }
+        }
+
+        if (!userId) {
+            const mem = memoryTickets.get(ticket);
+            if (mem && mem.expiresAt > Date.now()) {
+                userId = mem.userId;
+                memoryTickets.delete(ticket);
+            }
+        }
+
         if (!userId) return res.status(401).json({ error: 'Invalid or expired ticket' });
-        
-        // Delete ticket so it is one-time use
-        await redis.del(`sse_ticket:${ticket}`);
 
         // Establish SSE Connection Context
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
-        // Tell nginx to stop buffering immediately if there's a proxy between us
+        // Tell nginx/render to stop buffering immediately
         res.setHeader('X-Accel-Buffering', 'no');
         
         // Push initial connect handshake
@@ -238,10 +261,14 @@ app.get('/health', async (req, res) => {
     checks.db = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
   } catch { checks.db = 'unknown'; }
   try {
-    const { getRedis } = await import('./config/redis.js');
-    const redis = getRedis();
-    checks.redis = redis ? (redis.status === 'ready' ? 'connected' : redis.status) : 'disabled';
-  } catch { checks.redis = 'unknown'; }
+    const { getRedis, isRedisQuotaExceeded } = await import('./config/redis.js');
+    if (isRedisQuotaExceeded()) {
+      checks.redis = 'in_memory_fallback (quota_exceeded)';
+    } else {
+      const redis = getRedis();
+      checks.redis = redis ? (redis.status === 'ready' ? 'connected' : redis.status) : 'in_memory_fallback';
+    }
+  } catch { checks.redis = 'in_memory_fallback'; }
 
   const isHealthy = checks.db === 'connected';
   res.status(isHealthy ? 200 : 503).json(checks);
@@ -290,15 +317,15 @@ const start = async () => {
   await connectDB();
   const redisConn = connectRedis();
   
-  // Wait for Redis to be connected before initializing the queue
+  // Wait for Redis to be connected before initializing the queue (max 3s timeout)
   if (redisConn) {
     await new Promise((resolve) => {
       if (redisConn.status === 'ready') { resolve(); return; }
       redisConn.once('ready', resolve);
+      redisConn.once('error', resolve);
       setTimeout(() => {
-        console.warn('⚠ Redis connection timed out — proceeding with in-memory fallback');
         resolve();
-      }, 10000);
+      }, 3000);
     });
   }
   

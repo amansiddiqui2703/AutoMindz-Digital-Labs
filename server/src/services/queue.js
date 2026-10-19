@@ -7,15 +7,101 @@ import Suppression from '../models/Suppression.js';
 import EmailLog from '../models/EmailLog.js';
 import User from '../models/User.js';
 import logger from '../utils/logger.js';
-import { getRedis } from '../config/redis.js';
+import { getRedis, isRedisQuotaExceeded, handleQuotaExceeded, isQuotaError } from '../config/redis.js';
 
 let emailQueue = null;
 
-// ISSUE 7 FIX: Prevent duplicate campaign enqueue if /launch is called twice rapidly.
-// In-process guard — campaign IDs are added before enqueue, removed after.
+// Dedicated High-Performance In-Memory Queue (Used when Redis is down or Upstash quota exceeded)
+class InMemoryQueueManager {
+    constructor() {
+        this.activeCount = 0;
+        this.completedCount = 0;
+        this.failedCount = 0;
+        this.jobs = new Map(); // jobId -> { jobData, timer, status, campaignId }
+        this.jobCounter = 1;
+    }
+
+    async add(jobData, { delay = 0 } = {}) {
+        const jobId = `mem_${Date.now()}_${this.jobCounter++}`;
+        const campaignIdStr = jobData.campaignId?.toString();
+
+        const jobEntry = {
+            id: jobId,
+            campaignId: campaignIdStr,
+            jobData,
+            delay,
+            status: delay > 0 ? 'delayed' : 'waiting',
+            timer: null,
+        };
+
+        this.jobs.set(jobId, jobEntry);
+
+        jobEntry.timer = setTimeout(async () => {
+            jobEntry.status = 'active';
+            this.activeCount++;
+            try {
+                // Ensure campaign hasn't been paused or canceled while waiting
+                if (campaignIdStr) {
+                    const currentCampaign = await Campaign.findById(campaignIdStr).select('status');
+                    if (currentCampaign && currentCampaign.status !== 'running') {
+                        logger.info(`In-memory job skipped: Campaign ${campaignIdStr} status is ${currentCampaign.status}`);
+                        return;
+                    }
+                }
+
+                const result = await processEmailJob(jobData);
+                this.completedCount++;
+                logger.info(`✓ In-memory email job completed (${jobId})`, { sent: result?.success, email: jobData.recipient?.email });
+            } catch (err) {
+                this.failedCount++;
+                logger.error(`❌ In-memory email job failed (${jobId}):`, err?.message || err);
+            } finally {
+                this.activeCount = Math.max(0, this.activeCount - 1);
+                this.jobs.delete(jobId);
+            }
+        }, Math.max(0, delay));
+
+        return { id: jobId };
+    }
+
+    pause(campaignId) {
+        const idStr = campaignId?.toString();
+        let cleared = 0;
+        for (const [jobId, entry] of this.jobs.entries()) {
+            if (entry.campaignId === idStr) {
+                if (entry.timer) clearTimeout(entry.timer);
+                this.jobs.delete(jobId);
+                cleared++;
+            }
+        }
+        if (cleared > 0) {
+            logger.info(`Cleared ${cleared} pending in-memory jobs for campaign ${idStr}`);
+        }
+    }
+
+    getStats() {
+        let waiting = 0;
+        let delayed = 0;
+        for (const entry of this.jobs.values()) {
+            if (entry.status === 'delayed') delayed++;
+            else if (entry.status === 'waiting') waiting++;
+        }
+        return {
+            waiting,
+            active: this.activeCount,
+            completed: this.completedCount,
+            failed: this.failedCount,
+            delayed,
+        };
+    }
+}
+
+export const inMemoryQueue = new InMemoryQueueManager();
+
+// Prevent duplicate campaign enqueue if /launch is called twice rapidly
 const _enqueuingCampaigns = new Set();
 
-// BUG-H3 FIX: Per-user in-memory lock to prevent race conditions when selecting accounts concurrently
+// Per-user in-memory lock to prevent race conditions when selecting accounts concurrently
 const userLocks = new Map();
 const acquireLock = async (userId) => {
     const idStr = userId.toString();
@@ -37,7 +123,6 @@ export const processEmailJob = async (data) => {
         return { skipped: true, reason: 'suppressed', email: recipient.email };
     }
 
-    // BUG-H3 FIX: Acquire lock before selecting account to prevent concurrent quota exhaustion
     await acquireLock(userId);
     let account;
     try {
@@ -122,7 +207,6 @@ export const processEmailJob = async (data) => {
             $inc: { 'stats.failed': 1 },
         });
         
-        // BUG-M6 FIX: Update recipient status to failed so the campaign doesn't get stuck
         await Campaign.updateOne(
             { _id: campaignId, 'recipients.email': recipient.email },
             { $set: { 'recipients.$.status': 'failed' } }
@@ -133,29 +217,57 @@ export const processEmailJob = async (data) => {
 };
 
 export const initQueue = () => {
+    // If Redis quota is already exceeded or in-memory mode requested, run pure in-memory
+    if (isRedisQuotaExceeded() || env.USE_IN_MEMORY_QUEUE === 'true' || !env.REDIS_URL) {
+        console.log('⚡ Running Email Queue in In-Memory Mode (No Redis quota used, zero limits)');
+        emailQueue = null;
+        return null;
+    }
+
     try {
-        // Bull creates its own ioredis connections from the URL - no need to check getRedis()
         const isUpstash = env.REDIS_URL.startsWith('rediss://');
 
         emailQueue = new Queue('emailQueue', env.REDIS_URL, {
             redis: {
                 maxRetriesPerRequest: null,
                 enableReadyCheck: false,
+                retryStrategy: (times) => {
+                    if (isRedisQuotaExceeded()) return null;
+                    return Math.min(times * 1000, 15000);
+                },
+                reconnectOnError: (err) => {
+                    if (isQuotaError(err.message)) {
+                        handleQuotaExceeded(err.message);
+                        return false;
+                    }
+                    return false;
+                },
                 ...(isUpstash ? { tls: { rejectUnauthorized: false } } : {}),
             },
             defaultJobOptions: {
-                removeOnComplete: 100, // Keep last 100 successful jobs
-                removeOnFail: 500,     // Keep last 500 failed jobs for debugging
-                attempts: 5,           // Retry 5 times
+                removeOnComplete: 50,
+                removeOnFail: 200,
+                attempts: 3,
                 backoff: {
                     type: 'exponential',
-                    delay: 10000 // Start with 10s delay
+                    delay: 10000,
                 },
             },
         });
 
         emailQueue.on('error', (err) => {
-            logger.warn('Email queue error', { message: err.message });
+            if (isQuotaError(err.message)) {
+                handleQuotaExceeded(err.message);
+                try {
+                    emailQueue.close().catch(() => {});
+                } catch {
+                    /* ignore */
+                }
+                emailQueue = null;
+                console.warn('⚠️ Bull Queue disabled due to Redis quota limit — seamless switch to In-Memory Queue completed.');
+            } else {
+                logger.warn('Email queue error', { message: err.message });
+            }
         });
 
         // Process up to 3 emails concurrently for faster delivery
@@ -171,42 +283,33 @@ export const initQueue = () => {
             logger.error(`Email job ${job.id} failed`, err, { email: job.data?.recipient?.email });
         });
 
-        console.log('✓ Email queue initialized');
+        console.log('✓ Email queue initialized with Redis');
         return emailQueue;
     } catch (error) {
-        console.warn('⚠ Queue initialization failed:', error.message);
+        if (isQuotaError(error.message)) {
+            handleQuotaExceeded(error.message);
+        }
+        console.warn('⚠ Redis Queue initialization bypassed, using In-Memory Queue:', error.message);
+        emailQueue = null;
         return null;
     }
 };
 
-/**
- * Generate a random delay between min and max seconds (in milliseconds).
- * Defaults reduced to 5-15s to balance deliverability with speed.
- * Gmail rate limit is ~2000/day, not per-second, so 5s gaps are safe.
- */
 const randomDelay = (minSec = 5, maxSec = 15) => {
     return (Math.floor(Math.random() * (maxSec - minSec + 1)) + minSec) * 1000;
 };
 
-/**
- * Check if the current time is within the allowed sending window (8am-6pm)
- * in the user's configured timezone.
- */
 const isWithinSendingWindow = (timezone = 'UTC') => {
-    return true; // Window is now 24/7 for immediate sending
+    return true; // 24/7 sending enabled
 };
 
-/**
- * Calculate milliseconds until the next 8am in the user's timezone.
- */
 const msUntilNextSendingWindow = (timezone = 'UTC') => {
-    return 0; // Immediate
+    return 0;
 };
 
 export const enqueueCampaign = async (campaign) => {
     const campaignIdStr = campaign._id.toString();
 
-    // ISSUE 7 FIX: Prevent double-enqueue if endpoint is called concurrently
     if (_enqueuingCampaigns.has(campaignIdStr)) {
         logger.warn(`Campaign ${campaignIdStr} is already being enqueued — ignoring duplicate call`);
         return;
@@ -223,7 +326,6 @@ export const enqueueCampaign = async (campaign) => {
 const _enqueueCampaignInternal = async (campaign) => {
     const hasABTest = !!campaign.subjectB;
 
-    // Get user details for limits and timezone
     let userTimezone = 'UTC';
     let userPlan = 'free';
     let userSignature = '';
@@ -234,24 +336,19 @@ const _enqueueCampaignInternal = async (campaign) => {
         if (user?.settings?.signature) userSignature = user.settings.signature;
     } catch { /* use defaults */ }
 
-    // Time-window check: if outside sending hours, calculate base delay offset
-    // Can be bypassed by setting DISABLE_SENDING_WINDOW=true in .env for testing
     let baseDelay = 0;
     if (!env.DISABLE_SENDING_WINDOW && !isWithinSendingWindow(userTimezone)) {
         baseDelay = msUntilNextSendingWindow(userTimezone);
         logger.info(`⏰ Outside sending window — delaying campaign start by ${Math.round(baseDelay / 60000)} minutes`);
     }
 
-    // Warmup mode: limit how many emails to send today
     let maxToday = campaign.dailyLimit || 200;
-    // For Pro users, if dailyLimit is default, use a higher value
     if (userPlan === 'pro' && maxToday === 200) maxToday = 5000;
     if (campaign.warmupMode && campaign.warmupDailyIncrease > 0) {
         const daysSinceCreation = Math.max(1, Math.ceil((Date.now() - new Date(campaign.createdAt).getTime()) / (1000 * 60 * 60 * 24)));
         maxToday = Math.min(maxToday, campaign.warmupDailyIncrease * daysSinceCreation);
     }
 
-    // Build set of already-contacted emails to skip duplicates
     const alreadyContacted = new Set();
     const existingLogs = await EmailLog.find(
         { campaignId: campaign._id, status: { $in: ['sent', 'queued'] } },
@@ -261,20 +358,17 @@ const _enqueueCampaignInternal = async (campaign) => {
 
     let enqueued = 0;
     let cumulativeDelay = baseDelay;
-    const inMemoryJobs = [];
 
     for (let i = 0; i < campaign.recipients.length; i++) {
         const recipient = campaign.recipients[i];
         if (recipient.status !== 'pending') continue;
         if (enqueued >= maxToday) break;
 
-        // Skip already-contacted leads (deduplication)
         if (alreadyContacted.has(recipient.email.toLowerCase())) {
             logger.info(`⏭ Skipping already-contacted: ${recipient.email}`);
             continue;
         }
 
-        // A/B test: randomly pick subject B for ~50% of recipients
         const useVariantB = hasABTest && Math.random() < 0.5;
         const selectedSubject = useVariantB ? campaign.subjectB : campaign.subject;
 
@@ -298,31 +392,38 @@ const _enqueueCampaignInternal = async (campaign) => {
             abVariant: useVariantB ? 'B' : 'A',
         };
 
-        // Random delay between 30-120 seconds per email (more human-like)
         const thisDelay = enqueued === 0 ? baseDelay : cumulativeDelay;
 
-        if (emailQueue) {
-            await emailQueue.add(jobData, {
-                delay: thisDelay,
-                priority: 10, // Normal priority; follow-ups use priority 5 (higher)
-            });
+        // Queue dispatch: Bull if available and healthy, otherwise In-Memory Queue
+        if (emailQueue && !isRedisQuotaExceeded()) {
+            try {
+                await emailQueue.add(jobData, {
+                    delay: thisDelay,
+                    priority: 10,
+                });
+            } catch (err) {
+                if (isQuotaError(err.message)) {
+                    handleQuotaExceeded(err.message);
+                    emailQueue = null;
+                }
+                // Seamless fallback to in-memory on error
+                await inMemoryQueue.add(jobData, { delay: thisDelay });
+            }
         } else {
-            inMemoryJobs.push({ jobData, delayMs: thisDelay });
+            // High-reliability In-Memory Queue
+            await inMemoryQueue.add(jobData, { delay: thisDelay });
         }
 
         const isPro = userPlan === 'pro' || userPlan === 'growth';
         let minD, maxD;
 
         if (env.DISABLE_SENDING_WINDOW) {
-            // Test/dev mode: near-instant sending
             minD = 0.5;
             maxD = 1;
         } else if (isPro) {
-            // Pro/Growth plans: fast sending (2-5s between emails)
             minD = 2;
             maxD = 5;
         } else {
-            // Free/Starter plans: moderate pace (2-6s between emails)
             minD = 2;
             maxD = 6;
         }
@@ -335,46 +436,24 @@ const _enqueueCampaignInternal = async (campaign) => {
     campaign.stats.total = campaign.recipients.length;
     await campaign.save();
 
-    if (campaign.warmupMode && enqueued < campaign.recipients.filter(r => r.status === 'pending').length) {
-        console.log(`🔥 Warmup mode: enqueued ${enqueued} of ${campaign.recipients.length} recipients today`);
-    }
-
-    // If Redis is not available, process jobs in-memory in the background
-    if (!emailQueue && inMemoryJobs.length > 0) {
-        if (env.NODE_ENV === 'production') {
-            logger.error('CRITICAL: Redis not available in production. In-memory fallback is disabled to prevent duplicate sends across scaled instances. Pausing campaign.');
-            campaign.status = 'paused';
-            await campaign.save();
-            return;
-        }
-
-        logger.warn('Redis not available — falling back to in-memory email processing (DEV/TEST ONLY)');
-        (async () => {
-            for (const { jobData, delayMs } of inMemoryJobs) {
-                try {
-                    if (delayMs > 0) await new Promise(resolve => setTimeout(resolve, delayMs));
-                    const checkCampaign = await Campaign.findById(campaign._id);
-                    if (checkCampaign && checkCampaign.status !== 'running') {
-                        logger.info(`Campaign ${campaign.name || campaign._id} no longer running — halting in-memory queue`);
-                        break;
-                    }
-                    const res = await processEmailJob(jobData);
-                    logger.info('In-memory email job', { sent: res?.success, email: jobData.recipient.email });
-                } catch (err) {
-                    logger.error('In-memory email job failed', err, { email: jobData?.recipient?.email });
-                }
-            }
-        })();
-    }
+    console.log(`🚀 Campaign "${campaign.name}" launched with ${enqueued} emails queued (${emailQueue ? 'Bull/Redis' : 'In-Memory'})`);
 };
 
 export const pauseQueue = async (campaignId) => {
-    if (!emailQueue) return;
-    // Remove waiting/delayed jobs for this specific campaign
-    const jobs = await emailQueue.getJobs(['waiting', 'delayed']);
-    for (const job of jobs) {
-        if (job.data.campaignId?.toString() === campaignId?.toString()) {
-            await job.remove();
+    // 1. Pause In-Memory Queue
+    inMemoryQueue.pause(campaignId);
+
+    // 2. Pause Bull Queue if active
+    if (emailQueue && !isRedisQuotaExceeded()) {
+        try {
+            const jobs = await emailQueue.getJobs(['waiting', 'delayed']);
+            for (const job of jobs) {
+                if (job.data.campaignId?.toString() === campaignId?.toString()) {
+                    await job.remove();
+                }
+            }
+        } catch {
+            /* ignore */
         }
     }
 };
@@ -386,15 +465,21 @@ export const resumeQueue = async (campaignId) => {
 };
 
 export const getQueueStats = async () => {
-    if (!emailQueue) return null;
-    const [waiting, active, completed, failed, delayed] = await Promise.all([
-        emailQueue.getWaitingCount(),
-        emailQueue.getActiveCount(),
-        emailQueue.getCompletedCount(),
-        emailQueue.getFailedCount(),
-        emailQueue.getDelayedCount(),
-    ]);
-    return { waiting, active, completed, failed, delayed };
+    if (emailQueue && !isRedisQuotaExceeded()) {
+        try {
+            const [waiting, active, completed, failed, delayed] = await Promise.all([
+                emailQueue.getWaitingCount(),
+                emailQueue.getActiveCount(),
+                emailQueue.getCompletedCount(),
+                emailQueue.getFailedCount(),
+                emailQueue.getDelayedCount(),
+            ]);
+            return { waiting, active, completed, failed, delayed };
+        } catch {
+            return inMemoryQueue.getStats();
+        }
+    }
+    return inMemoryQueue.getStats();
 };
 
 export { emailQueue };

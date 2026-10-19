@@ -1,0 +1,32 @@
+name: Render 24/7 Keep-Alive Robot
+
+on:
+  schedule:
+    # Runs every 5 minutes so Render free-tier never goes to sleep (15 min inactivity timer)
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  ping-render:
+    name: Ping AutoMindz on Render
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Ping Health Endpoint
+        run: |
+          echo "🤖 Keep-Alive Robot waking up Render..."
+          URL="https://new-outreach-system.onrender.com/health"
+          echo "Hitting $URL at $(date -u)"
+          
+          # Retry up to 2 times with 30s timeout
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -m 30 --retry 2 "$URL" || true)
+          echo "Health Endpoint Status Code: $STATUS"
+          
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            echo "✅ Render is awake and healthy!"
+          else
+            echo "⚠️ Health check returned $STATUS, pinging root URL as fallback..."
+            FALLBACK_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -m 30 "https://new-outreach-system.onrender.com/" || true)
+            echo "Root URL Status Code: $FALLBACK_STATUS"
+          fi

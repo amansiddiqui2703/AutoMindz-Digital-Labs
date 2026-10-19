@@ -1,23 +1,29 @@
 import rateLimit from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
-import { getRedis } from '../config/redis.js';
+import { getRedis, isRedisQuotaExceeded } from '../config/redis.js';
 
-// Factory for store to avoid throwing if redis is missing
+// Safe store: executes Redis commands if available, but catches any quota/network errors so requests NEVER crash!
 const createStore = () => {
     return new RedisStore({
-        sendCommand: (...args) => {
-            const redis = getRedis();
-            if (redis) return redis.call(...args);
-            // Fallback to avoid crashing the request if Redis is down
-            return Promise.reject(new Error('Redis not available'));
+        sendCommand: async (...args) => {
+            try {
+                if (isRedisQuotaExceeded()) return null;
+                const redis = getRedis();
+                if (redis) {
+                    return await redis.call(...args);
+                }
+            } catch {
+                // Catch any Upstash quota exceeded or network disconnect error
+                return null;
+            }
+            return null;
         },
     });
 };
 
 /**
- * HARDENING: Granular rate limiters per endpoint category.
- * Previously a single 200req/15min limiter covered all API routes,
- * making it trivial to spam auth and inbox-sync endpoints.
+ * Granular rate limiters per endpoint category.
+ * passOnStoreError: true ensures that even if Redis fails, legitimate requests are never blocked.
  */
 
 export const apiLimiter = rateLimit({
@@ -27,6 +33,7 @@ export const apiLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     skipSuccessfulRequests: false,
+    passOnStoreError: true,
     store: createStore(),
 });
 
@@ -36,6 +43,7 @@ export const authLimiter = rateLimit({
     message: { error: 'Too many auth attempts, please try again later.' },
     standardHeaders: true,
     legacyHeaders: false,
+    passOnStoreError: true,
     store: createStore(),
 });
 
@@ -45,6 +53,7 @@ export const inboxSyncLimiter = rateLimit({
     message: { error: 'Inbox sync rate limit exceeded. Please wait before syncing again.' },
     standardHeaders: true,
     legacyHeaders: false,
+    passOnStoreError: true,
     store: createStore(),
 });
 
@@ -54,6 +63,7 @@ export const campaignLaunchLimiter = rateLimit({
     message: { error: 'Too many campaign launches. Please wait before launching again.' },
     standardHeaders: true,
     legacyHeaders: false,
+    passOnStoreError: true,
     store: createStore(),
 });
 
@@ -63,5 +73,6 @@ export const aiLimiter = rateLimit({
     message: { error: 'AI rate limit reached. Please slow down.' },
     standardHeaders: true,
     legacyHeaders: false,
+    passOnStoreError: true,
     store: createStore(),
 });
