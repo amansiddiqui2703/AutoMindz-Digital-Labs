@@ -61,6 +61,11 @@ class InMemoryQueueManager {
             }
         }, Math.max(0, delay));
 
+        // Unref timer so in-memory queue jobs don't block Node.js process shutdown or test runners
+        if (jobEntry.timer && typeof jobEntry.timer.unref === 'function') {
+            jobEntry.timer.unref();
+        }
+
         return { id: jobId };
     }
 
@@ -230,8 +235,8 @@ export const processEmailJob = async (data) => {
 };
 
 export const initQueue = () => {
-    // If Redis quota is already exceeded or in-memory mode requested, run pure in-memory
-    if (isRedisQuotaExceeded() || env.USE_IN_MEMORY_QUEUE || !env.REDIS_URL) {
+    // If Redis quota is already exceeded, test mode, or in-memory mode requested, run pure in-memory
+    if (isRedisQuotaExceeded() || env.USE_IN_MEMORY_QUEUE || process.env.NODE_ENV === 'test' || !env.REDIS_URL) {
         console.log('⚡ Running Email Queue in In-Memory Mode (No Redis quota used, zero limits)');
         emailQueue = null;
         return null;

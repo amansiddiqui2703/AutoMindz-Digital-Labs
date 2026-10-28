@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node --dns-result-order=ipv4first --import ./src/instrument.js src/index.js",
     "dev": "node --dns-result-order=ipv4first --import ./src/instrument.js --watch-path=src src/index.js",
-    "test": "node --test --test-concurrency=1 tests/*.test.js"
+    "test": "node --test --test-timeout=30000 --test-concurrency=1 tests/*.test.js"
   },
   "dependencies": {
     "@sentry/node": "^10.42.0",

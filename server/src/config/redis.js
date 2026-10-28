@@ -54,8 +54,8 @@ const handleQuotaExceeded = (errorMsg) => {
 };
 
 const connectRedis = () => {
-    if (env.USE_IN_MEMORY_QUEUE) {
-        console.log('⚡ USE_IN_MEMORY_QUEUE is enabled — Redis disabled by configuration');
+    if (env.USE_IN_MEMORY_QUEUE || process.env.NODE_ENV === 'test') {
+        console.log('⚡ In-memory mode active — Redis disabled by configuration/test mode');
         isQuotaExceeded = true;
         return null;
     }
@@ -70,15 +70,11 @@ const connectRedis = () => {
             maxRetriesPerRequest: null,
             enableReadyCheck: false,
             retryStrategy(times) {
-                // If quota is exceeded, stop retrying immediately!
-                if (isQuotaExceeded) {
+                // If quota is exceeded, in test mode, or exceeded 3 attempts, abort retrying immediately
+                if (isQuotaExceeded || process.env.NODE_ENV === 'test' || times > 3) {
                     return null;
                 }
-                // Cap retry delay
-                const delay = Math.min(times * 1000, 15000);
-                if (times % 10 === 0) {
-                    console.warn(`⚠ Redis still unavailable after ${times} attempts. Retrying in ${delay}ms...`);
-                }
+                const delay = Math.min(times * 1000, 5000);
                 return delay;
             },
             reconnectOnError(err) {
