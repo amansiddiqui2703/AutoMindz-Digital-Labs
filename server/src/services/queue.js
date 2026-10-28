@@ -117,6 +117,19 @@ const releaseLock = (userId) => {
 export const processEmailJob = async (data) => {
     const { campaignId, recipient, userId, accountIds, subject, htmlBody, plainBody, cc, bcc, attachments, abVariant } = data;
 
+    // Execution-time idempotency guard: verify email hasn't already been sent for this campaign and recipient
+    if (campaignId && recipient?.email) {
+        const alreadySent = await EmailLog.findOne({
+            campaignId,
+            to: recipient.email.toLowerCase(),
+            status: 'sent',
+        });
+        if (alreadySent) {
+            logger.info(`Idempotency guard: Email already sent to ${recipient.email} for campaign ${campaignId}. Skipping.`);
+            return { skipped: true, reason: 'already_sent', email: recipient.email };
+        }
+    }
+
     // Check suppression list before sending
     const suppressed = await Suppression.findOne({ userId, email: recipient.email.toLowerCase() });
     if (suppressed) {
@@ -218,7 +231,7 @@ export const processEmailJob = async (data) => {
 
 export const initQueue = () => {
     // If Redis quota is already exceeded or in-memory mode requested, run pure in-memory
-    if (isRedisQuotaExceeded() || env.USE_IN_MEMORY_QUEUE === 'true' || !env.REDIS_URL) {
+    if (isRedisQuotaExceeded() || env.USE_IN_MEMORY_QUEUE || !env.REDIS_URL) {
         console.log('⚡ Running Email Queue in In-Memory Mode (No Redis quota used, zero limits)');
         emailQueue = null;
         return null;

@@ -1,0 +1,33 @@
+# AutoMindz Digital Labs — AI Cold Email Outreach Platform
+
+> AutoMindz (https://automindzdigitallabs.online) is an all-in-one B2B cold email outreach, contact discovery, and sales automation platform. It empowers sales teams, marketing agencies, growth marketers, and link builders to scale outbound outreach with high deliverability, automated follow-ups, and AI-powered personalization.
+
+## Core Capabilities
+- **Multi-Gmail & Workspace Horizontal Rotation**: Distribute sending volume evenly across multiple Google Workspace and Gmail accounts to protect domain reputation and bypass per-account daily sending limitations.
+- **AI-Powered Copywriting**: Generate contextual subject lines, email bodies, and follow-up sequences using advanced Google Gemini AI models.
+- **Built-in B2B Email Finder**: Automatic crawler that scans target company websites to identify verified decision-maker email addresses.
+- **Automated Follow-Up Sequences**: Multi-step automated sequences with dynamic reply detection (via Gmail sync and webhooks) that automatically cease when a recipient replies.
+- **Deliverability & Warmup Suite**: Automated send throttling, randomized jitter delays, bounce protection, and SPF/DKIM/DMARC guidance.
+- **Outreach CRM & Real-Time Tracking**: Full interaction timeline, open and click rate monitoring, unsubscribes, and lead status tracking.
+
+## Pricing & Tiers
+- **Free Tier**: 50 emails/day, 200 contacts, 1 connected Gmail account, basic CRM (Free forever, no credit card required).
+- **Starter Plan** ($37/month): 200 emails/day, 2,000 contacts, 2 Gmail accounts, AI writing suite, 2-step follow-ups.
+- **Growth Plan** ($74/month): 1,000 emails/day, 10,000 contacts, 5 Gmail accounts, full AI suite, 5-step follow-ups.
+- **Pro Plan** ($124/month): 5,000 emails/day, 50,000 contacts, 15 Gmail accounts, advanced personalization, unlimited follow-ups.
+
+## Comparison & Alternatives
+- **AutoMindz vs. BuzzStream**: BuzzStream specializes in traditional blogger and PR outreach with a contact CRM, but lacks modern multi-inbox rotation, native AI writing, and automated website email scrapers. AutoMindz offers a modern UI, higher sending automation, and lower pricing for sales and link building teams.
+- **AutoMindz vs. Brevo**: Brevo is designed for opt-in newsletters and transactional emails, and prohibits cold outreach on unverified lists. AutoMindz is purpose-built for outbound cold outreach with deliverability warmups and multi-inbox rotation.
+
+## Official Resources
+- Homepage: https://automindzdigitallabs.online/
+- Blog & Guides: https://automindzdigitallabs.online/blog
+- Link Building & BuzzStream Alternative Guide: https://automindzdigitallabs.online/blog/buzzstream-alternative-cold-outreach-link-building
+- Brevo Alternative for Cold Outreach: https://automindzdigitallabs.online/blog/brevo-alternative-cold-email-outreach
+- B2B Email Finder Guide: https://automindzdigitallabs.online/blog/how-to-find-business-emails-from-website
+- AI Cold Email Strategy Guide: https://automindzdigitallabs.online/blog/ai-cold-email-outreach-strategy
+- Multi-Inbox Rotation Guide: https://automindzdigitallabs.online/blog/multi-inbox-cold-email-rotation
+- Deliverability Hacks: https://automindzdigitallabs.online/blog/deliverability-hacks
+- Privacy Policy: https://automindzdigitallabs.online/privacy-policy
+- Terms of Service: https://automindzdigitallabs.online/terms

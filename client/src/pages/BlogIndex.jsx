@@ -7,14 +7,15 @@ export default function BlogIndex() {
   return (
     <>
       <SEO 
-        title="Blog — AutoMindz Cold Email & SEO Strategies"
-        description="Learn the latest strategies for cold email outreach, B2B lead generation, and deliverability from the AutoMindz team."
-        url="https://automindz.com/blog"
+        title="Cold Email Outreach & B2B Lead Generation Blog | AutoMindz"
+        description="Actionable strategies on B2B cold email outreach, multi-inbox deliverability, link building tools, and sales automation from the AutoMindz team."
+        url="https://automindzdigitallabs.online/blog"
         customSchema={{
             "@context": "https://schema.org",
             "@type": "CollectionPage",
             "name": "AutoMindz Blog",
-            "description": "Learn the latest strategies for cold email outreach, B2B lead generation, and deliverability from the AutoMindz team."
+            "url": "https://automindzdigitallabs.online/blog",
+            "description": "Actionable strategies on B2B cold email outreach, multi-inbox deliverability, link building tools, and sales automation from the AutoMindz team."
         }}
       />
 
@@ -37,17 +38,69 @@ export default function BlogIndex() {
         {/* Header */}
         <header className="mb-16 text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-surface-900 dark:text-white leading-tight mb-6">
-                Cold Email <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">Growth Strategies</span>
+                Cold Email & Outreach <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">Growth Strategies</span>
             </h1>
             <p className="text-xl text-surface-500 max-w-2xl mx-auto">
-                Actionable guides on deliverability, AI personalization, and B2B sales automation.
+                Actionable guides on deliverability, AI personalization, BuzzStream alternatives, and B2B sales automation.
             </p>
         </header>
 
         {/* Blog Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             
-            {/* New Post 1: B2B Email Finder */}
+            {/* Post 1: BuzzStream Alternative */}
+            <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
+                <div className="h-48 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 flex items-center justify-center p-6 relative overflow-hidden">
+                    <Zap className="w-16 h-16 text-primary-500/50 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md text-primary-600 shadow-sm">
+                        Outreach Software
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 text-xs text-surface-500 mb-3">
+                        <span className="font-semibold text-primary-600">Aman Siddiqui</span>
+                        <span>•</span>
+                        <span>8 min read</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-surface-900 dark:text-white mb-3 group-hover:text-primary-500 transition-colors">
+                        Best BuzzStream Alternative in 2026: Link Building & Outreach CRM
+                    </h3>
+                    <p className="text-sm text-surface-500 mb-6 flex-1 line-clamp-3">
+                        Compare features, multi-inbox sender rotation, AI personalization, and pricing between BuzzStream and modern outreach platforms.
+                    </p>
+                    <div className="flex items-center text-primary-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                        Read Comparison <ArrowRight className="w-4 h-4 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
+            {/* Post 2: Brevo Alternative */}
+            <Link to="/blog/brevo-alternative-cold-email-outreach" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
+                <div className="h-48 bg-gradient-to-br from-purple-500/10 to-pink-500/10 flex items-center justify-center p-6 relative overflow-hidden">
+                    <Zap className="w-16 h-16 text-purple-500/50 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md text-purple-600 shadow-sm">
+                        Deliverability Guide
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 text-xs text-surface-500 mb-3">
+                        <span className="font-semibold text-purple-600">Aman Siddiqui</span>
+                        <span>•</span>
+                        <span>7 min read</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-surface-900 dark:text-white mb-3 group-hover:text-primary-500 transition-colors">
+                        Why AutoMindz is the Leading Brevo Alternative for B2B Cold Outreach
+                    </h3>
+                    <p className="text-sm text-surface-500 mb-6 flex-1 line-clamp-3">
+                        Why newsletter platforms like Brevo prohibit cold lists, and why dedicated multi-inbox infrastructure delivers higher open rates.
+                    </p>
+                    <div className="flex items-center text-primary-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                        Read Comparison <ArrowRight className="w-4 h-4 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
+            {/* Post 3: B2B Email Finder */}
             <Link to="/blog/how-to-find-business-emails-from-website" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
                 <div className="h-48 overflow-hidden relative">
                     <img 
@@ -77,7 +130,7 @@ export default function BlogIndex() {
                 </div>
             </Link>
 
-            {/* New Post 2: AI Cold Email Outreach */}
+            {/* Post 4: AI Cold Email Outreach */}
             <Link to="/blog/ai-cold-email-outreach-strategy" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
                 <div className="h-48 overflow-hidden relative">
                     <img 
@@ -107,7 +160,7 @@ export default function BlogIndex() {
                 </div>
             </Link>
 
-            {/* New Post 3: Multi-Inbox Rotation */}
+            {/* Post 5: Multi-Inbox Rotation */}
             <Link to="/blog/multi-inbox-cold-email-rotation" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
                 <div className="h-48 overflow-hidden relative">
                     <img 
@@ -137,11 +190,11 @@ export default function BlogIndex() {
                 </div>
             </Link>
 
-            {/* Post 1 */}
+            {/* Post 6 */}
             <Link to="/blog/best-free-cold-email-software" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
                 <div className="h-48 bg-gradient-to-br from-primary-500/10 to-accent-500/10 flex items-center justify-center p-6 relative overflow-hidden">
                     <Zap className="w-16 h-16 text-primary-500/50 group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md text-primary-600 shadow-sm">
+                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md text-primary-600 shadow-sm">
                         Tool Reviews
                     </div>
                 </div>
@@ -163,11 +216,11 @@ export default function BlogIndex() {
                 </div>
             </Link>
 
-            {/* Post 2 */}
+            {/* Post 7 */}
             <Link to="/blog/deliverability-hacks" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
                 <div className="h-48 bg-gradient-to-br from-amber-500/10 to-orange-500/10 flex items-center justify-center p-6 relative overflow-hidden">
                     <Zap className="w-16 h-16 text-amber-500/50 group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md text-amber-600 shadow-sm">
+                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md text-amber-600 shadow-sm">
                         Deliverability
                     </div>
                 </div>
@@ -189,11 +242,11 @@ export default function BlogIndex() {
                 </div>
             </Link>
 
-            {/* Post 3: Solve Droughts */}
+            {/* Post 8: Solve Droughts */}
             <Link to="/blog/solve-b2b-sales-droughts" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
                 <div className="h-48 bg-gradient-to-br from-green-500/10 to-teal-500/10 flex items-center justify-center p-6 relative overflow-hidden">
                     <Zap className="w-16 h-16 text-green-500/50 group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md text-green-600 shadow-sm">
+                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md text-green-600 shadow-sm">
                         Sales Strategy
                     </div>
                 </div>
@@ -215,11 +268,11 @@ export default function BlogIndex() {
                 </div>
             </Link>
 
-            {/* Post 4: Spam Issues */}
+            {/* Post 9: Spam Issues */}
             <Link to="/blog/escaping-spam-folder" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
                 <div className="h-48 bg-gradient-to-br from-red-500/10 to-pink-500/10 flex items-center justify-center p-6 relative overflow-hidden">
                     <Zap className="w-16 h-16 text-red-500/50 group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md text-red-600 shadow-sm">
+                    <div className="absolute top-4 left-4 bg-white dark:bg-surface-800 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md text-red-600 shadow-sm">
                         Email Reputation
                     </div>
                 </div>

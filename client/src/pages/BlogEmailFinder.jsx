@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import SEO from '../components/SEO.jsx';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Search, Globe, ShieldCheck, Mail, UserCheck } from 'lucide-react';
@@ -10,13 +10,13 @@ export default function BlogEmailFinder() {
         title="How to Find Business Emails From Any Website for Free (2026 Guide)"
         description="Learn how to find verified B2B decision-maker emails directly from company websites for free. Discover manual scraping tricks and automated AI web crawlers."
         type="article"
-        url="https://automindz.com/blog/how-to-find-business-emails-from-website"
+        url="https://automindzdigitallabs.online/blog/how-to-find-business-emails-from-website"
         customSchema={{
             "@context": "https://schema.org",
             "@type": "Article",
             "headline": "How to Find Business Emails From Any Website for Free (2026 Step-by-Step Guide)",
             "description": "Learn how to find verified B2B decision-maker emails directly from company websites for free using manual methods and AI crawlers.",
-            "image": "https://automindz.com/blog/b2b-email-finder-guide.jpg",
+            "image": "https://automindzdigitallabs.online/blog/b2b-email-finder-guide.jpg",
             "author": {
                 "@type": "Person",
                 "name": "Aman Siddiqui"
@@ -26,7 +26,7 @@ export default function BlogEmailFinder() {
                 "name": "AutoMindz",
                 "logo": {
                     "@type": "ImageObject",
-                    "url": "https://automindz.com/logo.png"
+                    "url": "https://automindzdigitallabs.online/logo.png"
                 }
             },
             "datePublished": "2026-10-19T10:00:00+05:30",
@@ -103,7 +103,7 @@ export default function BlogEmailFinder() {
                 In the modern sales ecosystem, outbound prospecting is ruthless. If you try to guess an email or send pitches to generic inboxes like <code>info@company.com</code> or <code>sales@company.com</code>, your email has a <strong>less than 2% chance</strong> of ever being read by someone with purchasing power.
             </p>
             <p>
-                Meanwhile, commercial prospecting databases like ZoomInfo, Apollo, and Clearbit have raised prices drastically, charging upwards of $150 to $500 per month just for basic search credits. Fortunately, there is a better way. By combining intelligent website crawling with automated AI tools like the <a href="https://automindz.com" rel="dofollow" className="text-primary-600 font-bold hover:underline">AutoMindz email outreach platform</a>, you can source clean, active B2B contacts at zero cost.
+                Meanwhile, commercial prospecting databases like ZoomInfo, Apollo, and Clearbit have raised prices drastically, charging upwards of $150 to $500 per month just for basic search credits. Fortunately, there is a better way. By combining intelligent website crawling with automated AI tools like the <a href="https://automindzdigitallabs.online" rel="dofollow" className="text-primary-600 font-bold hover:underline">AutoMindz email outreach platform</a>, you can source clean, active B2B contacts at zero cost.
             </p>
 
             <hr className="my-10 border-surface-200 dark:border-surface-800" />
@@ -132,7 +132,7 @@ export default function BlogEmailFinder() {
                 The fastest way to extract emails from target accounts is by deploying an automated web crawler that parses HTML headers, <code>mailto:</code> tags, footers, and schema markup across subpages.
             </p>
             <p>
-                Rather than manually clicking through 20 different pages, you can use the <a href="https://automindz.com/finder" rel="dofollow" className="text-primary-600 font-bold hover:underline">AutoMindz free AI Contact Finder tool</a>. The system automatically inspects:
+                Rather than manually clicking through 20 different pages, you can use the <a href="https://automindzdigitallabs.online/finder" rel="dofollow" className="text-primary-600 font-bold hover:underline">AutoMindz free AI Contact Finder tool</a>. The system automatically inspects:
             </p>
             <div className="bg-surface-50 dark:bg-surface-800/60 rounded-2xl p-6 my-6 border border-surface-200 dark:border-surface-700">
                 <h4 className="font-bold text-surface-900 dark:text-white mb-3">What the AutoMindz Contact Finder Analyzes:</h4>
@@ -216,7 +216,7 @@ export default function BlogEmailFinder() {
                 Never send an outreach campaign without verifying MX records and SMTP server responses. Sending to dead addresses triggers hard bounces, which destroys your domain's sending reputation within 48 hours.
             </p>
             <p>
-                When you import leads into <a href="https://automindz.com/register" rel="dofollow" className="text-primary-600 font-bold hover:underline">create a free AutoMindz account</a>, our system verifies syntax, domain validity, and MX records automatically before queuing outreach messages. This guarantees that your cold emails land squarely in the primary inbox rather than the promotions or spam tabs.
+                When you import leads into <a href="https://automindzdigitallabs.online/register" rel="dofollow" className="text-primary-600 font-bold hover:underline">create a free AutoMindz account</a>, our system verifies syntax, domain validity, and MX records automatically before queuing outreach messages. This guarantees that your cold emails land squarely in the primary inbox rather than the promotions or spam tabs.
             </p>
 
             <h2 className="text-2xl md:text-3xl font-bold text-surface-900 dark:text-white mt-12 mb-4">

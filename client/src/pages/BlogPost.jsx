@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import SEO from '../components/SEO.jsx';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
@@ -10,7 +10,7 @@ export default function BlogPost() {
         title="Best Free Cold Email Software in 2026 — AutoMindz vs Instantly"
         description="Looking for free cold email software? AutoMindz offers AI personalization, follow-up automation & 50 free emails/day. The affordable Instantly alternative."
         type="article"
-        url="https://automindz.com/blog/best-free-cold-email-software"
+        url="https://automindzdigitallabs.online/blog/best-free-cold-email-software"
         customSchema={{
             "@context": "https://schema.org",
             "@type": "Article",
@@ -25,7 +25,7 @@ export default function BlogPost() {
                 "name": "AutoMindz",
                 "logo": {
                     "@type": "ImageObject",
-                    "url": "https://automindz.com/logo.png"
+                    "url": "https://automindzdigitallabs.online/logo.png"
                 }
             },
             "datePublished": "2026-01-01T08:00:00+08:00",

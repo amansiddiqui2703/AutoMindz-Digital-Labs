@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import SEO from '../components/SEO.jsx';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ShieldAlert } from 'lucide-react';
@@ -10,7 +10,7 @@ export default function BlogSpamIssues() {
         title="Escaping the Spam Folder: A Public Guide to Email Reputation"
         description="Is your company's email landing in the spam folder? Learn how to solve the public problem of poor domain reputation and bypass aggressive spam filters."
         type="article"
-        url="https://automindz.com/blog/escaping-spam-folder"
+        url="https://automindzdigitallabs.online/blog/escaping-spam-folder"
         customSchema={{
             "@context": "https://schema.org",
             "@type": "Article",

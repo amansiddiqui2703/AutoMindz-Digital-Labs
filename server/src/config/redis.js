@@ -54,7 +54,7 @@ const handleQuotaExceeded = (errorMsg) => {
 };
 
 const connectRedis = () => {
-    if (env.USE_IN_MEMORY_QUEUE === 'true') {
+    if (env.USE_IN_MEMORY_QUEUE) {
         console.log('⚡ USE_IN_MEMORY_QUEUE is enabled — Redis disabled by configuration');
         isQuotaExceeded = true;
         return null;

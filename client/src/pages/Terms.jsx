@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import SEO from '../components/SEO.jsx';
 
 const sections = [
@@ -204,7 +204,7 @@ const sections = [
             { label: "Product", value: "AutoMindz — AI-Powered Email Outreach Platform" },
             { label: "Legal Enquiries", value: "legal@automindz.com" },
             { label: "General Support", value: "support@automindz.com" },
-            { label: "Website", value: "https://automindz.com" },
+            { label: "Website", value: "https://automindzdigitallabs.online" },
         ],
     },
 ];
@@ -234,7 +234,7 @@ export default function TermsAndConditions() {
             <SEO 
                 title="Terms and Conditions"
                 description="Read the AutoMindz Terms and Conditions to understand the rules and guidelines for using our email outreach platform."
-                url="https://automindz.com/terms"
+                url="https://automindzdigitallabs.online/terms"
             />
             <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import SEO from '../components/SEO.jsx';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Shield, AlertTriangle, Layers, Shuffle, Gauge } from 'lucide-react';
@@ -10,13 +10,13 @@ export default function BlogMultiInbox() {
         title="Multi-Inbox Cold Email Rotation: The Complete Guide to 99% Deliverability (2026)"
         description="Learn how multi-inbox rotation protects your domain reputation, prevents Google spam penalties, and lets you safely scale cold email outreach."
         type="article"
-        url="https://automindz.com/blog/multi-inbox-cold-email-rotation"
+        url="https://automindzdigitallabs.online/blog/multi-inbox-cold-email-rotation"
         customSchema={{
             "@context": "https://schema.org",
             "@type": "Article",
             "headline": "Multi-Inbox Cold Email Rotation: How to Scale Outreach Without Spam Filters",
             "description": "Learn how multi-inbox rotation protects your domain reputation, prevents Google spam penalties, and lets you safely scale cold email outreach.",
-            "image": "https://automindz.com/blog/multi-inbox-rotation-guide.jpg",
+            "image": "https://automindzdigitallabs.online/blog/multi-inbox-rotation-guide.jpg",
             "author": {
                 "@type": "Person",
                 "name": "Aman Siddiqui"
@@ -26,7 +26,7 @@ export default function BlogMultiInbox() {
                 "name": "AutoMindz",
                 "logo": {
                     "@type": "ImageObject",
-                    "url": "https://automindz.com/logo.png"
+                    "url": "https://automindzdigitallabs.online/logo.png"
                 }
             },
             "datePublished": "2026-10-19T12:00:00+05:30",
@@ -106,7 +106,7 @@ export default function BlogMultiInbox() {
                 Email service providers (ESPs) such as Google Workspace and Microsoft 365 continuously analyze traffic patterns. When an account suddenly ramps up cold outbound volume or receives even a small uptick in spam reports (anything exceeding <strong>0.3%</strong>), algorithms immediately quarantine all outgoing mail to the spam folder.
             </p>
             <p>
-                The industry solution? <strong>Horizontal scaling via multi-inbox rotation</strong>. By spreading sending load across multiple connected accounts using the <a href="https://automindz.com" rel="dofollow" className="text-primary-600 font-bold hover:underline">AutoMindz cold email deliverability platform</a>, your outreach remains completely undetectable by anti-spam heuristics.
+                The industry solution? <strong>Horizontal scaling via multi-inbox rotation</strong>. By spreading sending load across multiple connected accounts using the <a href="https://automindzdigitallabs.online" rel="dofollow" className="text-primary-600 font-bold hover:underline">AutoMindz cold email deliverability platform</a>, your outreach remains completely undetectable by anti-spam heuristics.
             </p>
 
             <hr className="my-10 border-surface-200 dark:border-surface-800" />
@@ -200,7 +200,7 @@ export default function BlogMultiInbox() {
                 Connecting Your Inboxes in AutoMindz
             </h2>
             <p>
-                Connecting multiple Google Workspace or Gmail accounts in AutoMindz takes less than 60 seconds. Simply visit your <a href="https://automindz.com/accounts" rel="dofollow" className="text-primary-600 font-bold hover:underline">multi-Gmail account connection settings</a>, authenticate with Google OAuth2 with one click, and set your desired daily send limits.
+                Connecting multiple Google Workspace or Gmail accounts in AutoMindz takes less than 60 seconds. Simply visit your <a href="https://automindzdigitallabs.online/accounts" rel="dofollow" className="text-primary-600 font-bold hover:underline">multi-Gmail account connection settings</a>, authenticate with Google OAuth2 with one click, and set your desired daily send limits.
             </p>
             <p>
                 Our intelligent load balancer takes care of the rest, automatically distributing campaign queues evenly across all active accounts.
@@ -213,7 +213,7 @@ export default function BlogMultiInbox() {
                 In 2026, the best sales copy in the world is useless if it lands in the spam folder. By adopting multi-inbox rotation, you immunize your business against domain penalties and build an outbound engine capable of generating qualified leads month after month.
             </p>
             <p>
-                Take control of your sender reputation today. You can <a href="https://automindz.com/register" rel="dofollow" className="text-primary-600 font-bold hover:underline">sign up for AutoMindz for free</a> and start sending high-deliverability campaigns with zero risk.
+                Take control of your sender reputation today. You can <a href="https://automindzdigitallabs.online/register" rel="dofollow" className="text-primary-600 font-bold hover:underline">sign up for AutoMindz for free</a> and start sending high-deliverability campaigns with zero risk.
             </p>
 
             {/* Author Box */}

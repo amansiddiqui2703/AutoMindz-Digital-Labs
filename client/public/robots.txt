@@ -1,7 +1,11 @@
 User-agent: *
 Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /terms
+Allow: /privacy-policy
 
-# Exclude protected/dashboard routes from being indexed
+# Exclude protected/dashboard and private auth routes from search engine indexing
 Disallow: /dashboard
 Disallow: /campaigns
 Disallow: /contacts
@@ -13,5 +17,38 @@ Disallow: /analytics
 Disallow: /tools
 Disallow: /sequences
 Disallow: /templates
+Disallow: /admin
+Disallow: /auth/
+Disallow: /verify/
+Disallow: /reset-password/
+Disallow: /api/
 
-Sitemap: https://automindz.com/sitemap.xml
+# AI Crawlers & Answer Engines (Permit public discovery for GEO & AEO)
+User-agent: GPTBot
+Allow: /
+Allow: /blog/
+Allow: /llms.txt
+Disallow: /dashboard
+Disallow: /campaigns
+Disallow: /admin
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /blog/
+Allow: /llms.txt
+Disallow: /dashboard
+Disallow: /campaigns
+Disallow: /admin
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Allow: /blog/
+Allow: /llms.txt
+Disallow: /dashboard
+Disallow: /campaigns
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://automindzdigitallabs.online/sitemap.xml

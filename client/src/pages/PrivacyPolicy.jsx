@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import SEO from '../components/SEO.jsx';
 
 const sections = [
@@ -163,7 +163,7 @@ const sections = [
             { label: "Product", value: "AutoMindz — AI-Powered Email Outreach Platform" },
             { label: "Privacy Enquiries", value: "privacy@automindz.com" },
             { label: "General Support", value: "support@automindz.com" },
-            { label: "Website", value: "https://automindz.com" },
+            { label: "Website", value: "https://automindzdigitallabs.online" },
         ],
     },
 ];
@@ -194,7 +194,7 @@ export default function PrivacyPolicy() {
             <SEO 
                 title="Privacy Policy"
                 description="Learn how AutoMindz protects your personal data, handles Google OAuth credentials, and secures your email outreach campaigns."
-                url="https://automindz.com/privacy-policy"
+                url="https://automindzdigitallabs.online/privacy-policy"
             />
             {/* Google Font */}
             <style>{`

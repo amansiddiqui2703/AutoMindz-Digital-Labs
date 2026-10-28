@@ -52,6 +52,8 @@ const BlogSpamIssues = lazy(() => import('./pages/BlogSpamIssues'));
 const BlogEmailFinder = lazy(() => import('./pages/BlogEmailFinder'));
 const BlogAiOutreach = lazy(() => import('./pages/BlogAiOutreach'));
 const BlogMultiInbox = lazy(() => import('./pages/BlogMultiInbox'));
+const BlogBuzzstreamAlternative = lazy(() => import('./pages/BlogBuzzstreamAlternative'));
+const BlogBrevoAlternative = lazy(() => import('./pages/BlogBrevoAlternative'));
 
 // Loading spinner for lazy-loaded routes
 function PageLoader() {
@@ -101,6 +103,8 @@ export default function App() {
               <Route path="/blog/how-to-find-business-emails-from-website" element={<BlogEmailFinder />} />
               <Route path="/blog/ai-cold-email-outreach-strategy" element={<BlogAiOutreach />} />
               <Route path="/blog/multi-inbox-cold-email-rotation" element={<BlogMultiInbox />} />
+              <Route path="/blog/buzzstream-alternative-cold-outreach-link-building" element={<BlogBuzzstreamAlternative />} />
+              <Route path="/blog/brevo-alternative-cold-email-outreach" element={<BlogBrevoAlternative />} />
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/pipeline" element={<Pipeline />} />

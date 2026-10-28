@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import SEO from '../components/SEO.jsx';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, TrendingUp } from 'lucide-react';
@@ -10,7 +10,7 @@ export default function BlogSolveDroughts() {
         title="How to Solve B2B Sales Droughts with Automated Cold Outreach"
         description="Struggling with an empty pipeline? Learn how to solve B2B sales droughts by implementing an automated, high-volume cold email outreach system."
         type="article"
-        url="https://automindz.com/blog/solve-b2b-sales-droughts"
+        url="https://automindzdigitallabs.online/blog/solve-b2b-sales-droughts"
         customSchema={{
             "@context": "https://schema.org",
             "@type": "Article",

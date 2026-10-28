@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import SEO from '../components/SEO.jsx';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Sparkles, TrendingUp, Zap, Target, MessageSquare } from 'lucide-react';
@@ -10,13 +10,13 @@ export default function BlogAiOutreach() {
         title="AI Cold Email Outreach: How to 5x Your B2B Reply Rates in 2026"
         description="Discover how modern sales teams use AI to personalize cold outreach at scale. Learn high-converting frameworks, Gemini AI prompts, and follow-up strategies."
         type="article"
-        url="https://automindz.com/blog/ai-cold-email-outreach-strategy"
+        url="https://automindzdigitallabs.online/blog/ai-cold-email-outreach-strategy"
         customSchema={{
             "@context": "https://schema.org",
             "@type": "Article",
             "headline": "AI Cold Email Outreach: How to 5x Your B2B Reply Rates in 2026",
             "description": "Discover how modern sales teams use AI to personalize cold outreach at scale with high-converting frameworks and follow-up sequencing.",
-            "image": "https://automindz.com/blog/ai-cold-email-outreach.jpg",
+            "image": "https://automindzdigitallabs.online/blog/ai-cold-email-outreach.jpg",
             "author": {
                 "@type": "Person",
                 "name": "Aman Siddiqui"
@@ -26,7 +26,7 @@ export default function BlogAiOutreach() {
                 "name": "AutoMindz",
                 "logo": {
                     "@type": "ImageObject",
-                    "url": "https://automindz.com/logo.png"
+                    "url": "https://automindzdigitallabs.online/logo.png"
                 }
             },
             "datePublished": "2026-10-19T11:00:00+05:30",
@@ -106,7 +106,7 @@ export default function BlogAiOutreach() {
                 The cause is simple: <strong>template fatigue</strong>. Prospects can spot a canned mail-merge template from a mile away. Merely inserting <code>{`{{company_name}}`}</code> and <code>{`{{first_name}}`}</code> is no longer personalization — it is lazy automation.
             </p>
             <p>
-                To consistently book discovery calls, your emails must demonstrate immediate relevance. That is where intelligent AI personalization with the <a href="https://automindz.com" rel="dofollow" className="text-primary-600 font-bold hover:underline">AutoMindz AI cold email platform</a> transforms ordinary sales teams into market leaders.
+                To consistently book discovery calls, your emails must demonstrate immediate relevance. That is where intelligent AI personalization with the <a href="https://automindzdigitallabs.online" rel="dofollow" className="text-primary-600 font-bold hover:underline">AutoMindz AI cold email platform</a> transforms ordinary sales teams into market leaders.
             </p>
 
             <hr className="my-10 border-surface-200 dark:border-surface-800" />
@@ -151,7 +151,7 @@ export default function BlogAiOutreach() {
                 AutoMindz integrates Google's latest Gemini models directly into your campaign composer. Instead of hardcoding generic copy, you pass custom prompts that analyze recipient industry pain points, generating customized hooks on the fly.
             </p>
             <p>
-                Explore our library of <a href="https://automindz.com/templates" rel="dofollow" className="text-primary-600 font-bold hover:underline">proven B2B cold email templates</a> designed specifically to guide AI engines toward punchy, conversational copy.
+                Explore our library of <a href="https://automindzdigitallabs.online/templates" rel="dofollow" className="text-primary-600 font-bold hover:underline">proven B2B cold email templates</a> designed specifically to guide AI engines toward punchy, conversational copy.
             </p>
 
             <h3 className="text-xl font-bold text-surface-900 dark:text-white mt-8 mb-2">Step 3: Native Follow-Up Threading</h3>
@@ -232,7 +232,7 @@ export default function BlogAiOutreach() {
                 In 2026, volume alone will only get your domain blacklisted. The winners in B2B sales are the teams who leverage AI automation to send relevant, highly personalized emails at scale while protecting their sender reputation.
             </p>
             <p>
-                Ready to transform your sales pipeline? You can <a href="https://automindz.com/register" rel="dofollow" className="text-primary-600 font-bold hover:underline">launch your first AI sequence on AutoMindz</a> completely free, with no credit card required.
+                Ready to transform your sales pipeline? You can <a href="https://automindzdigitallabs.online/register" rel="dofollow" className="text-primary-600 font-bold hover:underline">launch your first AI sequence on AutoMindz</a> completely free, with no credit card required.
             </p>
 
             {/* Author Box */}

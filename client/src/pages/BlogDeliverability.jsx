@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import SEO from '../components/SEO.jsx';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, AlertTriangle } from 'lucide-react';
@@ -10,7 +10,7 @@ export default function BlogDeliverability() {
         title="12 Deliverability Hacks to Bypass Gmail's Spam Filters in 2026"
         description="Stop landing in the spam folder. Learn the 12 proven deliverability hacks that experts use to reach the primary inbox in 2026."
         type="article"
-        url="https://automindz.com/blog/deliverability-hacks"
+        url="https://automindzdigitallabs.online/blog/deliverability-hacks"
         customSchema={{
             "@context": "https://schema.org",
             "@type": "Article",
