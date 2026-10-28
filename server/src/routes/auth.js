@@ -10,6 +10,8 @@ import { authLimiter } from '../middleware/rateLimit.js';
 import env from '../config/env.js';
 import { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail } from '../services/mailer.js';
 import { getRedis } from '../config/redis.js';
+import AuthCode from '../models/AuthCode.js';
+import { encrypt, decrypt } from '../utils/crypto.js';
 
 const router = Router();
 
@@ -45,6 +47,35 @@ const createLoginOAuth2Client = () => {
         env.GOOGLE_CLIENT_SECRET,
         `${env.SERVER_URL}/api/auth/google/callback`
     );
+};
+
+// Cryptographic HMAC OAuth state helpers
+const generateOAuthState = () => {
+    const nonce = crypto.randomBytes(16).toString('hex');
+    const timestamp = Date.now().toString();
+    const sig = crypto.createHmac('sha256', env.JWT_SECRET).update(`${nonce}.${timestamp}`).digest('hex');
+    return `${nonce}.${timestamp}.${sig}`;
+};
+
+const verifyOAuthState = (state) => {
+    if (!state || typeof state !== 'string') return false;
+    const parts = state.split('.');
+    if (parts.length !== 3) return false;
+    const [nonce, timestamp, sig] = parts;
+    const time = parseInt(timestamp, 10);
+    // Allow up to 10 minutes for user to complete Google OAuth consent
+    if (isNaN(time) || Date.now() - time > 10 * 60 * 1000 || time > Date.now() + 60 * 1000) {
+        return false;
+    }
+    const expectedSig = crypto.createHmac('sha256', env.JWT_SECRET).update(`${nonce}.${timestamp}`).digest('hex');
+    try {
+        const sigBuf = Buffer.from(sig, 'hex');
+        const expBuf = Buffer.from(expectedSig, 'hex');
+        if (sigBuf.length !== expBuf.length) return false;
+        return crypto.timingSafeEqual(sigBuf, expBuf);
+    } catch {
+        return false;
+    }
 };
 
 // Validation middleware helper
@@ -331,22 +362,22 @@ router.get('/google/url', async (req, res) => {
             return res.status(500).json({ error: 'Google OAuth not configured' });
         }
         
-        // SECURITY FIX [HIGH-2]: Prevent CSRF with state parameter
-        const state = crypto.randomBytes(16).toString('hex');
+        // SECURITY: Generate cryptographically signed state token (works independently of Redis)
+        const state = generateOAuthState();
         const redis = getRedis();
         if (redis) {
             try {
-                await redis.set(`oauth_state:${state}`, '1', 'EX', 300);
+                await redis.set(`oauth_state:${state}`, '1', 'EX', 600);
             } catch (err) {
-                console.warn('OAuth state save failed (Redis unavailable):', err.message);
+                console.warn('OAuth state save to Redis failed (continuing with HMAC signature):', err.message);
             }
         }
 
         const oauth2Client = createLoginOAuth2Client();
         const url = oauth2Client.generateAuthUrl({
             access_type: 'offline',
-            prompt: 'select_account', // Changed from 'consent' to save Google token quota
-            state, // SECURITY FIX [HIGH-2]
+            prompt: 'select_account',
+            state,
             scope: [
                 'https://www.googleapis.com/auth/userinfo.email',
                 'https://www.googleapis.com/auth/userinfo.profile',
@@ -365,27 +396,24 @@ router.get('/google/callback', async (req, res) => {
         const { code, state } = req.query;
         if (!code) return res.redirect(`${env.APP_URL}/login?error=missing_code`);
 
-        // SECURITY FIX [HIGH-2]: Validate state parameter
+        // SECURITY: Validate state parameter (HMAC verified or legacy Redis record)
+        let isStateValid = verifyOAuthState(state);
         const redis = getRedis();
         if (redis) {
             try {
-                const valid = await redis.get(`oauth_state:${state}`);
-                if (!valid) {
-                    console.warn('Invalid OAuth state received');
-                    // Temporarily bypassing strict state validation to prevent login failures
-                    // if (env.NODE_ENV === 'production') {
-                    //     return res.redirect(`${env.APP_URL}/login?error=invalid_state`);
-                    // }
-                } else {
+                const redisValid = await redis.get(`oauth_state:${state}`);
+                if (redisValid) {
+                    isStateValid = true;
                     await redis.del(`oauth_state:${state}`);
                 }
             } catch (err) {
-                console.warn('OAuth state validation failed (Redis unavailable):', err.message);
-                // Temporarily bypassing strict state validation to prevent login failures
-                // if (env.NODE_ENV === 'production') {
-                //     return res.redirect(`${env.APP_URL}/login?error=invalid_state`);
-                // }
+                console.warn('OAuth state Redis check failed:', err.message);
             }
+        }
+
+        if (!isStateValid) {
+            console.warn('Invalid or expired OAuth state received');
+            return res.redirect(`${env.APP_URL}/login?error=invalid_state`);
         }
 
         // Use axios to fetch the token and profile to bypass Node 18 native fetch (undici) bugs in google-auth-library
@@ -459,21 +487,32 @@ router.get('/google/callback', async (req, res) => {
         // Generate persistent refresh token (365 days) — no more Google re-auth needed!
         const refreshToken = await generateRefreshToken(user);
 
-        // SECURITY FIX [CRITICAL-2]: One-time code exchange instead of token in URL
+        // SECURITY: One-time code exchange using Redis if healthy, or encrypted persistent MongoDB AuthCode
         const authCode = crypto.randomBytes(32).toString('hex');
+        const codeHash = crypto.createHash('sha256').update(authCode).digest('hex');
+        let storedInRedis = false;
+
         if (redis) {
             try {
-                // Store both tokens in Redis for one-time exchange
-                await redis.set(`google_auth_code:${authCode}`, JSON.stringify({ token, refreshToken }), 'EX', 30);
-                return res.redirect(`${env.APP_URL}/auth/google/success?code=${authCode}`);
+                await redis.set(`google_auth_code:${authCode}`, JSON.stringify({ token, refreshToken }), 'EX', 60);
+                storedInRedis = true;
             } catch (err) {
-                console.warn('Failed to store Google auth code (Redis unavailable):', err.message);
+                console.warn('Failed to store Google auth code in Redis (falling back to persistent DB):', err.message);
             }
         }
 
-        // Fallback: If Redis is unavailable, send tokens in the URL so users can still log in
-        console.warn('Redis is unavailable. Falling back to JWT in URL for Google OAuth.');
-        return res.redirect(`${env.APP_URL}/auth/google/success?token=${token}&refreshToken=${refreshToken}`);
+        if (!storedInRedis) {
+            // Secure persistent MongoDB fallback: encrypt sensitive tokens with AES-256-GCM
+            await AuthCode.create({
+                codeHash,
+                encryptedToken: encrypt(token),
+                encryptedRefreshToken: encrypt(refreshToken),
+                userId: user._id,
+                expiresAt: new Date(Date.now() + 60 * 1000), // 60s TTL
+            });
+        }
+
+        return res.redirect(`${env.APP_URL}/auth/google/success?code=${authCode}`);
     } catch (error) {
         console.error('Google callback error:', error);
         res.redirect(`${env.APP_URL}/login?error=google_auth_failed`);
@@ -486,27 +525,48 @@ router.get('/google/token', async (req, res) => {
         const { code } = req.query;
         if (!code) return res.status(400).json({ error: 'Code is required' });
 
-        const redis = getRedis();
-        if (!redis) return res.status(503).json({ error: 'Service Unavailable' });
-
-        const stored = await redis.get(`google_auth_code:${code}`);
-        if (!stored) return res.status(401).json({ error: 'Invalid or expired code' });
-
-        await redis.del(`google_auth_code:${code}`);
-
-        // Parse stored data — may be JSON (new) or plain string (legacy)
+        const codeHash = crypto.createHash('sha256').update(code).digest('hex');
         let token, refreshToken;
-        try {
-            const parsed = JSON.parse(stored);
-            token = parsed.token;
-            refreshToken = parsed.refreshToken;
-        } catch {
-            // Legacy fallback — stored value is just the JWT string
-            token = stored;
+
+        // 1. Try Redis first if connected and healthy
+        const redis = getRedis();
+        if (redis) {
+            try {
+                const stored = await redis.get(`google_auth_code:${code}`);
+                if (stored) {
+                    await redis.del(`google_auth_code:${code}`);
+                    try {
+                        const parsed = JSON.parse(stored);
+                        token = parsed.token;
+                        refreshToken = parsed.refreshToken;
+                    } catch {
+                        token = stored;
+                    }
+                }
+            } catch (err) {
+                console.warn('Redis auth code lookup failed, checking persistent DB:', err.message);
+            }
+        }
+
+        // 2. Fall back to secure persistent MongoDB store if not found in Redis
+        if (!token) {
+            const record = await AuthCode.findOneAndDelete({
+                codeHash,
+                expiresAt: { $gt: new Date() },
+            });
+            if (record) {
+                token = decrypt(record.encryptedToken);
+                refreshToken = decrypt(record.encryptedRefreshToken);
+            }
+        }
+
+        if (!token) {
+            return res.status(401).json({ error: 'Invalid or expired code' });
         }
 
         res.json({ token, refreshToken });
     } catch (err) {
+        console.error('Google token exchange error:', err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });

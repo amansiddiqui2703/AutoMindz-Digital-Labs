@@ -14,6 +14,8 @@
   <!-- Preload critical assets -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://www.googletagmanager.com" />
+  <link rel="preconnect" href="https://www.google-analytics.com" />
   <link rel="dns-prefetch" href="https://automindzdigitallabs.online" />
   <link rel="dns-prefetch" href="https://o4511246035976192.ingest.us.sentry.io" />
   <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
@@ -44,13 +46,15 @@
     }
   }
   </script>
-  <!-- Google Analytics: deferred so it never blocks page rendering -->
-  <script defer src="https://www.googletagmanager.com/gtag/js?id=G-43EX1RZT7W"></script>
+  <!-- Google Analytics 4 (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6NFVEJCMYX"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
+    function gtag() { window.dataLayer.push(arguments); }
+    window.gtag = gtag;
     gtag('js', new Date());
-    gtag('config', 'G-43EX1RZT7W');
+    // Disable automatic page_view to allow SPA router to track navigation cleanly without duplicates
+    gtag('config', 'G-6NFVEJCMYX', { send_page_view: false });
   </script>
 </head>
 

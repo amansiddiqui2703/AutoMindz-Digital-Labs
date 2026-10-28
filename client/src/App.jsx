@@ -6,6 +6,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary'; // BUG FIX #35
+import AnalyticsTracker from './components/AnalyticsTracker';
 import { lazy, Suspense } from 'react';
 
 // Lazy-loaded page components for code splitting
@@ -78,6 +79,7 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
+          <AnalyticsTracker />
           {/* BUG FIX #35: Wrap with ErrorBoundary to catch page-level crashes */}
           <ErrorBoundary>
           <Suspense fallback={<PageLoader />}>

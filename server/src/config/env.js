@@ -44,6 +44,8 @@ const env = {
     RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET || '',
     // Feature flags
     DISABLE_SENDING_WINDOW: process.env.DISABLE_SENDING_WINDOW === 'true',
+    USE_REDIS_RATE_LIMIT: process.env.USE_REDIS_RATE_LIMIT === 'true',
+    USE_IN_MEMORY_QUEUE: process.env.USE_IN_MEMORY_QUEUE === 'true',
 };
 
 // Validation schema for required variables

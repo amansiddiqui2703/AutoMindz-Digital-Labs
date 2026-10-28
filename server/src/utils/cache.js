@@ -1,4 +1,4 @@
-import { getRedis } from '../config/redis.js';
+import { getRedis, handleQuotaExceeded, isQuotaError } from '../config/redis.js';
 import logger from './logger.js';
 
 /**
@@ -38,6 +38,9 @@ export const cacheMiddleware = (ttlSeconds = 300) => async (req, res, next) => {
 
         next();
     } catch (error) {
+        if (isQuotaError(error?.message)) {
+            handleQuotaExceeded(error.message);
+        }
         logger.error(`Redis cache get error for ${cacheKey}`, error);
         next();
     }

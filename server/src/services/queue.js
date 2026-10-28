@@ -228,6 +228,11 @@ export const initQueue = () => {
         const isUpstash = env.REDIS_URL.startsWith('rediss://');
 
         emailQueue = new Queue('emailQueue', env.REDIS_URL, {
+            settings: {
+                stalledInterval: 300000, // Check stalled jobs every 5 min instead of 30s
+                guardInterval: 300000,   // Delay timer 5 min instead of 5s
+                drainDelay: 30,          // Wait 30s when queue is empty instead of 5s
+            },
             redis: {
                 maxRetriesPerRequest: null,
                 enableReadyCheck: false,
@@ -305,6 +310,10 @@ const isWithinSendingWindow = (timezone = 'UTC') => {
 
 const msUntilNextSendingWindow = (timezone = 'UTC') => {
     return 0;
+};
+
+export const isCampaignEnqueued = (campaignId) => {
+    return _enqueuingCampaigns.has(campaignId?.toString());
 };
 
 export const enqueueCampaign = async (campaign) => {
