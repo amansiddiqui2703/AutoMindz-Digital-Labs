@@ -25,8 +25,14 @@ let encrypt;
 let decrypt;
 
 before(async () => {
-    mongod = await MongoMemoryServer.create();
-    await mongoose.connect(mongod.getUri());
+    if (process.env.MONGODB_URI) {
+        if (mongoose.connection.readyState === 0) {
+            await mongoose.connect(process.env.MONGODB_URI);
+        }
+    } else {
+        mongod = await MongoMemoryServer.create();
+        await mongoose.connect(mongod.getUri());
+    }
 
     // Import models
     User = (await import('../src/models/User.js')).default;
@@ -55,7 +61,7 @@ after(async () => {
         inMemoryQueue.jobs.clear();
     }
     await mongoose.disconnect();
-    await mongod.stop();
+    if (mongod) await mongod.stop();
 });
 
 beforeEach(async () => {

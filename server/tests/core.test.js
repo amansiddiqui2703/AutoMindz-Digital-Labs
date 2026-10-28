@@ -22,13 +22,19 @@ import mongoose from 'mongoose';
 let mongod;
 
 before(async () => {
-    mongod = await MongoMemoryServer.create();
-    await mongoose.connect(mongod.getUri());
+    if (process.env.MONGODB_URI) {
+        if (mongoose.connection.readyState === 0) {
+            await mongoose.connect(process.env.MONGODB_URI);
+        }
+    } else {
+        mongod = await MongoMemoryServer.create();
+        await mongoose.connect(mongod.getUri());
+    }
 });
 
 after(async () => {
     await mongoose.disconnect();
-    await mongod.stop();
+    if (mongod) await mongod.stop();
 });
 
 // ── 1. RFC 2047 Subject Encoding ─────────────────────────────────────────────

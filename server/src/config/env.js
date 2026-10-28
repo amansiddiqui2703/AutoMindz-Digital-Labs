@@ -92,4 +92,18 @@ if (process.env.NODE_ENV !== 'test') {
     validateEnv();
 }
 
+// Detect if running under Node test runner or test environment
+const isTestEnv = process.env.NODE_ENV === 'test' || 
+                  process.argv.some(arg => arg.includes('--test')) || 
+                  (process.execArgv && process.execArgv.some(arg => arg.includes('--test')));
+
+if (isTestEnv) {
+    env.NODE_ENV = 'test';
+    env.ENCRYPTION_KEY = env.ENCRYPTION_KEY || '1234567890123456789012345678901234567890123456789012345678901234';
+    env.JWT_SECRET = env.JWT_SECRET || 'test-jwt-secret-for-unit-tests';
+    env.APP_URL = env.APP_URL || 'http://localhost:5173';
+    env.SERVER_URL = env.SERVER_URL || 'http://localhost:5000';
+    env.USE_IN_MEMORY_QUEUE = true;
+}
+
 export default env;

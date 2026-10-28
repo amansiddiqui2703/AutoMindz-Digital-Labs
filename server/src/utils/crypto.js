@@ -2,7 +2,7 @@ import CryptoJS from 'crypto-js';
 import crypto from 'crypto';
 import env from '../config/env.js';
 
-const key = env.ENCRYPTION_KEY;
+const key = env.ENCRYPTION_KEY || (process.env.NODE_ENV === 'test' ? '1234567890123456789012345678901234567890123456789012345678901234' : null);
 // SECURITY FIX [MEDIUM-1]: Throw error if ENCRYPTION_KEY is missing
 if (!key) throw new Error('ENCRYPTION_KEY not configured');
 
