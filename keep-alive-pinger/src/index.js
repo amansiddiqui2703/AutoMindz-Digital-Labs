@@ -47,7 +47,7 @@ export default {
 
   // 3. Main Ping Logic
   async doPings(env) {
-    const rawUrls = env.PING_URLS || 'https://new-outreach-system.onrender.com/health';
+    const rawUrls = env.PING_URLS || 'https://automindzdigitallabs.online/health';
     const urls = rawUrls.split(',').map(u => u.trim()).filter(Boolean);
     
     if (urls.length === 0) {

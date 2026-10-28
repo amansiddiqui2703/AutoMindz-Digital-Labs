@@ -135,7 +135,7 @@ export default function Accounts() {
                             </div>
                             <div className="flex items-start gap-2">
                                 <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center flex-shrink-0 font-bold mt-0.5">2</span>
-                                <p className="text-xs text-surface-600 dark:text-surface-400">Click <strong>"Go to new-outreach-system.onrender.com (unsafe)"</strong></p>
+                                <p className="text-xs text-surface-600 dark:text-surface-400">Click <strong>"Go to automindzdigitallabs.online (unsafe)"</strong></p>
                             </div>
                             <div className="flex items-start gap-2">
                                 <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center flex-shrink-0 font-bold mt-0.5">3</span>

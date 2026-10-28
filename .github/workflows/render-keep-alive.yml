@@ -16,7 +16,7 @@ jobs:
       - name: Ping Health Endpoint
         run: |
           echo "🤖 Keep-Alive Robot waking up Render..."
-          URL="https://new-outreach-system.onrender.com/health"
+          URL="https://automindzdigitallabs.online/health"
           echo "Hitting $URL at $(date -u)"
           
           # Retry up to 2 times with 30s timeout
@@ -27,6 +27,6 @@ jobs:
             echo "✅ Render is awake and healthy!"
           else
             echo "⚠️ Health check returned $STATUS, pinging root URL as fallback..."
-            FALLBACK_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -m 30 "https://new-outreach-system.onrender.com/" || true)
+            FALLBACK_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -m 30 "https://automindzdigitallabs.online/" || true)
             echo "Root URL Status Code: $FALLBACK_STATUS"
           fi
