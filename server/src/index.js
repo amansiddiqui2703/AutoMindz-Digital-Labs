@@ -86,13 +86,13 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'", "https://*.razorpay.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://*.razorpay.com", "https://www.googletagmanager.com", "https://www.google-analytics.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://*.razorpay.com", "https://www.googletagmanager.com", "https://www.google-analytics.com", "https://analytics.ahrefs.com"],
       frameSrc: ["'self'", "https://*.razorpay.com"],
       workerSrc: ["'self'", "blob:"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https:", "http:", "blob:"],
-      connectSrc: ["'self'", "https://o4511246035976192.ingest.us.sentry.io", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://*.razorpay.com", "https://*.google-analytics.com", "https://*.analytics.google.com", "https://www.google-analytics.com", "https://analytics.google.com"],
+      connectSrc: ["'self'", "https://o4511246035976192.ingest.us.sentry.io", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://*.razorpay.com", "https://*.google-analytics.com", "https://*.analytics.google.com", "https://www.google-analytics.com", "https://analytics.google.com", "https://analytics.ahrefs.com"],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: [],
     },
