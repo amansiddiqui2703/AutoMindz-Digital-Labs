@@ -36,6 +36,7 @@ describe('SEO, AEO & GEO Verification Suite', () => {
     assert.ok(content.includes(`<loc>${CANONICAL_DOMAIN}/blog</loc>`), 'sitemap must include blog index');
     assert.ok(content.includes(`<loc>${CANONICAL_DOMAIN}/blog/buzzstream-alternative-cold-outreach-link-building</loc>`), 'sitemap must include BuzzStream alternative guide');
     assert.ok(content.includes(`<loc>${CANONICAL_DOMAIN}/blog/brevo-alternative-cold-email-outreach</loc>`), 'sitemap must include Brevo alternative guide');
+    assert.ok(content.includes(`<loc>${CANONICAL_DOMAIN}/blog/top-link-building-agencies-in-india</loc>`), 'sitemap must include Top 10 Link Building Agencies in India listicle');
 
     // Verify absence of outdated domain or private routes
     assert.ok(!content.includes('https://automindz.com'), 'sitemap.xml must not contain legacy automindz.com domain');
@@ -75,5 +76,33 @@ describe('SEO, AEO & GEO Verification Suite', () => {
     assert.ok(content.includes('BuzzStream'), 'Landing.jsx must reference BuzzStream comparison');
     assert.ok(content.includes('Brevo'), 'Landing.jsx must reference Brevo comparison');
     assert.ok(content.includes('toggleFaq'), 'Landing.jsx must have interactive FAQ accordion state');
+    assert.ok(content.includes('glass-panel'), 'Landing.jsx must implement Glass UI styling');
+    assert.ok(content.includes('top-link-building-agencies-in-india'), 'Landing.jsx must link to Indian agencies guide');
+  });
+
+  it('Top 10 Link Building Agencies in India listicle contains 10 agencies, do-follow links, and ItemList schema', () => {
+    const listiclePath = path.join(rootDir, 'client', 'src', 'pages', 'BlogTopLinkBuildingAgenciesIndia.jsx');
+    assert.ok(fs.existsSync(listiclePath), 'BlogTopLinkBuildingAgenciesIndia.jsx must exist');
+
+    const content = fs.readFileSync(listiclePath, 'utf-8');
+    assert.ok(content.includes('PageTraffic'), 'Listicle must include PageTraffic');
+    assert.ok(content.includes('ThatWare'), 'Listicle must include ThatWare');
+    assert.ok(content.includes('Techmagnate'), 'Listicle must include Techmagnate');
+    assert.ok(content.includes('EZ Rankings'), 'Listicle must include EZ Rankings');
+    assert.ok(content.includes('SEOValley'), 'Listicle must include SEOValley');
+    assert.ok(content.includes('Uplers'), 'Listicle must include Uplers');
+    assert.ok(content.includes('ResultFirst'), 'Listicle must include ResultFirst');
+    assert.ok(content.includes('IndeedSEO'), 'Listicle must include IndeedSEO');
+    assert.ok(content.includes('Mavens & Co.'), 'Listicle must include Mavens & Co.');
+    assert.ok(content.includes('AutoMindz Digital Labs'), 'Listicle must feature AutoMindz');
+
+    // Verify do-follow links (target="_blank" rel="noopener" without nofollow)
+    assert.ok(content.includes('rel="noopener"'), 'Listicle must contain do-follow links with rel="noopener"');
+    assert.ok(!content.includes('rel="nofollow"'), 'Listicle must not add nofollow to agency links');
+
+    // Verify structured schemas
+    assert.ok(content.includes('"@type": "ItemList"'), 'Listicle must declare ItemList schema for Google ranking');
+    assert.ok(content.includes('"@type": "FAQPage"'), 'Listicle must declare FAQPage schema for AEO');
   });
 });
+

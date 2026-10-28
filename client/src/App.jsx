@@ -54,6 +54,7 @@ const BlogAiOutreach = lazy(() => import('./pages/BlogAiOutreach'));
 const BlogMultiInbox = lazy(() => import('./pages/BlogMultiInbox'));
 const BlogBuzzstreamAlternative = lazy(() => import('./pages/BlogBuzzstreamAlternative'));
 const BlogBrevoAlternative = lazy(() => import('./pages/BlogBrevoAlternative'));
+const BlogTopLinkBuildingAgenciesIndia = lazy(() => import('./pages/BlogTopLinkBuildingAgenciesIndia'));
 
 // Loading spinner for lazy-loaded routes
 function PageLoader() {
@@ -105,6 +106,7 @@ export default function App() {
               <Route path="/blog/multi-inbox-cold-email-rotation" element={<BlogMultiInbox />} />
               <Route path="/blog/buzzstream-alternative-cold-outreach-link-building" element={<BlogBuzzstreamAlternative />} />
               <Route path="/blog/brevo-alternative-cold-email-outreach" element={<BlogBrevoAlternative />} />
+              <Route path="/blog/top-link-building-agencies-in-india" element={<BlogTopLinkBuildingAgenciesIndia />} />
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/pipeline" element={<Pipeline />} />

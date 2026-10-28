@@ -48,6 +48,32 @@ export default function BlogIndex() {
         {/* Blog Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             
+            {/* Featured Post: Top 10 Link Building Agencies in India */}
+            <Link to="/blog/top-link-building-agencies-in-india" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-amber-500/30 bg-gradient-to-b from-amber-500/5 to-transparent">
+                <div className="h-48 bg-gradient-to-br from-amber-500/20 to-orange-500/10 flex items-center justify-center p-6 relative overflow-hidden">
+                    <Zap className="w-16 h-16 text-amber-500/60 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute top-4 left-4 bg-amber-500 text-slate-950 text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-md">
+                        2026 Review Listicle
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 text-xs text-surface-500 mb-3">
+                        <span className="font-semibold text-amber-500">Aman Siddiqui</span>
+                        <span>•</span>
+                        <span>12 min read</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-surface-900 dark:text-white mb-3 group-hover:text-amber-500 transition-colors">
+                        Top 10 Link Building Agencies in India (2026 In-Depth Review & Pricing)
+                    </h3>
+                    <p className="text-sm text-surface-500 mb-6 flex-1 line-clamp-3">
+                        Compare India's premier link building companies, digital PR services, editorial standards, and how to save $3,000+/mo automating outreach in-house.
+                    </p>
+                    <div className="flex items-center text-amber-500 font-semibold text-sm group-hover:gap-2 transition-all">
+                        Read Agency Guide <ArrowRight className="w-4 h-4 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
             {/* Post 1: BuzzStream Alternative */}
             <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="group glass-card flex flex-col overflow-hidden hover:shadow-xl transition-all border border-surface-200 dark:border-surface-800">
                 <div className="h-48 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 flex items-center justify-center p-6 relative overflow-hidden">
