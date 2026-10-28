@@ -1,10 +1,10 @@
 /**
  * Google Analytics 4 (GA4) Utilities
- * Measurement ID: G-6NFVEJCMYX
+ * Measurement ID: G-43EX1RZT7W
  * Production Domain: https://automindzdigitallabs.online
  */
 
-export const GA_MEASUREMENT_ID = 'G-6NFVEJCMYX';
+export const GA_MEASUREMENT_ID = 'G-43EX1RZT7W';
 
 /**
  * Safely push an event to Google Analytics 4 dataLayer.
@@ -48,4 +48,3 @@ export const trackPageView = (pagePath, pageTitle, pageLocation) => {
     page_path: pagePath,
   });
 };
-

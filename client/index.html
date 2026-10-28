@@ -2,6 +2,20 @@
 <html lang="en">
 
 <head>
+  <!-- Google tag (gtag.js) -->
+  <link rel="preconnect" href="https://www.googletagmanager.com" />
+  <link rel="preconnect" href="https://www.google-analytics.com" />
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-43EX1RZT7W"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    window.gtag = gtag;
+    gtag('js', new Date());
+
+    // Disable automatic page_view so client-side SPA routing tracks pages cleanly without duplicates
+    gtag('config', 'G-43EX1RZT7W', { send_page_view: false });
+  </script>
+
   <meta charset="UTF-8" />
   <meta name="google-site-verification" content="n-1qeRi451s-0Luc338klDASTgsy8GVlaQoIYvdd2II" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
@@ -14,8 +28,6 @@
   <!-- Preload critical assets -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://www.googletagmanager.com" />
-  <link rel="preconnect" href="https://www.google-analytics.com" />
   <link rel="dns-prefetch" href="https://automindzdigitallabs.online" />
   <link rel="dns-prefetch" href="https://o4511246035976192.ingest.us.sentry.io" />
   <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
@@ -45,16 +57,6 @@
       "priceCurrency": "USD"
     }
   }
-  </script>
-  <!-- Google Analytics 4 (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6NFVEJCMYX"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { window.dataLayer.push(arguments); }
-    window.gtag = gtag;
-    gtag('js', new Date());
-    // Disable automatic page_view to allow SPA router to track navigation cleanly without duplicates
-    gtag('config', 'G-6NFVEJCMYX', { send_page_view: false });
   </script>
 </head>
 

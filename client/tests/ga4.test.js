@@ -9,10 +9,10 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '../..');
 
 describe('Google Analytics 4 (GA4) Integration Verification', () => {
-  const MEASUREMENT_ID = 'G-6NFVEJCMYX';
+  const MEASUREMENT_ID = 'G-43EX1RZT7W';
   const PRODUCTION_DOMAIN = 'https://automindzdigitallabs.online';
 
-  it('index.html contains the correct GA4 script and config snippet', () => {
+  it('index.html contains the correct GA4 script and config snippet immediately after head', () => {
     const indexPath = path.join(rootDir, 'client', 'index.html');
     const indexContent = fs.readFileSync(indexPath, 'utf-8');
 
@@ -25,6 +25,12 @@ describe('Google Analytics 4 (GA4) Integration Verification', () => {
       indexContent.includes(`async src="https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}"`),
       'gtag.js script must be loaded asynchronously so it never blocks page rendering'
     );
+
+    // Verify placement immediately after <head>
+    const headIndex = indexContent.indexOf('<head>');
+    const scriptIndex = indexContent.indexOf(`https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`);
+    assert.ok(headIndex !== -1 && scriptIndex !== -1 && scriptIndex > headIndex, 'Google tag must follow <head>');
+    assert.ok(scriptIndex - headIndex < 250, 'Google tag must be placed immediately after <head>');
 
     // Verify dataLayer and gtag initialization
     assert.ok(
@@ -69,11 +75,11 @@ describe('Google Analytics 4 (GA4) Integration Verification', () => {
 
   it('analytics.js exports correct GA_MEASUREMENT_ID, trackEvent, and trackPageView', async () => {
     const mockDataLayer = [];
-    global.window = {
+    globalThis.window = {
       dataLayer: mockDataLayer,
       location: { href: `${PRODUCTION_DOMAIN}/dashboard` },
     };
-    global.document = {
+    globalThis.document = {
       title: 'Dashboard | AutoMindz',
     };
 
@@ -104,8 +110,8 @@ describe('Google Analytics 4 (GA4) Integration Verification', () => {
     assert.equal(pageViewCall[2].page_path, '/campaigns');
     assert.equal(pageViewCall[2].page_location, `${PRODUCTION_DOMAIN}/campaigns`);
 
-    delete global.window;
-    delete global.document;
+    delete globalThis.window;
+    delete globalThis.document;
   });
 
   it('AnalyticsTracker component imports analytics utilities and implements deduplication', () => {
