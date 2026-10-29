@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
     Zap, Send, Users, BarChart3, Bot, Timer, Shield, ArrowRight, Check,
     Search, Star, ChevronDown, ChevronUp, Layers, CheckCircle2,
-    Activity, Server, Sparkles, Building2, ExternalLink
+    Activity, Server, Sparkles, Building2
 } from 'lucide-react';
 import SEO from '../components/SEO.jsx';
 
@@ -216,8 +216,8 @@ export default function Landing() {
     };
 
     return (
-        <div className="min-h-screen bg-[#070b14] text-slate-100 selection:bg-primary-500/30 selection:text-white">
-            <SEO 
+        <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-900">
+            <SEO
                 title="AutoMindz — Enterprise AI Cold Email Outreach & Deliverability Platform"
                 description="Scale your B2B sales pipeline with AutoMindz. Multi-inbox Gmail rotation, Gemini AI personalization, automated follow-up sequences, and deep website email scraping."
                 url="https://automindzdigitallabs.online"
@@ -225,280 +225,276 @@ export default function Landing() {
                 customSchema={structuredData}
             />
 
-            {/* Subtle Engineering Grid Background */}
-            <div className="fixed inset-0 pointer-events-none glass-grid-bg opacity-35 z-0" />
-            
-            {/* Ambient Radial Backlights */}
-            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-primary-600/15 via-accent-500/5 to-transparent blur-[120px] pointer-events-none z-0" />
-
-            {/* Floating Glass Navigation */}
-            <div className="relative z-50 pt-4 px-4 sm:px-6">
-                <nav className="max-w-7xl mx-auto rounded-2xl backdrop-blur-2xl bg-slate-900/75 border border-white/10 px-6 py-3.5 flex items-center justify-between shadow-[0_8px_32px_0_rgba(0,0,0,0.4)]">
-                    <Link to="/" className="flex items-center gap-3 group">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary-600 via-primary-500 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-105 transition-transform">
-                            <Zap className="w-5 h-5 text-white" />
+            {/* Crisp Top Navigation Header */}
+            <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
+                <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+                    <Link to="/" className="flex items-center gap-2.5 group">
+                        <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm">
+                            <Zap className="w-5 h-5 fill-white" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
+                            <span className="text-lg font-bold tracking-tight text-slate-950 flex items-center gap-1.5">
                                 AutoMindz
-                                <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full bg-primary-500/20 text-primary-400 border border-primary-500/30">
+                                <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
                                     Labs
                                 </span>
                             </span>
-                            <span className="text-[11px] text-slate-400 font-medium hidden sm:block">Outreach & Deliverability</span>
                         </div>
                     </Link>
 
-                    <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
-                        <a href="#features" className="hover:text-white transition-colors">Features</a>
-                        <a href="#workflow" className="hover:text-white transition-colors">How It Works</a>
-                        <a href="#cockpit" className="hover:text-white transition-colors">Cockpit</a>
-                        <a href="#comparison" className="hover:text-white transition-colors">Benchmarks</a>
-                        <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-                        <Link to="/blog" className="hover:text-white transition-colors">Blog</Link>
-                        <Link to="/blog/top-link-building-agencies-in-india" className="text-amber-400 hover:text-amber-300 flex items-center gap-1">
+                    <div className="hidden lg:flex items-center gap-7 text-sm font-medium text-slate-600">
+                        <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
+                        <a href="#workflow" className="hover:text-blue-600 transition-colors">How It Works</a>
+                        <a href="#cockpit" className="hover:text-blue-600 transition-colors">Cockpit</a>
+                        <a href="#comparison" className="hover:text-blue-600 transition-colors">Benchmarks</a>
+                        <a href="#pricing" className="hover:text-blue-600 transition-colors">Pricing</a>
+                        <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
+                        <Link to="/blog/top-link-building-agencies-in-india" className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1">
                             Top Agencies 2026
                         </Link>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Link to="/login" className="text-sm font-medium text-slate-300 hover:text-white px-3 py-1.5 transition-colors">
+                        <Link to="/login" className="text-sm font-medium text-slate-700 hover:text-blue-600 px-3 py-1.5 transition-colors">
                             Sign In
                         </Link>
-                        <Link 
-                            to="/register" 
-                            className="text-sm font-semibold text-white bg-gradient-to-r from-primary-500 via-primary-600 to-accent-600 hover:from-primary-400 hover:to-accent-500 px-4 py-2 rounded-xl shadow-lg shadow-primary-500/25 border border-white/20 transition-all hover:scale-[1.02] flex items-center gap-1.5"
+                        <Link
+                            to="/register"
+                            className="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
                         >
                             Start Free <ArrowRight className="w-4 h-4" />
                         </Link>
                     </div>
                 </nav>
-            </div>
+            </header>
 
-            {/* Hero Section */}
-            <section className="relative z-10 pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden">
+            {/* Clean Enterprise Hero Section */}
+            <section className="relative pt-14 pb-20 md:pt-20 md:pb-24 bg-gradient-to-b from-blue-50/40 via-white to-slate-50/50 overflow-hidden border-b border-slate-200">
                 <div className="max-w-6xl mx-auto px-6 text-center">
-                    
-                    {/* Live Indicator Pill */}
-                    <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full glass-pill border border-emerald-500/25 text-xs font-semibold text-emerald-400 mb-8 shadow-sm">
+
+                    {/* Status Pill */}
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700 mb-6 shadow-2xs">
                         <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600" />
                         </span>
-                        <span>AutoMindz 2.0 Engine Live: Multi-Inbox Rotation & Gemini AI Active</span>
+                        <span>AutoMindz 2.0 Engine: Multi-Inbox Rotation & Gemini AI Active</span>
                     </div>
 
                     {/* Headline */}
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl mx-auto leading-[1.12]">
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-950 max-w-4xl mx-auto leading-[1.14]">
                         High-Deliverability Cold Email.
                         <br />
-                        <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
+                        <span className="text-blue-600">
                             Engineered for Predictable Revenue.
                         </span>
                     </h1>
 
                     {/* Subhead */}
-                    <p className="mt-7 text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed font-normal">
+                    <p className="mt-6 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
                         Rotate multiple Google Workspace & Gmail inboxes automatically. Scrape verified B2B decision-maker emails, personalize at scale with Gemini AI, and pause sequences the instant a prospect responds.
                     </p>
 
                     {/* CTAs */}
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-                        <Link 
-                            to="/register" 
-                            className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-base text-white bg-gradient-to-r from-primary-500 via-primary-600 to-accent-600 hover:from-primary-400 hover:to-accent-500 shadow-xl shadow-primary-500/30 border border-white/20 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mt-9">
+                        <Link
+                            to="/register"
+                            className="w-full sm:w-auto px-8 py-3.5 rounded-lg font-bold text-base text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors flex items-center justify-center gap-2"
                         >
                             Start Free — 50 Emails/Day Forever
                             <ArrowRight className="w-5 h-5" />
                         </Link>
-                        <a 
-                            href="#cockpit" 
-                            className="w-full sm:w-auto px-7 py-4 rounded-xl font-semibold text-sm text-slate-200 glass-panel hover:bg-slate-800/80 border border-white/10 transition-all flex items-center justify-center gap-2"
+                        <a
+                            href="#cockpit"
+                            className="w-full sm:w-auto px-7 py-3.5 rounded-lg font-semibold text-sm text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 shadow-2xs transition-colors flex items-center justify-center gap-2"
                         >
                             Explore Live Cockpit Preview
                         </a>
                     </div>
 
                     {/* Trust Signals */}
-                    <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mt-10 text-xs sm:text-sm text-slate-400 font-medium">
-                        <span className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Free Forever Tier
+                    <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mt-9 text-xs sm:text-sm text-slate-600 font-medium">
+                        <span className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Free Forever Tier
                         </span>
-                        <span className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> No Credit Card Required
+                        <span className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> No Credit Card Required
                         </span>
-                        <span className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> 1-Click Google OAuth2 Setup
+                        <span className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> 1-Click Google OAuth2 Setup
                         </span>
-                        <span className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> 100% Primary Inbox Focus
+                        <span className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> 100% Primary Inbox Focus
                         </span>
                     </div>
 
-                    {/* Glassmorphic Live Cockpit Mockup */}
-                    <div id="cockpit" className="mt-16 md:mt-24 text-left">
-                        <div className="glass-panel-elevated p-4 sm:p-7 max-w-5xl mx-auto border border-white/15 relative overflow-hidden">
+                    {/* Cockpit Mockup */}
+                    <div id="cockpit" className="mt-14 md:mt-20 text-left">
+                        <div className="glass-panel-elevated p-5 sm:p-7 max-w-5xl mx-auto border border-slate-300 relative bg-white shadow-xl">
+
                             {/* Window Top Bar */}
-                            <div className="flex items-center justify-between pb-5 border-b border-white/10 text-xs">
+                            <div className="flex items-center justify-between pb-4 border-b border-slate-200 text-xs">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-red-500/80 border border-red-400/40" />
-                                    <div className="w-3 h-3 rounded-full bg-amber-500/80 border border-amber-400/40" />
-                                    <div className="w-3 h-3 rounded-full bg-emerald-500/80 border border-emerald-400/40" />
-                                    <span className="ml-3 font-mono text-slate-400 hidden sm:inline">
+                                    <div className="w-3 h-3 rounded-full bg-red-400" />
+                                    <div className="w-3 h-3 rounded-full bg-amber-400" />
+                                    <div className="w-3 h-3 rounded-full bg-emerald-400" />
+                                    <span className="ml-3 font-mono text-slate-500 hidden sm:inline">
                                         AutoMindz Cluster Orchestrator — v2.4 (Active)
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
-                                    <span className="font-mono text-emerald-400 font-medium">CLUSTER HEALTH: 99.8%</span>
+                                    <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+                                    <span className="font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px] font-semibold">
+                                        CLUSTER HEALTH: 99.8%
+                                    </span>
                                 </div>
                             </div>
 
-                            {/* Cockpit 3-Column Glass Layout */}
+                            {/* Cockpit 3-Column Layout */}
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-6">
-                                
+
                                 {/* Col 1: Connected Mailboxes Fleet (4 cols) */}
-                                <div className="lg:col-span-4 rounded-xl bg-slate-950/60 border border-white/5 p-4 flex flex-col justify-between">
+                                <div className="lg:col-span-4 rounded-xl bg-slate-50 border border-slate-200 p-4 flex flex-col justify-between">
                                     <div>
                                         <div className="flex items-center justify-between mb-3">
-                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                                                <Server className="w-3.5 h-3.5 text-primary-400" />
+                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                                <Server className="w-3.5 h-3.5 text-blue-600" />
                                                 Sender Fleet (Rotation)
                                             </span>
-                                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-primary-500/20 text-primary-300">
+                                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold">
                                                 3 Connected
                                             </span>
                                         </div>
 
                                         <div className="space-y-2.5">
-                                            <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5 flex items-center justify-between">
+                                            <div className="p-3 rounded-lg bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
                                                 <div>
-                                                    <div className="text-xs font-semibold text-white">alex@outreach-hq.com</div>
-                                                    <div className="text-[10px] text-slate-400">Google Workspace • 42/50 sent</div>
+                                                    <div className="text-xs font-semibold text-slate-900">alex@outreach-hq.com</div>
+                                                    <div className="text-[10px] text-slate-500">Google Workspace • 42/50 sent</div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <span className="text-xs font-bold text-emerald-400">100%</span>
-                                                    <div className="text-[9px] text-slate-500">Pristine</div>
+                                                    <span className="text-xs font-bold text-emerald-600">100%</span>
+                                                    <div className="text-[9px] text-slate-400">Pristine</div>
                                                 </div>
                                             </div>
 
-                                            <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5 flex items-center justify-between">
+                                            <div className="p-3 rounded-lg bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
                                                 <div>
-                                                    <div className="text-xs font-semibold text-white">growth@sales-pipeline.io</div>
-                                                    <div className="text-[10px] text-slate-400">Google Workspace • 38/50 sent</div>
+                                                    <div className="text-xs font-semibold text-slate-900">growth@sales-pipeline.io</div>
+                                                    <div className="text-[10px] text-slate-500">Google Workspace • 38/50 sent</div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <span className="text-xs font-bold text-emerald-400">99.4%</span>
-                                                    <div className="text-[9px] text-slate-500">Pristine</div>
+                                                    <span className="text-xs font-bold text-emerald-600">99.4%</span>
+                                                    <div className="text-[9px] text-slate-400">Pristine</div>
                                                 </div>
                                             </div>
 
-                                            <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5 flex items-center justify-between">
+                                            <div className="p-3 rounded-lg bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
                                                 <div>
-                                                    <div className="text-xs font-semibold text-white">partnership@founderlab.online</div>
-                                                    <div className="text-[10px] text-slate-400">Google Workspace • 45/50 sent</div>
+                                                    <div className="text-xs font-semibold text-slate-900">partnership@founderlab.online</div>
+                                                    <div className="text-[10px] text-slate-500">Google Workspace • 45/50 sent</div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <span className="text-xs font-bold text-emerald-400">99.8%</span>
-                                                    <div className="text-[9px] text-slate-500">Pristine</div>
+                                                    <span className="text-xs font-bold text-emerald-600">99.8%</span>
+                                                    <div className="text-[9px] text-slate-400">Pristine</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 pt-3 border-t border-white/5 text-[11px] text-slate-400 flex items-center justify-between">
+                                    <div className="mt-4 pt-3 border-t border-slate-200 text-[11px] text-slate-500 flex items-center justify-between">
                                         <span>Round-Robin Jitter:</span>
-                                        <span className="font-mono text-slate-200">90s – 180s Random</span>
+                                        <span className="font-mono text-slate-700 font-medium">90s – 180s Random</span>
                                     </div>
                                 </div>
 
                                 {/* Col 2: Active AI Sequence Flow (5 cols) */}
-                                <div className="lg:col-span-5 rounded-xl bg-slate-950/60 border border-white/5 p-4 flex flex-col justify-between">
+                                <div className="lg:col-span-5 rounded-xl bg-slate-50 border border-slate-200 p-4 flex flex-col justify-between">
                                     <div>
                                         <div className="flex items-center justify-between mb-3">
-                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                                                <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
                                                 Active Sequence Tree
                                             </span>
-                                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">
-                                                Gemini 2.5 Active
+                                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold">
+                                                Gemini AI Active
                                             </span>
                                         </div>
 
                                         <div className="space-y-2.5">
-                                            <div className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5">
-                                                <div className="flex items-center justify-between text-xs font-semibold text-white">
+                                            <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-2xs">
+                                                <div className="flex items-center justify-between text-xs font-semibold text-slate-900">
                                                     <span>Step 1: AI Personalized Icebreaker</span>
-                                                    <span className="text-emerald-400 text-[10px]">Active</span>
+                                                    <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded text-[10px] font-semibold border border-emerald-200">Active</span>
                                                 </div>
-                                                <p className="text-[11px] text-slate-400 mt-1 line-clamp-1">
+                                                <p className="text-[11px] text-slate-600 mt-1 line-clamp-1">
                                                     {`"Saw your recent expansion into {{market}} — thought you'd find this relevant..."`}
                                                 </p>
                                             </div>
 
-                                            <div className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5">
-                                                <div className="flex items-center justify-between text-xs font-semibold text-white">
+                                            <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-2xs">
+                                                <div className="flex items-center justify-between text-xs font-semibold text-slate-900">
                                                     <span>Step 2: Case Study & Proof</span>
-                                                    <span className="text-slate-400 text-[10px] font-mono">+3 Days</span>
+                                                    <span className="text-slate-500 text-[10px] font-mono">+3 Days</span>
                                                 </div>
-                                                <p className="text-[11px] text-slate-400 mt-1 line-clamp-1">
+                                                <p className="text-[11px] text-slate-600 mt-1 line-clamp-1">
                                                     {`"Quick 30-sec breakdown of how {{competitor}} scaled their pipeline..."`}
                                                 </p>
                                             </div>
 
-                                            <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
-                                                <div className="flex items-center justify-between text-xs font-semibold text-emerald-300">
+                                            <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200">
+                                                <div className="flex items-center justify-between text-xs font-semibold text-emerald-900">
                                                     <span className="flex items-center gap-1">
-                                                        <Shield className="w-3 h-3 text-emerald-400" />
+                                                        <Shield className="w-3.5 h-3.5 text-emerald-600" />
                                                         Sequence Safety Guard
                                                     </span>
-                                                    <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
+                                                    <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-200/60 text-emerald-800 font-bold">
                                                         Enabled
                                                     </span>
                                                 </div>
-                                                <p className="text-[11px] text-emerald-200/80 mt-1">
+                                                <p className="text-[11px] text-emerald-800 mt-1">
                                                     Instantly pauses follow-ups for recipient the exact second a reply is detected.
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 pt-3 border-t border-white/5 text-[11px] text-slate-400 flex items-center justify-between">
+                                    <div className="mt-4 pt-3 border-t border-slate-200 text-[11px] text-slate-500 flex items-center justify-between">
                                         <span>Target Decision-Makers:</span>
-                                        <span className="font-mono text-slate-200">Verified via Domain Crawler</span>
+                                        <span className="font-mono text-slate-700 font-medium">Verified via Domain Crawler</span>
                                     </div>
                                 </div>
 
                                 {/* Col 3: Live Conversion Metrics (3 cols) */}
-                                <div className="lg:col-span-3 rounded-xl bg-slate-950/60 border border-white/5 p-4 flex flex-col justify-between">
+                                <div className="lg:col-span-3 rounded-xl bg-slate-50 border border-slate-200 p-4 flex flex-col justify-between">
                                     <div>
-                                        <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-                                            <Activity className="w-3.5 h-3.5 text-blue-400" />
+                                        <div className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-1.5">
+                                            <Activity className="w-3.5 h-3.5 text-blue-600" />
                                             Real-Time Telemetry
                                         </div>
 
                                         <div className="space-y-3">
                                             <div>
-                                                <div className="text-[11px] text-slate-400">Open Rate (Tracking Pixel)</div>
-                                                <div className="text-2xl font-extrabold text-white">74.2%</div>
-                                                <div className="text-[10px] text-emerald-400 font-medium">↑ 3.2x industry standard</div>
+                                                <div className="text-[11px] text-slate-500 font-medium">Open Rate (Tracking Pixel)</div>
+                                                <div className="text-2xl font-extrabold text-blue-700">74.2%</div>
+                                                <div className="text-[10px] text-emerald-700 font-semibold">↑ 3.2x industry standard</div>
                                             </div>
 
-                                            <div className="pt-2 border-t border-white/5">
-                                                <div className="text-[11px] text-slate-400">Positive Reply Rate</div>
-                                                <div className="text-2xl font-extrabold text-white">26.8%</div>
-                                                <div className="text-[10px] text-emerald-400 font-medium">↑ 4.8x newsletter CTR</div>
+                                            <div className="pt-2 border-t border-slate-200">
+                                                <div className="text-[11px] text-slate-500 font-medium">Positive Reply Rate</div>
+                                                <div className="text-2xl font-extrabold text-slate-900">26.8%</div>
+                                                <div className="text-[10px] text-emerald-700 font-semibold">↑ 4.8x newsletter CTR</div>
                                             </div>
 
-                                            <div className="pt-2 border-t border-white/5">
-                                                <div className="text-[11px] text-slate-400">Spam Complaints</div>
-                                                <div className="text-xl font-extrabold text-emerald-400">0.00%</div>
-                                                <div className="text-[10px] text-slate-400">Zero domain flags</div>
+                                            <div className="pt-2 border-t border-slate-200">
+                                                <div className="text-[11px] text-slate-500 font-medium">Spam Complaints</div>
+                                                <div className="text-xl font-extrabold text-emerald-600">0.00%</div>
+                                                <div className="text-[10px] text-slate-500">Zero domain flags</div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 pt-3 border-t border-white/5">
+                                    <div className="mt-4 pt-3 border-t border-slate-200">
                                         <span className="text-[10px] text-slate-500 font-mono">Synced with Google API</span>
                                     </div>
                                 </div>
@@ -511,71 +507,71 @@ export default function Landing() {
             </section>
 
             {/* Live Stats Strip */}
-            <section className="relative z-10 border-y border-white/10 bg-slate-950/80 backdrop-blur-md">
-                <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <section className="border-b border-slate-200 bg-slate-50">
+                <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                     <div>
-                        <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">10M+</div>
-                        <div className="text-slate-400 text-xs sm:text-sm mt-1 font-medium">Outbound Emails Sent</div>
+                        <div className="text-3xl md:text-4xl font-extrabold text-slate-950 tracking-tight">10M+</div>
+                        <div className="text-slate-600 text-xs sm:text-sm mt-1 font-medium">Outbound Emails Sent</div>
                     </div>
                     <div>
-                        <div className="text-3xl md:text-4xl font-extrabold text-emerald-400 tracking-tight">99.4%</div>
-                        <div className="text-slate-400 text-xs sm:text-sm mt-1 font-medium">Primary Inbox Delivery</div>
+                        <div className="text-3xl md:text-4xl font-extrabold text-blue-600 tracking-tight">99.4%</div>
+                        <div className="text-slate-600 text-xs sm:text-sm mt-1 font-medium">Primary Inbox Delivery</div>
                     </div>
                     <div>
-                        <div className="text-3xl md:text-4xl font-extrabold text-indigo-400 tracking-tight">18x</div>
-                        <div className="text-slate-400 text-xs sm:text-sm mt-1 font-medium">Average Campaign ROI</div>
+                        <div className="text-3xl md:text-4xl font-extrabold text-indigo-600 tracking-tight">18x</div>
+                        <div className="text-slate-600 text-xs sm:text-sm mt-1 font-medium">Average Campaign ROI</div>
                     </div>
                     <div>
-                        <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">2,500+</div>
-                        <div className="text-slate-400 text-xs sm:text-sm mt-1 font-medium">Active SDRs & Agency Teams</div>
+                        <div className="text-3xl md:text-4xl font-extrabold text-slate-950 tracking-tight">2,500+</div>
+                        <div className="text-slate-600 text-xs sm:text-sm mt-1 font-medium">Active SDRs & Agency Teams</div>
                     </div>
                 </div>
             </section>
 
-            {/* How It Works (Architecture Workflow) */}
-            <section id="workflow" className="relative z-10 max-w-7xl mx-auto px-6 py-24">
-                <div className="text-center mb-16">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-pill border border-primary-500/20 text-xs font-semibold text-primary-400 uppercase tracking-wider mb-4">
+            {/* How It Works (Workflow) */}
+            <section id="workflow" className="max-w-7xl mx-auto px-6 py-20">
+                <div className="text-center mb-14">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700 uppercase tracking-wider mb-3">
                         Outreach Architecture
                     </div>
-                    <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white">
-                        How AutoMindz Works in <span className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">3 Clean Steps</span>
+                    <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-950">
+                        How AutoMindz Works in <span className="text-blue-600">3 Clean Steps</span>
                     </h2>
-                    <p className="text-slate-400 mt-4 max-w-2xl mx-auto text-base">
+                    <p className="text-slate-600 mt-3 max-w-2xl mx-auto text-base">
                         Engineered to eliminate manual data entry, prevent domain burn, and close qualified deals automatically.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="glass-panel p-8 relative group hover:border-primary-500/40 transition-all duration-300">
-                        <div className="text-5xl font-black text-white/10 mb-4 font-mono">01</div>
-                        <div className="w-12 h-12 rounded-xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-primary-400 mb-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="glass-panel p-8 bg-white border border-slate-200 shadow-xs hover:shadow-md hover:border-blue-400 transition-all duration-300">
+                        <div className="text-5xl font-black text-slate-200 mb-4 font-mono">01</div>
+                        <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mb-5">
                             <Layers className="w-6 h-6" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2.5">Connect Inboxes via OAuth2</h3>
-                        <p className="text-sm text-slate-400 leading-relaxed">
+                        <h3 className="text-xl font-bold text-slate-900 mb-2.5">Connect Inboxes via OAuth2</h3>
+                        <p className="text-sm text-slate-600 leading-relaxed">
                             Authenticate your Google Workspace or Gmail mailboxes in one click. No insecure SMTP passwords or app password management required.
                         </p>
                     </div>
 
-                    <div className="glass-panel p-8 relative group hover:border-purple-500/40 transition-all duration-300">
-                        <div className="text-5xl font-black text-white/10 mb-4 font-mono">02</div>
-                        <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-5">
+                    <div className="glass-panel p-8 bg-white border border-slate-200 shadow-xs hover:shadow-md hover:border-blue-400 transition-all duration-300">
+                        <div className="text-5xl font-black text-slate-200 mb-4 font-mono">02</div>
+                        <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mb-5">
                             <Search className="w-6 h-6" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2.5">Scrape & Verify Decision-Makers</h3>
-                        <p className="text-sm text-slate-400 leading-relaxed">
+                        <h3 className="text-xl font-bold text-slate-900 mb-2.5">Scrape & Verify Decision-Makers</h3>
+                        <p className="text-sm text-slate-600 leading-relaxed">
                             Input target company websites. Our built-in domain crawler extracts executive contacts and performs real-time MX deliverability verification.
                         </p>
                     </div>
 
-                    <div className="glass-panel p-8 relative group hover:border-emerald-500/40 transition-all duration-300">
-                        <div className="text-5xl font-black text-white/10 mb-4 font-mono">03</div>
-                        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-5">
+                    <div className="glass-panel p-8 bg-white border border-slate-200 shadow-xs hover:shadow-md hover:border-blue-400 transition-all duration-300">
+                        <div className="text-5xl font-black text-slate-200 mb-4 font-mono">03</div>
+                        <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mb-5">
                             <Zap className="w-6 h-6" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2.5">Launch with Multi-Inbox Rotation</h3>
-                        <p className="text-sm text-slate-400 leading-relaxed">
+                        <h3 className="text-xl font-bold text-slate-900 mb-2.5">Launch with Multi-Inbox Rotation</h3>
+                        <p className="text-sm text-slate-600 leading-relaxed">
                             AutoMindz personalizes every email with Gemini AI, distributes volume across all connected inboxes, and pauses follow-ups the moment a prospect replies.
                         </p>
                     </div>
@@ -583,61 +579,63 @@ export default function Landing() {
             </section>
 
             {/* Core Features */}
-            <section id="features" className="relative z-10 max-w-7xl mx-auto px-6 py-20">
-                <div className="text-center mb-16">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-pill border border-white/10 text-xs font-semibold text-slate-300 uppercase tracking-wider mb-4">
-                        Everything You Need
+            <section id="features" className="py-20 bg-slate-50 border-y border-slate-200">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center mb-14">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700 uppercase tracking-wider mb-3">
+                            Platform Features
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-950">
+                            Engineered for High-Converting <span className="text-blue-600">Outbound Sales</span>
+                        </h2>
+                        <p className="text-slate-600 mt-3 max-w-2xl mx-auto text-base">
+                            Stop juggling multiple disconnected tools. AutoMindz integrates the entire outbound lifecycle under one clean interface.
+                        </p>
                     </div>
-                    <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white">
-                        Engineered for High-Converting <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Outbound Sales</span>
-                    </h2>
-                    <p className="text-slate-400 mt-4 max-w-2xl mx-auto text-base">
-                        Stop juggling multiple disconnected tools. AutoMindz integrates the entire outbound lifecycle under one glass interface.
-                    </p>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {FEATURES.map((f, i) => {
-                        const Icon = f.icon;
-                        return (
-                            <div key={i} className="glass-panel p-6 hover:border-primary-500/30 transition-all duration-300 flex flex-col justify-between">
-                                <div>
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="w-11 h-11 rounded-xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-primary-400">
-                                            <Icon className="w-5 h-5" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                        {FEATURES.map((f, i) => {
+                            const Icon = f.icon;
+                            return (
+                                <div key={i} className="glass-panel p-6 bg-white border border-slate-200 shadow-xs hover:shadow-md hover:border-blue-300 transition-all flex flex-col justify-between">
+                                    <div>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                                                <Icon className="w-5 h-5" />
+                                            </div>
+                                            <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                                                {f.badge}
+                                            </span>
                                         </div>
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-300">
-                                            {f.badge}
-                                        </span>
+                                        <h3 className="font-bold text-slate-900 text-base mb-2">{f.title}</h3>
+                                        <p className="text-xs text-slate-600 leading-relaxed">{f.desc}</p>
                                     </div>
-                                    <h3 className="font-bold text-white text-base mb-2">{f.title}</h3>
-                                    <p className="text-xs text-slate-400 leading-relaxed">{f.desc}</p>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
             </section>
 
             {/* Featured Listicle Callout: Top 10 Link Building Agencies in India */}
-            <section className="relative z-10 max-w-7xl mx-auto px-6 py-12">
-                <div className="glass-panel-elevated p-8 md:p-10 border border-amber-500/20 relative overflow-hidden bg-gradient-to-r from-slate-900/90 via-slate-900/70 to-amber-950/20">
+            <section className="max-w-7xl mx-auto px-6 py-12">
+                <div className="glass-panel-elevated p-8 md:p-10 border border-blue-200 bg-gradient-to-r from-blue-50/80 via-white to-blue-50/80 rounded-2xl shadow-xs">
                     <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
                         <div className="max-w-2xl">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300 uppercase tracking-wider mb-4">
-                                <Building2 className="w-3.5 h-3.5" /> Featured 2026/2027 Industry Report
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 border border-blue-200 text-xs font-bold text-blue-800 uppercase tracking-wider mb-3">
+                                <Building2 className="w-3.5 h-3.5" /> Featured 2026 Industry Report
                             </div>
-                            <h3 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+                            <h3 className="text-2xl md:text-3xl font-extrabold text-slate-950 tracking-tight">
                                 Top 10 Link Building Agencies in India (and How to Scale In-House)
                             </h3>
-                            <p className="text-sm md:text-base text-slate-300 mt-3 leading-relaxed">
+                            <p className="text-sm md:text-base text-slate-600 mt-2.5 leading-relaxed">
                                 Evaluating link building vendors or planning to bring blogger outreach in-house? Read our comprehensive review comparing India's top 10 link building agencies, pricing models, and how to save $3,000+/month using automated cold outreach.
                             </p>
                         </div>
                         <div className="flex-shrink-0 w-full lg:w-auto">
-                            <Link 
-                                to="/blog/top-link-building-agencies-in-india" 
-                                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 transition-all shadow-xl shadow-amber-500/15 w-full lg:w-auto"
+                            <Link
+                                to="/blog/top-link-building-agencies-in-india"
+                                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm w-full lg:w-auto"
                             >
                                 Read Top 10 Agencies Review <ArrowRight className="w-4 h-4" />
                             </Link>
@@ -647,86 +645,86 @@ export default function Landing() {
             </section>
 
             {/* Comparison Matrix (AutoMindz vs BuzzStream vs Brevo) */}
-            <section id="comparison" className="relative z-10 py-20 border-y border-white/10 bg-slate-950/50">
+            <section id="comparison" className="py-20 border-y border-slate-200 bg-slate-50/70">
                 <div className="max-w-7xl mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-pill border border-primary-500/20 text-xs font-semibold text-primary-400 uppercase tracking-wider mb-4">
+                    <div className="text-center mb-14">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700 uppercase tracking-wider mb-3">
                             Competitive Intelligence
                         </div>
-                        <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white">
-                            Why Modern Outbound Teams Choose <span className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">AutoMindz</span>
+                        <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-950">
+                            Why Modern Outbound Teams Choose <span className="text-blue-600">AutoMindz</span>
                         </h2>
-                        <p className="text-slate-400 mt-4 max-w-2xl mx-auto text-base">
+                        <p className="text-slate-600 mt-3 max-w-2xl mx-auto text-base">
                             See how dedicated cold outreach architecture compares against legacy link tools and newsletter software.
                         </p>
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse text-sm glass-panel border border-white/10 rounded-2xl overflow-hidden">
+                        <table className="w-full text-left border-collapse text-sm bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
                             <thead>
-                                <tr className="bg-slate-900/90 text-white border-b border-white/10">
-                                    <th className="p-5 font-bold">Key Capability</th>
-                                    <th className="p-5 font-bold text-primary-400">AutoMindz Labs</th>
-                                    <th className="p-5 font-bold text-slate-400">BuzzStream</th>
-                                    <th className="p-5 font-bold text-slate-400">Brevo (Sendinblue)</th>
+                                <tr className="bg-slate-100 text-slate-900 border-b border-slate-200">
+                                    <th className="p-4 font-bold">Key Capability</th>
+                                    <th className="p-4 font-bold text-blue-700">AutoMindz Labs</th>
+                                    <th className="p-4 font-bold text-slate-600">BuzzStream</th>
+                                    <th className="p-4 font-bold text-slate-600">Brevo (Sendinblue)</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-slate-100">
                                 <tr>
-                                    <td className="p-5 font-semibold text-white">Outbound Cold Email Compliance</td>
-                                    <td className="p-5 text-emerald-400 font-bold flex items-center gap-2">
-                                        <Check className="w-4 h-4" /> 100% Dedicated Outbound
+                                    <td className="p-4 font-semibold text-slate-900">Outbound Cold Email Compliance</td>
+                                    <td className="p-4 text-emerald-700 font-bold flex items-center gap-2 bg-blue-50/30">
+                                        <Check className="w-4 h-4 text-emerald-600" /> 100% Dedicated Outbound
                                     </td>
-                                    <td className="p-5 text-slate-400">Manual PR CRM</td>
-                                    <td className="p-5 text-rose-400 font-medium">Banned (Opt-in only)</td>
+                                    <td className="p-4 text-slate-600">Manual PR CRM</td>
+                                    <td className="p-4 text-rose-600 font-medium">Banned (Opt-in only)</td>
                                 </tr>
                                 <tr>
-                                    <td className="p-5 font-semibold text-white">Horizontal Multi-Inbox Rotation</td>
-                                    <td className="p-5 text-emerald-400 font-bold flex items-center gap-2">
-                                        <Check className="w-4 h-4" /> Built-in Fleet Balancing
+                                    <td className="p-4 font-semibold text-slate-900">Horizontal Multi-Inbox Rotation</td>
+                                    <td className="p-4 text-emerald-700 font-bold flex items-center gap-2 bg-blue-50/30">
+                                        <Check className="w-4 h-4 text-emerald-600" /> Built-in Fleet Balancing
                                     </td>
-                                    <td className="p-5 text-slate-400">Requires expensive per-seat plans</td>
-                                    <td className="p-5 text-rose-400 font-medium">No (Shared SMTP server)</td>
+                                    <td className="p-4 text-slate-600">Requires expensive per-seat plans</td>
+                                    <td className="p-4 text-rose-600 font-medium">No (Shared SMTP server)</td>
                                 </tr>
                                 <tr>
-                                    <td className="p-5 font-semibold text-white">Integrated B2B Email Scraper</td>
-                                    <td className="p-5 text-emerald-400 font-bold flex items-center gap-2">
-                                        <Check className="w-4 h-4" /> Direct Domain Crawler</td>
-                                    <td className="p-5 text-slate-400">Manual browser extension</td>
-                                    <td className="p-5 text-slate-500">Not supported</td>
+                                    <td className="p-4 font-semibold text-slate-900">Integrated B2B Email Scraper</td>
+                                    <td className="p-4 text-emerald-700 font-bold flex items-center gap-2 bg-blue-50/30">
+                                        <Check className="w-4 h-4 text-emerald-600" /> Direct Domain Crawler</td>
+                                    <td className="p-4 text-slate-600">Manual browser extension</td>
+                                    <td className="p-4 text-slate-400">Not supported</td>
                                 </tr>
                                 <tr>
-                                    <td className="p-5 font-semibold text-white">AI Personalization (Gemini AI)</td>
-                                    <td className="p-5 text-emerald-400 font-bold flex items-center gap-2">
-                                        <Check className="w-4 h-4" /> Context-Aware LLM Studio</td>
-                                    <td className="p-5 text-slate-400">Static templates only</td>
-                                    <td className="p-5 text-slate-400">Basic newsletter copy</td>
+                                    <td className="p-4 font-semibold text-slate-900">AI Personalization (Gemini AI)</td>
+                                    <td className="p-4 text-emerald-700 font-bold flex items-center gap-2 bg-blue-50/30">
+                                        <Check className="w-4 h-4 text-emerald-600" /> Context-Aware LLM Studio</td>
+                                    <td className="p-4 text-slate-600">Static templates only</td>
+                                    <td className="p-4 text-slate-600">Basic newsletter copy</td>
                                 </tr>
                                 <tr>
-                                    <td className="p-5 font-semibold text-white">Auto-Stop Follow-ups on Reply</td>
-                                    <td className="p-5 text-emerald-400 font-bold flex items-center gap-2">
-                                        <Check className="w-4 h-4" /> Instant Inbound Sync</td>
-                                    <td className="p-5 text-emerald-400 flex items-center gap-2">
-                                        <Check className="w-4 h-4" /> Supported</td>
-                                    <td className="p-5 text-slate-500">Requires custom webhooks</td>
+                                    <td className="p-4 font-semibold text-slate-900">Auto-Stop Follow-ups on Reply</td>
+                                    <td className="p-4 text-emerald-700 font-bold flex items-center gap-2 bg-blue-50/30">
+                                        <Check className="w-4 h-4 text-emerald-600" /> Instant Inbound Sync</td>
+                                    <td className="p-4 text-emerald-700 flex items-center gap-2">
+                                        <Check className="w-4 h-4 text-emerald-600" /> Supported</td>
+                                    <td className="p-4 text-slate-400">Requires custom webhooks</td>
                                 </tr>
                                 <tr>
-                                    <td className="p-5 font-semibold text-white">Free Forever Outbound Plan</td>
-                                    <td className="p-5 text-emerald-400 font-bold flex items-center gap-2">
-                                        <Check className="w-4 h-4" /> Yes (50/day forever)</td>
-                                    <td className="p-5 text-rose-400 font-medium">No (Starts at $24/mo)</td>
-                                    <td className="p-5 text-slate-400">Free for newsletters only</td>
+                                    <td className="p-4 font-semibold text-slate-900">Free Forever Outbound Plan</td>
+                                    <td className="p-4 text-emerald-700 font-bold flex items-center gap-2 bg-blue-50/30">
+                                        <Check className="w-4 h-4 text-emerald-600" /> Yes (50/day forever)</td>
+                                    <td className="p-4 text-rose-600 font-medium">No (Starts at $24/mo)</td>
+                                    <td className="p-4 text-slate-600">Free for newsletters only</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
                     <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm">
-                        <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="text-primary-400 hover:text-primary-300 font-semibold flex items-center gap-1.5">
+                        <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1.5">
                             Read the complete BuzzStream comparison guide <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
-                        <span className="text-slate-600 hidden sm:inline">•</span>
-                        <Link to="/blog/brevo-alternative-cold-email-outreach" className="text-primary-400 hover:text-primary-300 font-semibold flex items-center gap-1.5">
+                        <span className="text-slate-300 hidden sm:inline">•</span>
+                        <Link to="/blog/brevo-alternative-cold-email-outreach" className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1.5">
                             Read why cold outreach beats Brevo <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
                     </div>
@@ -734,197 +732,198 @@ export default function Landing() {
             </section>
 
             {/* Pricing Section */}
-            <section id="pricing" className="relative z-10 py-24">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-pill border border-white/10 text-xs font-semibold text-slate-300 uppercase tracking-wider mb-4">
-                            Transparent Pricing
-                        </div>
-                        <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white">
-                            Predictable Plans for <span className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">Every Scale</span>
-                        </h2>
-                        <p className="text-slate-400 mt-4 max-w-xl mx-auto text-base">
-                            Start free today. Scale your mailbox cluster as your outreach campaign volume grows.
-                        </p>
+            <section id="pricing" className="max-w-7xl mx-auto px-6 py-20">
+                <div className="text-center mb-14">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700 uppercase tracking-wider mb-3">
+                        Transparent Pricing
                     </div>
+                    <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-950">
+                        Predictable Plans for <span className="text-blue-600">Every Scale</span>
+                    </h2>
+                    <p className="text-slate-600 mt-3 max-w-xl mx-auto text-base">
+                        Start free today. Scale your mailbox cluster as your outreach campaign volume grows.
+                    </p>
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {PLANS.map((plan) => (
-                            <div 
-                                key={plan.id} 
-                                className={`glass-panel p-7 flex flex-col justify-between relative transition-all duration-300 hover:border-white/25 ${
-                                    plan.badge === 'Most Popular' ? 'ring-2 ring-primary-500 shadow-2xl shadow-primary-500/20 bg-slate-900/90' : ''
-                                }`}
-                            >
-                                <div>
-                                    {plan.badge && (
-                                        <div className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-gradient-to-r from-primary-500 to-accent-500 text-white">
-                                            {plan.badge}
-                                        </div>
-                                    )}
-                                    <h3 className="text-xl font-bold text-white">{plan.name}</h3>
-                                    <p className="text-xs text-slate-400 mt-1 mb-5">{plan.desc}</p>
-                                    
-                                    <div className="mb-6 flex items-baseline gap-1">
-                                        <span className="text-4xl font-black text-white">${plan.price}</span>
-                                        {plan.price > 0 && <span className="text-xs text-slate-400">/month</span>}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {PLANS.map((plan) => (
+                        <div
+                            key={plan.id}
+                            className={`glass-panel p-6 flex flex-col justify-between relative bg-white border transition-all duration-200 ${
+                                plan.badge === 'Most Popular'
+                                    ? 'ring-2 ring-blue-600 border-blue-600 shadow-md bg-blue-50/20'
+                                    : 'border-slate-200 shadow-xs hover:shadow-md'
+                            }`}
+                        >
+                            <div>
+                                {plan.badge && (
+                                    <div className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-600 text-white">
+                                        {plan.badge}
                                     </div>
+                                )}
+                                <h3 className="text-xl font-bold text-slate-950">{plan.name}</h3>
+                                <p className="text-xs text-slate-500 mt-1 mb-5">{plan.desc}</p>
 
-                                    <ul className="space-y-3 mb-8">
-                                        {plan.features.map((f, i) => (
-                                            <li key={i} className="flex items-start gap-2.5 text-xs text-slate-300">
-                                                <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                                                <span>{f}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
+                                <div className="mb-6 flex items-baseline gap-1">
+                                    <span className="text-4xl font-black text-slate-950">${plan.price}</span>
+                                    {plan.price > 0 && <span className="text-xs text-slate-500">/month</span>}
                                 </div>
 
-                                <Link 
-                                    to="/register" 
-                                    className={`w-full py-3 rounded-xl text-xs font-bold text-center transition-all ${
-                                        plan.price === 0
-                                            ? 'bg-slate-800 hover:bg-slate-700 text-white border border-white/10'
-                                            : 'bg-gradient-to-r from-primary-500 to-accent-600 hover:from-primary-400 hover:to-accent-500 text-white shadow-lg shadow-primary-500/25 border border-white/20'
-                                    }`}
-                                >
-                                    {plan.price === 0 ? 'Start Free Forever' : 'Get Started Now'}
-                                </Link>
+                                <ul className="space-y-2.5 mb-7">
+                                    {plan.features.map((f, i) => (
+                                        <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
+                                            <Check className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                                            <span>{f}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <Link
+                                to="/register"
+                                className={`w-full py-2.5 rounded-lg text-xs font-bold text-center transition-colors ${
+                                    plan.price === 0
+                                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
+                                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+                                }`}
+                            >
+                                {plan.price === 0 ? 'Start Free Forever' : 'Get Started Now'}
+                            </Link>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* Testimonials */}
+            <section className="py-20 border-t border-slate-200 bg-slate-50">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center mb-14">
+                        <h2 className="text-3xl md:text-4xl font-extrabold text-slate-950 tracking-tight">
+                            Trusted by High-Growth <span className="text-blue-600">Outbound Operators</span>
+                        </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {TESTIMONIALS.map((t, i) => (
+                            <div key={i} className="glass-panel p-6 flex flex-col justify-between bg-white border border-slate-200 shadow-xs">
+                                <div>
+                                    <div className="flex items-center gap-1 mb-3">
+                                        {[...Array(5)].map((_, j) => (
+                                            <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                        ))}
+                                    </div>
+                                    <p className="text-sm text-slate-700 leading-relaxed mb-6 italic">
+                                        "{t.text}"
+                                    </p>
+                                </div>
+
+                                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                                    <div>
+                                        <div className="text-sm font-bold text-slate-950">{t.name}</div>
+                                        <div className="text-xs text-slate-500">{t.role}</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            {t.metric}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Testimonials */}
-            <section className="relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10">
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-                        Trusted by High-Growth <span className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">Outbound Operators</span>
-                    </h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {TESTIMONIALS.map((t, i) => (
-                        <div key={i} className="glass-panel p-7 flex flex-col justify-between">
-                            <div>
-                                <div className="flex items-center gap-1 mb-4">
-                                    {[...Array(5)].map((_, j) => (
-                                        <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                    ))}
-                                </div>
-                                <p className="text-sm text-slate-300 leading-relaxed mb-6 italic">
-                                    "{t.text}"
-                                </p>
-                            </div>
-
-                            <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                                <div>
-                                    <div className="text-sm font-bold text-white">{t.name}</div>
-                                    <div className="text-xs text-slate-400">{t.role}</div>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                        {t.metric}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
             {/* FAQ Section (AEO & GEO Optimization) */}
-            <section id="faq" className="relative z-10 py-24 border-t border-white/10 bg-slate-950/40">
-                <div className="max-w-4xl mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-pill border border-primary-500/20 text-xs font-semibold text-primary-400 uppercase tracking-wider mb-4">
-                            Answers & Documentation
-                        </div>
-                        <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white">
-                            Frequently Asked <span className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">Questions</span>
-                        </h2>
-                        <p className="text-slate-400 mt-4 text-base">
-                            Direct answers regarding mailbox deliverability, automated rotation, and safety protocols.
-                        </p>
+            <section id="faq" className="max-w-4xl mx-auto px-6 py-20">
+                <div className="text-center mb-14">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700 uppercase tracking-wider mb-3">
+                        Documentation & Answers
                     </div>
+                    <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-950">
+                        Frequently Asked <span className="text-blue-600">Questions</span>
+                    </h2>
+                    <p className="text-slate-600 mt-3 text-base">
+                        Direct answers regarding mailbox deliverability, automated rotation, and safety protocols.
+                    </p>
+                </div>
 
-                    <div className="space-y-4">
-                        {FAQS.map((faq, index) => {
-                            const isOpen = openFaq === index;
-                            return (
-                                <div key={index} className="glass-panel overflow-hidden border border-white/10 transition-colors">
-                                    <button
-                                        type="button"
-                                        onClick={() => toggleFaq(index)}
-                                        aria-expanded={isOpen}
-                                        className="w-full p-6 text-left flex items-center justify-between gap-4 font-semibold text-white hover:text-primary-400 transition-colors"
-                                    >
-                                        <span className="text-base sm:text-lg">{faq.q}</span>
-                                        {isOpen ? (
-                                            <ChevronUp className="w-5 h-5 text-primary-400 flex-shrink-0" />
-                                        ) : (
-                                            <ChevronDown className="w-5 h-5 text-slate-500 flex-shrink-0" />
-                                        )}
-                                    </button>
-                                    {isOpen && (
-                                        <div className="px-6 pb-6 text-sm text-slate-300 leading-relaxed border-t border-white/5 pt-4">
-                                            {faq.a}
-                                        </div>
+                <div className="space-y-3.5">
+                    {FAQS.map((faq, index) => {
+                        const isOpen = openFaq === index;
+                        return (
+                            <div key={index} className="glass-panel overflow-hidden border border-slate-200 bg-white shadow-xs">
+                                <button
+                                    type="button"
+                                    onClick={() => toggleFaq(index)}
+                                    aria-expanded={isOpen}
+                                    className="w-full p-5 text-left flex items-center justify-between gap-4 font-semibold text-slate-900 hover:text-blue-600 transition-colors"
+                                >
+                                    <span className="text-base sm:text-lg">{faq.q}</span>
+                                    {isOpen ? (
+                                        <ChevronUp className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                                    ) : (
+                                        <ChevronDown className="w-5 h-5 text-slate-400 flex-shrink-0" />
                                     )}
-                                </div>
-                            );
-                        })}
-                    </div>
+                                </button>
+                                {isOpen && (
+                                    <div className="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3.5">
+                                        {faq.a}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             </section>
 
-            {/* Bottom High-Converting CTA */}
-            <section className="relative z-10 py-24 bg-gradient-to-b from-transparent via-primary-950/30 to-slate-950">
-                <div className="max-w-4xl mx-auto px-6 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary-600 to-accent-600 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-primary-500/30">
-                        <Zap className="w-8 h-8 text-white" />
+            {/* Bottom High-Converting CTA Banner */}
+            <section className="max-w-6xl mx-auto px-6 mb-16">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-16 px-8 rounded-2xl shadow-lg text-center">
+                    <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center mx-auto mb-5">
+                        <Zap className="w-7 h-7 text-white fill-white" />
                     </div>
-                    <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+                    <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
                         Scale Your Outbound Sales Pipeline Today
                     </h2>
-                    <p className="text-slate-300 text-base md:text-lg mt-4 mb-8 max-w-2xl mx-auto">
+                    <p className="text-blue-100 text-base md:text-lg mt-3 mb-7 max-w-2xl mx-auto">
                         Join 2,500+ modern founders, agency operators, and sales teams who land in the primary inbox with AutoMindz.
                     </p>
-                    <Link 
-                        to="/register" 
-                        className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-base text-white bg-gradient-to-r from-primary-500 via-primary-600 to-accent-600 hover:from-primary-400 hover:to-accent-500 shadow-2xl shadow-primary-500/40 border border-white/20 transition-all hover:scale-105"
+                    <Link
+                        to="/register"
+                        className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg font-bold text-base text-blue-700 bg-white hover:bg-blue-50 shadow-md transition-colors"
                     >
                         Start Free — 50 Emails/Day Forever <ArrowRight className="w-5 h-5" />
                     </Link>
                 </div>
             </section>
 
-            {/* Glass Footer */}
-            <footer className="relative z-10 border-t border-white/10 bg-slate-950/90 py-12">
+            {/* Clean Enterprise Footer */}
+            <footer className="border-t border-slate-200 bg-slate-50 py-12">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary-500 to-accent-500 flex items-center justify-center">
-                            <Zap className="w-4 h-4 text-white" />
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+                            <Zap className="w-4 h-4 fill-white" />
                         </div>
-                        <span className="font-bold text-white text-base">AutoMindz Digital Labs</span>
+                        <span className="font-bold text-slate-900 text-base">AutoMindz Digital Labs</span>
                     </div>
 
                     <p className="text-xs text-slate-500">
                         &copy; {new Date().getFullYear()} AutoMindz Digital Labs. Built for enterprise cold email & deliverability.
                     </p>
 
-                    <div className="flex flex-wrap items-center gap-5 text-xs text-slate-400 font-medium">
-                        <Link to="/blog" className="hover:text-white transition-colors">Blog</Link>
-                        <Link to="/blog/top-link-building-agencies-in-india" className="text-amber-400 hover:text-amber-300 transition-colors">Top Link Building Agencies India</Link>
-                        <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="hover:text-white transition-colors">BuzzStream Alternative</Link>
-                        <Link to="/blog/brevo-alternative-cold-email-outreach" className="hover:text-white transition-colors">Brevo Alternative</Link>
-                        <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy</Link>
-                        <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
-                        <a href="mailto:support@automindzdigitallabs.online" className="hover:text-white transition-colors">Contact</a>
+                    <div className="flex flex-wrap items-center gap-5 text-xs text-slate-600 font-medium">
+                        <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
+                        <Link to="/blog/top-link-building-agencies-in-india" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">Top Link Building Agencies India</Link>
+                        <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="hover:text-blue-600 transition-colors">BuzzStream Alternative</Link>
+                        <Link to="/blog/brevo-alternative-cold-email-outreach" className="hover:text-blue-600 transition-colors">Brevo Alternative</Link>
+                        <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</Link>
+                        <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
+                        <a href="mailto:support@automindzdigitallabs.online" className="hover:text-blue-600 transition-colors">Contact</a>
                     </div>
                 </div>
             </footer>
         </div>
     );
 }
+

@@ -29,7 +29,7 @@ export default function BlogBuzzstreamAlternative() {
 
   return (
     <>
-      <SEO 
+      <SEO
         title="Best BuzzStream Alternative in 2026: Link Building & Outreach CRM"
         description="Looking for a modern BuzzStream alternative for blogger outreach, link building, and digital PR? Compare features, multi-inbox rotation, AI personalization, and pricing."
         url="https://automindzdigitallabs.online/blog/buzzstream-alternative-cold-outreach-link-building"
@@ -37,32 +37,35 @@ export default function BlogBuzzstreamAlternative() {
         customSchema={schema}
       />
 
-      <nav className="border-b border-surface-200 dark:border-surface-800 bg-white/50 dark:bg-surface-950/50 backdrop-blur-xl sticky top-0 z-50">
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/blog" className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-primary-600 transition-colors">
+          <Link to="/blog" className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to Blog
           </Link>
-          <Link to="/" className="text-xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
-            <Zap className="w-5 h-5 text-primary-500" /> AutoMindz
+          <Link to="/" className="text-lg font-bold text-slate-950 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+              <Zap className="w-4 h-4 fill-white" />
+            </div>
+            AutoMindz
           </Link>
-          <Link to="/register" className="btn-primary py-1.5 px-4 text-sm">
+          <Link to="/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
             Try Free
           </Link>
         </div>
-      </nav>
+      </header>
 
       <main className="max-w-4xl mx-auto px-4 py-12 md:py-16">
-        <header className="mb-10 text-center">
-          <div className="inline-flex items-center gap-2 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider mb-4">
+        <header className="mb-8 text-center">
+          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider mb-4 shadow-2xs">
             Competitor Comparison & Guide
           </div>
-          <h1 className="text-3xl md:text-5xl font-extrabold text-surface-900 dark:text-white leading-tight mb-6">
+          <h1 className="text-3xl md:text-5xl font-extrabold text-slate-950 leading-tight mb-4">
             The Best BuzzStream Alternative for Link Building & Outreach in 2026
           </h1>
-          <p className="text-lg text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Discover why modern SEO agencies and sales teams are moving from legacy outreach CRMs to automated, multi-inbox platforms with AI personalization.
           </p>
-          <div className="flex items-center justify-center gap-3 text-sm text-surface-500 mt-6">
+          <div className="flex items-center justify-center gap-3 text-sm text-slate-500 mt-6">
             <span>By <strong>Aman Siddiqui</strong></span>
             <span>•</span>
             <span>Published Oct 2026</span>
@@ -70,6 +73,15 @@ export default function BlogBuzzstreamAlternative() {
             <span>8 min read</span>
           </div>
         </header>
+
+        {/* Hero Graphic Banner */}
+        <div className="mb-10 rounded-2xl overflow-hidden border border-slate-200 shadow-md">
+          <img
+            src="/blog/buzzstream-alternative-guide.svg"
+            alt="Best BuzzStream Alternative in 2026 - Link Building Outreach Software"
+            className="w-full h-auto object-cover"
+          />
+        </div>
 
         <article className="prose prose-slate dark:prose-invert max-w-none text-surface-700 dark:text-surface-300 leading-relaxed">
           <p className="text-lg font-medium">
@@ -171,4 +183,5 @@ export default function BlogBuzzstreamAlternative() {
     </>
   );
 }
+
 

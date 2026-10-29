@@ -6,7 +6,7 @@ compatibility_date = "2023-10-02"
 crons = ["*/5 * * * *"] # Runs every 5 minutes so Render never sleeps!
 
 [vars]
-PING_URLS = "https://automindzdigitallabs.online/health,https://automindzdigitallabs.online/"
+PING_URLS = "https://new-outreach-system.onrender.com/health,https://new-outreach-system.onrender.com/api/v1/health,https://automindzdigitallabs.online/"
 
 [[kv_namespaces]]
 binding = "PING_RESULTS"

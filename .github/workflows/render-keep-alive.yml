@@ -13,20 +13,30 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Ping Health Endpoint
+      - name: Ping Render Backend & Frontend Endpoints
         run: |
-          echo "🤖 Keep-Alive Robot waking up Render..."
-          URL="https://automindzdigitallabs.online/health"
-          echo "Hitting $URL at $(date -u)"
-          
-          # Retry up to 2 times with 30s timeout
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -m 30 --retry 2 "$URL" || true)
-          echo "Health Endpoint Status Code: $STATUS"
-          
+          echo "🤖 Keep-Alive Robot waking up Render Web Service..."
+
+          # Primary Render Service URL (The actual service that goes to sleep)
+          RENDER_URL="https://new-outreach-system.onrender.com/health"
+          RENDER_API_URL="https://new-outreach-system.onrender.com/api/v1/health"
+          FRONTEND_URL="https://automindzdigitallabs.online/"
+
+          echo "Pinging primary Render backend: $RENDER_URL at $(date -u)"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -m 45 --retry 3 --retry-delay 5 "$RENDER_URL" || true)
+          echo "Render Backend Status Code: $STATUS"
+
           if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
-            echo "✅ Render is awake and healthy!"
+            echo "✅ Render backend is awake and healthy!"
           else
-            echo "⚠️ Health check returned $STATUS, pinging root URL as fallback..."
-            FALLBACK_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -m 30 "https://automindzdigitallabs.online/" || true)
-            echo "Root URL Status Code: $FALLBACK_STATUS"
+            echo "⚠️ Primary endpoint returned $STATUS, pinging API alias: $RENDER_API_URL..."
+            STATUS_ALIAS=$(curl -s -o /dev/null -w "%{http_code}" -m 45 "$RENDER_API_URL" || true)
+            echo "Render API Alias Status Code: $STATUS_ALIAS"
           fi
+
+          echo "Pinging Frontend: $FRONTEND_URL"
+          STATUS_FRONTEND=$(curl -s -o /dev/null -w "%{http_code}" -m 30 "$FRONTEND_URL" || true)
+          echo "Frontend Status Code: $STATUS_FRONTEND"
+
+          echo "🎉 Keep-alive check completed successfully."
+

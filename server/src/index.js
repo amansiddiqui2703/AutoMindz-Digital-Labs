@@ -253,7 +253,7 @@ app.use('/api/accounts', accountRoutes);
 app.use('/t', trackingRoutes);
 
 // Enhanced health check: reports DB + Redis readiness for load balancer probes
-app.get('/health', async (req, res) => {
+app.get(['/health', '/api/v1/health', '/ping'], async (req, res) => {
   const checks = { status: 'ok', timestamp: new Date().toISOString() };
   try {
     // Quick Mongoose connection state: 1 = connected
@@ -332,6 +332,21 @@ const start = async () => {
   initQueue();
   startFollowUpScheduler();
   startCampaignScheduler();
+
+  // RENDER SLEEP PREVENTER: Automatically ping /health every 4.5 minutes in production
+  if (env.NODE_ENV === 'production') {
+    const PING_INTERVAL = 4.5 * 60 * 1000;
+    const targetUrl = (env.SERVER_URL || 'https://new-outreach-system.onrender.com') + '/health';
+    const keepAliveTimer = setInterval(async () => {
+      try {
+        const pingRes = await fetch(targetUrl);
+        console.log('[KeepAlive] Automated self-ping to ' + targetUrl + ' (Status: ' + pingRes.status + ')');
+      } catch (err) {
+        console.warn('[KeepAlive] Self-ping warning:', err.message);
+      }
+    }, PING_INTERVAL);
+    if (keepAliveTimer.unref) keepAliveTimer.unref();
+  }
 
   const server = app.listen(env.PORT, () => {
     console.log(`\n🚀 AutoMindz server running on port ${env.PORT}`);

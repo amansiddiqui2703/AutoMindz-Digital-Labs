@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="50%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="450" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle Grid Pattern -->
+  <g opacity="0.08" stroke="#ffffff" stroke-width="1">
+    <line x1="0" y1="50" x2="800" y2="50"/>
+    <line x1="0" y1="100" x2="800" y2="100"/>
+    <line x1="0" y1="150" x2="800" y2="150"/>
+    <line x1="0" y1="200" x2="800" y2="200"/>
+    <line x1="0" y1="250" x2="800" y2="250"/>
+    <line x1="0" y1="300" x2="800" y2="300"/>
+    <line x1="0" y1="350" x2="800" y2="350"/>
+    <line x1="0" y1="400" x2="800" y2="400"/>
+    <line x1="100" y1="0" x2="100" y2="450"/>
+    <line x1="200" y1="0" x2="200" y2="450"/>
+    <line x1="300" y1="0" x2="300" y2="450"/>
+    <line x1="400" y1="0" x2="400" y2="450"/>
+    <line x1="500" y1="0" x2="500" y2="450"/>
+    <line x1="600" y1="0" x2="600" y2="450"/>
+    <line x1="700" y1="0" x2="700" y2="450"/>
+  </g>
+
+  <!-- Header Badge -->
+  <rect x="50" y="45" width="220" height="28" rx="14" fill="#eff6ff" opacity="0.95"/>
+  <text x="65" y="64" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="700" fill="#1d4ed8" letter-spacing="1">★ 2026 BENCHMARK REPORT</text>
+
+  <!-- Title & Subtitle -->
+  <text x="50" y="115" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="800" fill="#ffffff">Top 10 Link Building Agencies</text>
+  <text x="50" y="152" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="700" fill="#93c5fd">Best Link Building Agency in India Audit</text>
+
+  <!-- Comparison Visual Cards Container -->
+  <g filter="url(#shadow)">
+    <!-- Main Highlight Card -->
+    <rect x="50" y="180" width="340" height="220" rx="16" fill="url(#cardGrad)"/>
+    <rect x="50" y="180" width="340" height="6" rx="3" fill="#2563eb"/>
+    
+    <text x="75" y="220" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="800" fill="#0f172a">#1 PageTraffic &amp; ThatWare</text>
+    <text x="75" y="240" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" fill="#64748b">Verified DR 60-90+ Placements • Zero PBNs</text>
+
+    <!-- Metrics Row -->
+    <rect x="75" y="260" width="85" height="50" rx="8" fill="#eff6ff"/>
+    <text x="85" y="280" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#1e40af">AVG DR</text>
+    <text x="85" y="300" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="800" fill="#2563eb">78+</text>
+
+    <rect x="175" y="260" width="85" height="50" rx="8" fill="#eff6ff"/>
+    <text x="185" y="280" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#1e40af">RATING</text>
+    <text x="185" y="300" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="800" fill="#2563eb">4.9 ★</text>
+
+    <rect x="275" y="260" width="90" height="50" rx="8" fill="#eff6ff"/>
+    <text x="285" y="280" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#1e40af">EDITORIAL</text>
+    <text x="285" y="300" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="800" fill="#16a34a">100%</text>
+
+    <rect x="75" y="325" width="290" height="32" rx="8" fill="#f1f5f9"/>
+    <text x="90" y="346" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" fill="#334155">✓ Manual Pitching • Do-Follow Editorial Links</text>
+
+    <text x="75" y="380" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" fill="#2563eb">Explore Top 10 Indian Agencies Profiles →</text>
+  </g>
+
+  <!-- Right Visual Card: In-House Automation Comparison -->
+  <g filter="url(#shadow)">
+    <rect x="420" y="180" width="330" height="220" rx="16" fill="url(#cardGrad)"/>
+    <rect x="420" y="180" width="330" height="6" rx="3" fill="#16a34a"/>
+
+    <text x="445" y="220" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="800" fill="#0f172a">In-House Outreach ROI</text>
+    <text x="445" y="240" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" fill="#64748b">Save $3,000+/mo vs Agency Retainers</text>
+
+    <rect x="445" y="260" width="280" height="40" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+    <text x="460" y="285" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700" fill="#15803d">AutoMindz Multi-Inbox: $37 - $74/mo</text>
+
+    <rect x="445" y="310" width="280" height="40" rx="8" fill="#fef2f2" stroke="#fecaca" stroke-width="1"/>
+    <text x="460" y="335" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">Agency Retainer: $1,500 - $4,000/mo</text>
+
+    <text x="445" y="380" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700" fill="#15803d">90% Annual Cost Savings Guaranteed</text>
+  </g>
+</svg>
