@@ -29,7 +29,7 @@ class SSEManager extends EventEmitter {
         });
 
         // HEARTBEAT: every 30s ping all clients and remove dead connections
-        setInterval(() => {
+        const heartbeatTimer = setInterval(() => {
             for (const [userId, clients] of this.userClients.entries()) {
                 const dead = [];
                 for (const res of clients) {
@@ -43,14 +43,20 @@ class SSEManager extends EventEmitter {
                 if (clients.size === 0) this.userClients.delete(userId);
             }
         }, 30_000);
+        if (heartbeatTimer && typeof heartbeatTimer.unref === 'function') {
+            heartbeatTimer.unref();
+        }
 
         // CLEANUP: evict old deduplication cache entries every 10 seconds
-        setInterval(() => {
+        const cleanupTimer = setInterval(() => {
             const cutoff = Date.now() - 5_000; // keep 5s window
             for (const [key, ts] of this._recentEvents.entries()) {
                 if (ts < cutoff) this._recentEvents.delete(key);
             }
         }, 10_000);
+        if (cleanupTimer && typeof cleanupTimer.unref === 'function') {
+            cleanupTimer.unref();
+        }
     }
 
     /**

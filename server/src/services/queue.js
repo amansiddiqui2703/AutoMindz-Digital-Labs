@@ -36,6 +36,11 @@ class InMemoryQueueManager {
 
         this.jobs.set(jobId, jobEntry);
 
+        // In test mode, don't spin up background execution timers that leak handles
+        if (process.env.NODE_ENV === 'test') {
+            return { id: jobId };
+        }
+
         jobEntry.timer = setTimeout(async () => {
             jobEntry.status = 'active';
             this.activeCount++;

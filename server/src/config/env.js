@@ -87,11 +87,6 @@ const validateEnv = () => {
     }
 };
 
-// Only validate if not running in a script context that doesn't need full env
-if (process.env.NODE_ENV !== 'test') {
-    validateEnv();
-}
-
 // Detect if running under Node test runner or test environment
 const isTestEnv = process.env.NODE_ENV === 'test' || 
                   process.argv.some(arg => arg.includes('--test')) || 
@@ -104,6 +99,9 @@ if (isTestEnv) {
     env.APP_URL = env.APP_URL || 'http://localhost:5173';
     env.SERVER_URL = env.SERVER_URL || 'http://localhost:5000';
     env.USE_IN_MEMORY_QUEUE = true;
+} else {
+    // Only validate in non-test runtime environments
+    validateEnv();
 }
 
 export default env;
