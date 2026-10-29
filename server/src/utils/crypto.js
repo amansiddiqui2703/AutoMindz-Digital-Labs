@@ -58,7 +58,7 @@ export const decrypt = (ciphertext) => {
 
 // --- HMAC-signed OAuth state parameter ---
 
-const hmacKey = env.JWT_SECRET || 'dev-secret-change-me';
+const hmacKey = env.OAUTH_STATE_SECRET || env.JWT_SECRET || 'dev-secret-change-me';
 
 /**
  * Create a signed state token: userId.hmacSignature
