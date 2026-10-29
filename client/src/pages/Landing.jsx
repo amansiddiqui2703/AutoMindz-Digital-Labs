@@ -328,6 +328,13 @@ export default function Landing() {
                         </span>
                     </div>
 
+                    {/* Featured On Badge */}
+                    <div className="mt-8 flex justify-center items-center">
+                        <a href="https://nicklaunches.com/products/automindz/" target="_blank" rel="noopener" className="inline-block transition-transform hover:scale-105">
+                            <img src="https://nicklaunches.com/badges/featured.png" alt="AutoMIndz on Nick Launches" width="244" height="56" className="h-12 w-auto object-contain rounded-lg shadow-xs" />
+                        </a>
+                    </div>
+
                     {/* Cockpit Mockup */}
                     <div id="cockpit" className="mt-14 md:mt-20 text-left">
                         <div className="glass-panel-elevated p-5 sm:p-7 max-w-5xl mx-auto border border-slate-300 relative bg-white shadow-xl">
