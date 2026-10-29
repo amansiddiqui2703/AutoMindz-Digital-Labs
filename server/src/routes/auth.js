@@ -53,7 +53,7 @@ const createLoginOAuth2Client = () => {
 const generateOAuthState = () => {
     const nonce = crypto.randomBytes(16).toString('hex');
     const timestamp = Date.now().toString();
-    const sig = crypto.createHmac('sha256', env.JWT_SECRET).update(`${nonce}.${timestamp}`).digest('hex');
+    const sig = crypto.createHmac('sha256', env.OAUTH_STATE_SECRET || env.JWT_SECRET).update(`${nonce}.${timestamp}`).digest('hex');
     return `${nonce}.${timestamp}.${sig}`;
 };
 
@@ -67,7 +67,7 @@ const verifyOAuthState = (state) => {
     if (isNaN(time) || Date.now() - time > 10 * 60 * 1000 || time > Date.now() + 60 * 1000) {
         return false;
     }
-    const expectedSig = crypto.createHmac('sha256', env.JWT_SECRET).update(`${nonce}.${timestamp}`).digest('hex');
+    const expectedSig = crypto.createHmac('sha256', env.OAUTH_STATE_SECRET || env.JWT_SECRET).update(`${nonce}.${timestamp}`).digest('hex');
     try {
         const sigBuf = Buffer.from(sig, 'hex');
         const expBuf = Buffer.from(expectedSig, 'hex');

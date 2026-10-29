@@ -18,6 +18,7 @@ const env = {
     MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/automindz',
     REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',
     JWT_SECRET: process.env.JWT_SECRET || 'dev-secret-change-me',
+    OAUTH_STATE_SECRET: process.env.OAUTH_STATE_SECRET || '',
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '30d',
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET || (process.env.JWT_SECRET ? process.env.JWT_SECRET + '_refresh' : 'dev-refresh-secret'),
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
@@ -60,6 +61,8 @@ const REQUIRED_ENV_VARS = [
 // Additional requirements for production
 const PRODUCTION_REQUIRED = [
     'RESEND_API_KEY',
+    'OAUTH_STATE_SECRET',
+    'REFRESH_TOKEN_SECRET',
 ];
 
 const validateEnv = () => {
@@ -78,6 +81,10 @@ const validateEnv = () => {
             console.error('⛔ FATAL: JWT_SECRET using insecure default in production!');
             process.exit(1);
         }
+    }
+
+    if (env.NODE_ENV === 'production' && env.OAUTH_STATE_SECRET && env.OAUTH_STATE_SECRET.length < 32) {
+        missing.push('OAUTH_STATE_SECRET (minimum 32 characters)');
     }
 
     if (missing.length > 0) {
