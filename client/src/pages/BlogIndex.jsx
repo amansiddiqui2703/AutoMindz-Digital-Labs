@@ -68,7 +68,7 @@ export default function BlogIndex() {
                 <div className="p-6 flex-1 flex flex-col justify-between">
                     <div>
                         <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-                            <span className="font-semibold text-blue-600">Aman Siddiqui</span>
+                            <span className="font-semibold text-blue-600">Editorial Team</span>
                             <span>•</span>
                             <span>12 min read</span>
                         </div>

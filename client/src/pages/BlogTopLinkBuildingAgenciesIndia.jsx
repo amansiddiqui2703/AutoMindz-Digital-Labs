@@ -248,8 +248,8 @@ export default function BlogTopLinkBuildingAgenciesIndia() {
                 "headline": "Top 10 Link Building Agencies in India (2026): Finding the Best Link Building Agency in India",
                 "description": "Looking for the best link building agency in India? In-depth 2026 review comparing editorial quality, pricing models, digital PR capabilities, and in-house outreach automation.",
                 "author": {
-                    "@type": "Person",
-                    "name": "Aman Siddiqui"
+                    "@type": "Organization",
+                    "name": "AutoMindz Editorial Team"
                 },
                 "publisher": {
                     "@type": "Organization",
@@ -333,8 +333,6 @@ export default function BlogTopLinkBuildingAgenciesIndia() {
                     </p>
 
                     <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500 mt-6 font-medium">
-                        <span>By <strong className="text-slate-800">Aman Siddiqui</strong></span>
-                        <span>•</span>
                         <span>Updated for 2026/2027</span>
                         <span>•</span>
                         <span>12 min in-depth read</span>
