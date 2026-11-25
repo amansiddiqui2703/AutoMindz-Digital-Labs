@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import SEO from '../components/SEO.jsx';
 
 const sections = [
@@ -202,8 +202,8 @@ const sections = [
         title: "Contact Information",
         contact: [
             { label: "Product", value: "AutoMindz — AI-Powered Email Outreach Platform" },
-            { label: "Legal Enquiries", value: "legal@automindz.com" },
-            { label: "General Support", value: "support@automindz.com" },
+            { label: "Legal Enquiries", value: "automindzdigitallabs@gmail.com" },
+            { label: "General Support", value: "automindzdigitallabs@gmail.com" },
             { label: "Website", value: "https://automindzdigitallabs.online" },
         ],
     },

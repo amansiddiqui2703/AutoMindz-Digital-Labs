@@ -926,7 +926,7 @@ export default function Landing() {
                         <Link to="/blog/brevo-alternative-cold-email-outreach" className="hover:text-blue-600 transition-colors">Brevo Alternative</Link>
                         <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</Link>
                         <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
-                        <a href="mailto:support@automindzdigitallabs.online" className="hover:text-blue-600 transition-colors">Contact</a>
+                        <a href="mailto:automindzdigitallabs@gmail.com" className="hover:text-blue-600 transition-colors">Contact</a>
                     </div>
                 </div>
             </footer>

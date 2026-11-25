@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import SEO from '../components/SEO.jsx';
 
 const sections = [
@@ -114,7 +114,7 @@ const sections = [
             "Revoke Google Access — Disconnect any Gmail account at any time via the app or Google settings.",
             "Opt-out of Tracking — Disable open/click tracking on a per-campaign basis.",
         ],
-        outro: "To exercise any of these rights, contact us at privacy@automindz.com.",
+        outro: "To exercise any of these rights, contact us at automindzdigitallabs@gmail.com.",
     },
     {
         id: "email-tracking",
@@ -161,8 +161,8 @@ const sections = [
         title: "Contact Us",
         contact: [
             { label: "Product", value: "AutoMindz — AI-Powered Email Outreach Platform" },
-            { label: "Privacy Enquiries", value: "privacy@automindz.com" },
-            { label: "General Support", value: "support@automindz.com" },
+            { label: "Privacy Enquiries", value: "automindzdigitallabs@gmail.com" },
+            { label: "General Support", value: "automindzdigitallabs@gmail.com" },
             { label: "Website", value: "https://automindzdigitallabs.online" },
         ],
     },

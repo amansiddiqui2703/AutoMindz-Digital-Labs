@@ -22,7 +22,7 @@ const config = {
     },
     email: {
         resendApiKey: env.RESEND_API_KEY,
-        fromSupport: env.EMAIL_FROM_SUPPORT || '"AutoMindz Support" <support@automindz.com>',
+        fromSupport: env.EMAIL_FROM_SUPPORT || '"AutoMindz Support" <automindzdigitallabs@gmail.com>',
         fromOnboarding: env.EMAIL_FROM_ONBOARDING || '"AutoMindz Team" <onboarding@automindz.com>',
     },
     stripe: {
