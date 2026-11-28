@@ -12,8 +12,8 @@ export default function BlogBuzzstreamAlternative() {
     "headline": "Best BuzzStream Alternative in 2026: Modern Link Building & Email Outreach Software",
     "description": "Looking for a modern BuzzStream alternative for link building, digital PR, and email outreach? Compare features, deliverability, AI personalization, and pricing.",
     "author": {
-      "@type": "Person",
-      "name": "Aman Siddiqui"
+      "@type": "Organization",
+      "name": "AutoMindz Editorial Team"
     },
     "publisher": {
       "@type": "Organization",
@@ -70,7 +70,7 @@ export default function BlogBuzzstreamAlternative() {
             Discover why modern SEO agencies and sales teams are moving from legacy outreach CRMs to automated, multi-inbox platforms with AI personalization.
           </p>
           <div className="flex items-center justify-center gap-3 text-xs text-slate-500 mt-6 font-medium">
-            <span>By <strong>Aman Siddiqui</strong></span>
+            <span>By <strong>AutoMindz Editorial Team</strong></span>
             <span>•</span>
             <span>Published Oct 2026</span>
             <span>•</span>

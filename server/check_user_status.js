@@ -5,7 +5,7 @@ import User from './src/models/User.js';
 dotenv.config({ path: '../.env' }); // Look for .env in the parent root
 
 const mongoUri = process.env.MONGODB_URI;
-const targetEmail = 'amanriyazsiddiqui.12@gmail.com';
+const targetEmail = process.env.ADMIN_EMAIL || 'admin@automindzdigitallabs.online';
 
 async function checkUser() {
     try {

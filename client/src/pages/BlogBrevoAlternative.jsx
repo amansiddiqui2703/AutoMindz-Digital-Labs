@@ -12,8 +12,8 @@ export default function BlogBrevoAlternative() {
     "headline": "Why AutoMindz is the Leading Brevo Alternative for B2B Cold Outreach",
     "description": "Looking for a Brevo alternative for outbound email outreach? Learn why newsletter tools like Brevo ban cold email lists and why dedicated outreach platforms succeed.",
     "author": {
-      "@type": "Person",
-      "name": "Aman Siddiqui"
+      "@type": "Organization",
+      "name": "AutoMindz Editorial Team"
     },
     "publisher": {
       "@type": "Organization",
@@ -70,7 +70,7 @@ export default function BlogBrevoAlternative() {
             Why trying to send cold prospecting emails through Brevo (Sendinblue) gets accounts suspended, and how AutoMindz ensures 99%+ deliverability.
           </p>
           <div className="flex items-center justify-center gap-3 text-xs text-slate-500 mt-6 font-medium">
-            <span>By <strong>Aman Siddiqui</strong></span>
+            <span>By <strong>AutoMindz Editorial Team</strong></span>
             <span>•</span>
             <span>Published Oct 2026</span>
             <span>•</span>

@@ -21,8 +21,8 @@ export default function BlogMultiInbox() {
             "description": "Learn how multi-inbox rotation protects your domain reputation, prevents Google spam penalties, and lets you safely scale cold email outreach.",
             "image": "https://automindzdigitallabs.online/blog/multi-inbox-rotation-guide.jpg",
             "author": {
-                "@type": "Person",
-                "name": "Aman Siddiqui"
+                "@type": "Organization",
+                "name": "AutoMindz Editorial Team"
             },
             "publisher": {
                 "@type": "Organization",
@@ -66,7 +66,7 @@ export default function BlogMultiInbox() {
           </h1>
           
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500 mb-8 font-medium">
-            <span>By <strong>Aman Siddiqui</strong></span>
+            <span>By <strong>AutoMindz Deliverability Team</strong></span>
             <span>•</span>
             <span>8 min read</span>
             <span>•</span>
@@ -211,12 +211,12 @@ export default function BlogMultiInbox() {
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 my-12 not-prose">
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white font-extrabold text-xl shadow-md shrink-0">
-                AS
+                AM
               </div>
               <div>
-                <h4 className="text-lg font-bold text-slate-950 mb-1">Written by Aman Siddiqui</h4>
+                <h4 className="text-lg font-bold text-slate-950 mb-1">Written by AutoMindz Deliverability Team</h4>
                 <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                  Aman Siddiqui is an outreach deliverability specialist and the creator of AutoMindz. He helps B2B sales teams, agencies, and founders master DNS infrastructure and bypass modern spam filtering algorithms.
+                  The AutoMindz Deliverability Team helps B2B sales teams, agencies, and founders master DNS infrastructure, automated inbox rotation, and bypass modern spam filtering algorithms.
                 </p>
                 <div className="flex items-center gap-3">
                   <Link to="/register" className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors">

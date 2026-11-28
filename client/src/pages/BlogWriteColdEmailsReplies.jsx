@@ -250,7 +250,7 @@ export default function BlogWriteColdEmailsReplies() {
                                 <br />
                                 <p>Worth a quick 2-minute video walkthrough, or are you fully set on outreach tooling?</p>
                                 <br />
-                                <p>Best,<br />Aman</p>
+                                <p>Best,<br />Alex</p>
                             </div>
                         </div>
 

@@ -21,8 +21,8 @@ export default function BlogAiOutreach() {
             "description": "Discover how modern sales teams use AI to personalize cold outreach at scale with high-converting frameworks and follow-up sequencing.",
             "image": "https://automindzdigitallabs.online/blog/ai-cold-email-outreach.jpg",
             "author": {
-                "@type": "Person",
-                "name": "Aman Siddiqui"
+                "@type": "Organization",
+                "name": "AutoMindz Editorial Team"
             },
             "publisher": {
                 "@type": "Organization",
@@ -71,7 +71,7 @@ export default function BlogAiOutreach() {
                 <span>•</span>
                 <span>8 min read</span>
                 <span>•</span>
-                <span className="text-blue-600 font-semibold">Aman Siddiqui</span>
+                <span className="text-blue-600 font-semibold">AutoMindz Editorial Team</span>
             </div>
         </header>
 
@@ -229,12 +229,12 @@ export default function BlogAiOutreach() {
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 my-12 not-prose">
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                     <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white font-extrabold text-xl shadow-md shrink-0">
-                        AS
+                        AM
                     </div>
                     <div>
-                        <h4 className="text-lg font-bold text-slate-950 mb-1">Written by Aman Siddiqui</h4>
+                        <h4 className="text-lg font-bold text-slate-950 mb-1">Written by AutoMindz Growth Team</h4>
                         <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                            Aman Siddiqui is a growth engineer and the founder of AutoMindz. He helps B2B startups, SaaS founders, and marketing agencies build sustainable outbound sales engines using modern AI architectures.
+                            The AutoMindz Growth Team specializes in cold outreach engineering, deliverability infrastructure, and AI-driven B2B customer acquisition.
                         </p>
                         <div className="flex items-center gap-3">
                             <Link to="/register" className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors">
