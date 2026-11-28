@@ -67,7 +67,7 @@ export default function EmailFinder() {
     };
 
     const handleSearch = () => {
-        const domains = domainInput.split('\n').map(d => d.trim()).filter(Boolean);
+        const domains = domainInput.split(/[\n,;\t]+/).map(d => d.trim().replace(/^['"\(\[]+|['"\)\]]+$/g, '')).filter(Boolean);
         if (!domains.length) return toast.error('Enter at least one domain');
         if (domains.length > 200) return toast.error('Maximum 200 domains per search allowed');
         processDomains(domains);
