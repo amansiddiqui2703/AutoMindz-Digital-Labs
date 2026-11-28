@@ -48,6 +48,7 @@ import activityRoutes from './routes/activity.js';
 import inboxRoutes from './routes/inbox.js';
 import seoRoutes from './routes/seo.js';
 import sequenceRoutes from './routes/sequences.js';
+import { injectPrerenderHtml } from './seoPrerender.js';
 import { handleRazorpayWebhook } from './services/razorpayWebhook.js';
 import { handleResendWebhook } from './services/webhookHandler.js';
 import sse from './services/sse.js';
@@ -387,7 +388,21 @@ if (fs.existsSync(distPath)) {
     if (!req.path.startsWith('/api')) {
       // no-cache for index.html so users always get the latest version
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.sendFile(resolve(distPath, 'index.html'));
+      const indexPath = resolve(distPath, 'index.html');
+      const fallbackIndex = resolve(__dirname, '../../client/index.html');
+      const fileToRead = fs.existsSync(indexPath) ? indexPath : fallbackIndex;
+
+      if (fs.existsSync(fileToRead)) {
+        try {
+          const rawHtml = fs.readFileSync(fileToRead, 'utf-8');
+          const finalHtml = injectPrerenderHtml(rawHtml, req.path);
+          res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+          return res.status(200).send(finalHtml);
+        } catch (e) {
+          return res.sendFile(fileToRead);
+        }
+      }
+      res.status(404).send('Not Found');
     }
   });
 }

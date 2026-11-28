@@ -405,6 +405,166 @@ export default function BlogIndex() {
                 </div>
             </Link>
 
+            {/* Post 10: How to Write Cold Emails That Get Replies */}
+            <Link to="/blog/how-to-write-cold-emails-that-get-replies" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+                <div className="h-48 overflow-hidden relative border-b border-slate-100">
+                    <img
+                        src="/blog/how-to-write-cold-emails-replies.svg"
+                        alt="How to Write Cold Emails That Get Replies"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 left-3 bg-teal-600 text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded shadow-sm">
+                        Copywriting
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                            <span className="font-semibold text-teal-600">Editorial Team</span>
+                            <span>•</span>
+                            <span>8 min read</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-950 mb-2.5 group-hover:text-teal-600 transition-colors leading-snug">
+                            How to Write Cold Emails That Get Replies: 5 Proven Frameworks
+                        </h3>
+                        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+                            Master 5 psychological frameworks, high-converting subject line formulas, and word-for-word templates that double B2B response rates.
+                        </p>
+                    </div>
+                    <div className="flex items-center text-teal-600 font-semibold text-xs group-hover:gap-1.5 transition-all pt-3 border-t border-slate-100">
+                        Read Article <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
+            {/* Post 11: AI Cold Email Outreach Complete Guide */}
+            <Link to="/blog/ai-cold-email-outreach-complete-guide" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+                <div className="h-48 overflow-hidden relative border-b border-slate-100">
+                    <img
+                        src="/blog/ai-cold-email-outreach-guide.svg"
+                        alt="AI Cold Email Outreach Complete Guide"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 left-3 bg-purple-600 text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded shadow-sm">
+                        AI Automation
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                            <span className="font-semibold text-purple-600">Editorial Team</span>
+                            <span>•</span>
+                            <span>9 min read</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-950 mb-2.5 group-hover:text-purple-600 transition-colors leading-snug">
+                            AI Cold Email Outreach: The Complete 2027 Playbook
+                        </h3>
+                        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+                            How artificial intelligence conducts prospect research, crafts dynamic icebreakers, and scales multi-inbox campaigns safely.
+                        </p>
+                    </div>
+                    <div className="flex items-center text-purple-600 font-semibold text-xs group-hover:gap-1.5 transition-all pt-3 border-t border-slate-100">
+                        Read Article <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
+            {/* Post 12: Cold Email Deliverability Checklist */}
+            <Link to="/blog/cold-email-deliverability-checklist" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+                <div className="h-48 overflow-hidden relative border-b border-slate-100">
+                    <img
+                        src="/blog/cold-email-deliverability-checklist.svg"
+                        alt="Cold Email Deliverability Checklist"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 left-3 bg-emerald-600 text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded shadow-sm">
+                        Technical SEO
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                            <span className="font-semibold text-emerald-600">Editorial Team</span>
+                            <span>•</span>
+                            <span>9 min read</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-950 mb-2.5 group-hover:text-emerald-600 transition-colors leading-snug">
+                            Cold Email Deliverability Checklist: 15-Point Primary Inbox Audit
+                        </h3>
+                        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+                            Step-by-step checklist to configure SPF, DKIM, DMARC, secondary domain isolation, and automated warmup for 99% inbox placement.
+                        </p>
+                    </div>
+                    <div className="flex items-center text-emerald-600 font-semibold text-xs group-hover:gap-1.5 transition-all pt-3 border-t border-slate-100">
+                        Read Article <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
+            {/* Post 13: Best Cold Email Tools for Startups */}
+            <Link to="/blog/best-cold-email-tools-for-startups" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+                <div className="h-48 overflow-hidden relative border-b border-slate-100">
+                    <img
+                        src="/blog/best-cold-email-tools-startups.svg"
+                        alt="Best Cold Email Tools for Startups"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 left-3 bg-amber-600 text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded shadow-sm">
+                        Software Review
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                            <span className="font-semibold text-amber-600">Editorial Team</span>
+                            <span>•</span>
+                            <span>10 min read</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-950 mb-2.5 group-hover:text-amber-600 transition-colors leading-snug">
+                            Best Cold Email Tools for Startups: Features, Limits & True Pricing
+                        </h3>
+                        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+                            Unfiltered comparison of AutoMindz, Instantly, Smartlead, Lemlist, and Apollo for seed-stage startups and lean marketing agencies.
+                        </p>
+                    </div>
+                    <div className="flex items-center text-amber-600 font-semibold text-xs group-hover:gap-1.5 transition-all pt-3 border-t border-slate-100">
+                        Read Article <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
+            {/* Post 14: Cold Email vs LinkedIn Outreach */}
+            <Link to="/blog/cold-email-vs-linkedin-outreach" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+                <div className="h-48 overflow-hidden relative border-b border-slate-100">
+                    <img
+                        src="/blog/cold-email-vs-linkedin-outreach.svg"
+                        alt="Cold Email vs LinkedIn Outreach"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 left-3 bg-indigo-600 text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded shadow-sm">
+                        B2B Strategy
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                            <span className="font-semibold text-indigo-600">Editorial Team</span>
+                            <span>•</span>
+                            <span>9 min read</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-950 mb-2.5 group-hover:text-indigo-600 transition-colors leading-snug">
+                            Cold Email vs LinkedIn Outreach: Which Wins in 2027?
+                        </h3>
+                        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+                            Compare reply rates, costs, weekly limits, and ban risks. Discover the 4-step hybrid omnichannel sequence that outperforms single channels.
+                        </p>
+                    </div>
+                    <div className="flex items-center text-indigo-600 font-semibold text-xs group-hover:gap-1.5 transition-all pt-3 border-t border-slate-100">
+                        Read Article <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
         </div>
       </main>
 
@@ -429,11 +589,14 @@ export default function BlogIndex() {
                 <span className="font-bold text-slate-900">AutoMindz Digital Labs</span>
             </div>
             <p>&copy; {new Date().getFullYear()} AutoMindz Digital Labs. All rights reserved.</p>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
                 <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
+                <Link to="/blog/how-to-write-cold-emails-that-get-replies" className="hover:text-blue-600 transition-colors">Write Cold Emails</Link>
+                <Link to="/blog/ai-cold-email-outreach-complete-guide" className="hover:text-blue-600 transition-colors">AI Outreach Guide</Link>
+                <Link to="/blog/cold-email-deliverability-checklist" className="hover:text-blue-600 transition-colors">Deliverability Checklist</Link>
+                <Link to="/blog/best-cold-email-tools-for-startups" className="hover:text-blue-600 transition-colors">Startup Email Tools</Link>
+                <Link to="/blog/cold-email-vs-linkedin-outreach" className="hover:text-blue-600 transition-colors">Email vs LinkedIn</Link>
                 <Link to="/blog/top-link-building-agencies" className="hover:text-blue-600 transition-colors">Top Link Agencies</Link>
-                <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="hover:text-blue-600 transition-colors">BuzzStream Alternative</Link>
-                <Link to="/blog/brevo-alternative-cold-email-outreach" className="hover:text-blue-600 transition-colors">Brevo Alternative</Link>
                 <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</Link>
                 <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
             </div>

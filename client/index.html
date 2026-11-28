@@ -63,27 +63,74 @@
   <meta name="twitter:description" content="Scale B2B sales outreach with automated follow-ups, AI personalization, and multi-inbox sender rotation." />
   <meta name="twitter:image" content="https://automindzdigitallabs.online/og-image.jpg" />
   
-  <!-- JSON-LD Structured Data -->
+  <!-- JSON-LD Structured Data: Organization, WebSite, SoftwareApplication -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "AutoMindz",
-    "applicationCategory": "BusinessApplication",
-    "operatingSystem": "Web",
-    "url": "https://automindzdigitallabs.online",
-    "description": "AI-powered cold email outreach platform with contact finder, tracking, and multi-Gmail support.",
-    "offers": {
-      "@type": "Offer",
-      "price": "0.00",
-      "priceCurrency": "USD",
-      "category": "Freemium"
-    },
-    "creator": {
-      "@type": "Organization",
-      "name": "AutoMindz Digital Labs",
-      "url": "https://automindzdigitallabs.online"
-    }
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://automindzdigitallabs.online/#organization",
+        "name": "AutoMindz Digital Labs",
+        "url": "https://automindzdigitallabs.online",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://automindzdigitallabs.online/logo192.png"
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer support",
+          "email": "automindzdigitallabs@gmail.com"
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://automindzdigitallabs.online/#website",
+        "url": "https://automindzdigitallabs.online",
+        "name": "AutoMindz Digital Labs",
+        "publisher": {
+          "@id": "https://automindzdigitallabs.online/#organization"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://automindzdigitallabs.online/blog?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://automindzdigitallabs.online/#software",
+        "name": "AutoMindz",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web Browser",
+        "url": "https://automindzdigitallabs.online",
+        "description": "AI-powered cold email outreach, multi-inbox deliverability rotation, and B2B lead generation platform.",
+        "offers": [
+          {
+            "@type": "Offer",
+            "name": "Free Forever",
+            "price": "0.00",
+            "priceCurrency": "USD",
+            "category": "Freemium"
+          },
+          {
+            "@type": "Offer",
+            "name": "Starter Plan",
+            "price": "37.00",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "name": "Growth Plan",
+            "price": "74.00",
+            "priceCurrency": "USD"
+          }
+        ],
+        "creator": {
+          "@id": "https://automindzdigitallabs.online/#organization"
+        }
+      }
+    ]
   }
   </script>
 </head>

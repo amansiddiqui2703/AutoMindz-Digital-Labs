@@ -8,17 +8,20 @@ export default function SEO({
     name = 'AutoMindz',
     type = 'website',
     url = DEFAULT_DOMAIN,
+    canonical = null,
     image = null,
     keywords = '',
     noIndex = false,
     customSchema = null,
+    schema = null,
 }) {
     const fullTitle = title.includes(name) ? title : `${title} | ${name}`;
-    const canonicalUrl = url.startsWith('http') ? url : `${DEFAULT_DOMAIN}${url}`;
+    const targetUrl = canonical || url;
+    const canonicalUrl = targetUrl.startsWith('http') ? targetUrl : `${DEFAULT_DOMAIN}${targetUrl}`;
     const ogImage = image || `${DEFAULT_DOMAIN}/og-image.jpg`;
 
     // Rich default Schema.org JSON-LD
-    const schemaOrg = customSchema || {
+    const schemaOrg = schema || customSchema || {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": name,

@@ -907,26 +907,133 @@ export default function Landing() {
 
             {/* Clean Enterprise Footer */}
             <footer className="border-t border-slate-200 bg-slate-50 py-12">
-                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white">
-                            <Zap className="w-4 h-4 fill-white" />
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-slate-200">
+                        {/* Col 1: Brand Info */}
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+                                    <Zap className="w-4 h-4 fill-white" />
+                                </div>
+                                <span className="font-bold text-slate-900 text-base">AutoMindz Digital Labs</span>
+                            </div>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                                AI-powered cold email outreach, multi-inbox deliverability rotation, and B2B lead generation infrastructure built for scaling businesses.
+                            </p>
+                            <p className="text-xs text-slate-400">
+                                &copy; {new Date().getFullYear()} AutoMindz Digital Labs. All rights reserved.
+                            </p>
                         </div>
-                        <span className="font-bold text-slate-900 text-base">AutoMindz Digital Labs</span>
+
+                        {/* Col 2: Outbound Playbooks */}
+                        <div>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3">Outbound Guides</h4>
+                            <ul className="space-y-2 text-xs text-slate-600">
+                                <li>
+                                    <Link to="/blog/how-to-write-cold-emails-that-get-replies" className="hover:text-blue-600 transition-colors">
+                                        How to Write Cold Emails That Get Replies
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/blog/ai-cold-email-outreach-complete-guide" className="hover:text-blue-600 transition-colors">
+                                        AI Cold Email Outreach: Complete Guide
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/blog/cold-email-deliverability-checklist" className="hover:text-blue-600 transition-colors">
+                                        Cold Email Deliverability Checklist
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/blog/best-cold-email-tools-for-startups" className="hover:text-blue-600 transition-colors">
+                                        Best Cold Email Tools for Startups
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/blog/cold-email-vs-linkedin-outreach" className="hover:text-blue-600 transition-colors">
+                                        Cold Email vs LinkedIn Outreach
+                                    </Link>
+                                </li>
+                            </ul>
+                        </div>
+
+                        {/* Col 3: Comparisons & Technical SEO */}
+                        <div>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3">Comparisons & Audits</h4>
+                            <ul className="space-y-2 text-xs text-slate-600">
+                                <li>
+                                    <Link to="/blog/top-link-building-agencies" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">
+                                        Top Link Building Agencies 2027
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="hover:text-blue-600 transition-colors">
+                                        BuzzStream Alternative for Outreach
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/blog/brevo-alternative-cold-email-outreach" className="hover:text-blue-600 transition-colors">
+                                        Brevo Alternative for Cold Email
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/blog/escaping-spam-folder" className="hover:text-blue-600 transition-colors">
+                                        How to Escape the Spam Folder
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/blog/solve-b2b-sales-droughts" className="hover:text-blue-600 transition-colors">
+                                        Solve B2B Sales Droughts
+                                    </Link>
+                                </li>
+                            </ul>
+                        </div>
+
+                        {/* Col 4: Platform & Legal */}
+                        <div>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3">Platform & Legal</h4>
+                            <ul className="space-y-2 text-xs text-slate-600">
+                                <li>
+                                    <Link to="/blog" className="hover:text-blue-600 transition-colors font-medium">
+                                        Knowledge Base & Blog Hub
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/login" className="hover:text-blue-600 transition-colors">
+                                        Client Sign In
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/register" className="hover:text-blue-600 transition-colors">
+                                        Start Free — 50 Sends/Day
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">
+                                        Privacy Policy
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/terms" className="hover:text-blue-600 transition-colors">
+                                        Terms of Service
+                                    </Link>
+                                </li>
+                                <li>
+                                    <a href="mailto:automindzdigitallabs@gmail.com" className="hover:text-blue-600 transition-colors">
+                                        Support Contact
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
-                    <p className="text-xs text-slate-500">
-                        &copy; {new Date().getFullYear()} AutoMindz Digital Labs. Built for enterprise cold email & deliverability.
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-5 text-xs text-slate-600 font-medium">
-                        <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
-                        <Link to="/blog/top-link-building-agencies" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">Top Link Building Agencies 2027</Link>
-                        <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="hover:text-blue-600 transition-colors">BuzzStream Alternative</Link>
-                        <Link to="/blog/brevo-alternative-cold-email-outreach" className="hover:text-blue-600 transition-colors">Brevo Alternative</Link>
-                        <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</Link>
-                        <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
-                        <a href="mailto:automindzdigitallabs@gmail.com" className="hover:text-blue-600 transition-colors">Contact</a>
+                    <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
+                        <p>AutoMindz Digital Labs — Next-Gen B2B Email Deliverability & Outbound Automation</p>
+                        <div className="flex items-center gap-4">
+                            <Link to="/sitemap.xml" className="hover:text-blue-600 transition-colors">XML Sitemap</Link>
+                            <Link to="/robots.txt" className="hover:text-blue-600 transition-colors">Robots.txt</Link>
+                            <Link to="/llms.txt" className="hover:text-blue-600 transition-colors">LLMs.txt</Link>
+                        </div>
                     </div>
                 </div>
             </footer>

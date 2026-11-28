@@ -1,15 +1,15 @@
 User-agent: *
 Allow: /
+Allow: /blog
+Allow: /blog/*
 Allow: /sitemap.xml
 Allow: /robots.txt
 Allow: /llms.txt
-Allow: /blog
-Allow: /blog/*
-Allow: /assets/
 Allow: /terms
 Allow: /privacy-policy
+Allow: /assets/
 
-# Exclude protected/dashboard and private auth routes from search engine indexing
+# Disallow private application dashboard and authenticated endpoints
 Disallow: /dashboard
 Disallow: /campaigns
 Disallow: /contacts
@@ -54,5 +54,8 @@ Disallow: /dashboard
 Disallow: /campaigns
 Disallow: /admin
 Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
 
 Sitemap: https://automindzdigitallabs.online/sitemap.xml

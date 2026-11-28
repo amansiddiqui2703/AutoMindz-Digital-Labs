@@ -56,6 +56,11 @@ const BlogBuzzstreamAlternative = lazy(() => import('./pages/BlogBuzzstreamAlter
 const BlogBrevoAlternative = lazy(() => import('./pages/BlogBrevoAlternative'));
 const BlogTopLinkBuildingAgenciesIndia = lazy(() => import('./pages/BlogTopLinkBuildingAgenciesIndia'));
 const BlogGuestPostingFirms = lazy(() => import('./pages/BlogGuestPostingFirms'));
+const BlogWriteColdEmailsReplies = lazy(() => import('./pages/BlogWriteColdEmailsReplies'));
+const BlogAiOutreachCompleteGuide = lazy(() => import('./pages/BlogAiOutreachCompleteGuide'));
+const BlogDeliverabilityChecklist = lazy(() => import('./pages/BlogDeliverabilityChecklist'));
+const BlogBestColdEmailToolsStartups = lazy(() => import('./pages/BlogBestColdEmailToolsStartups'));
+const BlogColdEmailVsLinkedin = lazy(() => import('./pages/BlogColdEmailVsLinkedin'));
 
 // Loading spinner for lazy-loaded routes
 function PageLoader() {
@@ -136,6 +141,21 @@ export default function App() {
 
               <Route path="/blog/escaping-spam-folder" element={<BlogSpamIssues />} />
               <Route path="/escaping-spam-folder" element={<Navigate to="/blog/escaping-spam-folder" replace />} />
+
+              <Route path="/blog/how-to-write-cold-emails-that-get-replies" element={<BlogWriteColdEmailsReplies />} />
+              <Route path="/how-to-write-cold-emails-that-get-replies" element={<Navigate to="/blog/how-to-write-cold-emails-that-get-replies" replace />} />
+
+              <Route path="/blog/ai-cold-email-outreach-complete-guide" element={<BlogAiOutreachCompleteGuide />} />
+              <Route path="/ai-cold-email-outreach-complete-guide" element={<Navigate to="/blog/ai-cold-email-outreach-complete-guide" replace />} />
+
+              <Route path="/blog/cold-email-deliverability-checklist" element={<BlogDeliverabilityChecklist />} />
+              <Route path="/cold-email-deliverability-checklist" element={<Navigate to="/blog/cold-email-deliverability-checklist" replace />} />
+
+              <Route path="/blog/best-cold-email-tools-for-startups" element={<BlogBestColdEmailToolsStartups />} />
+              <Route path="/best-cold-email-tools-for-startups" element={<Navigate to="/blog/best-cold-email-tools-for-startups" replace />} />
+
+              <Route path="/blog/cold-email-vs-linkedin-outreach" element={<BlogColdEmailVsLinkedin />} />
+              <Route path="/cold-email-vs-linkedin-outreach" element={<Navigate to="/blog/cold-email-vs-linkedin-outreach" replace />} />
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/pipeline" element={<Pipeline />} />
