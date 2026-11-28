@@ -7,31 +7,31 @@ export default function BlogIndex() {
     <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-900">
       <SEO
         title="Cold Email Outreach & B2B Lead Generation Blog | AutoMindz"
-        description="Actionable strategies on B2B cold email outreach, best link building agency evaluations, multi-inbox deliverability, and sales automation."
-        url="https://automindzdigitallabs.online/blog"
+        description="Actionable strategies on B2B cold email outreach, best link building agency evaluations, BuzzStream & Brevo alternatives, multi-inbox deliverability, and sales automation."
+        url="https://blog.automindzdigitallabs.online/"
         customSchema={{
             "@context": "https://schema.org",
             "@type": "CollectionPage",
             "name": "AutoMindz Blog",
-            "url": "https://automindzdigitallabs.online/blog",
-            "description": "Actionable strategies on B2B cold email outreach, best link building agency evaluations, multi-inbox deliverability, and sales automation."
+            "url": "https://blog.automindzdigitallabs.online/",
+            "description": "Actionable strategies on B2B cold email outreach, best link building agency evaluations, BuzzStream & Brevo alternatives, multi-inbox deliverability, and sales automation."
         }}
       />
 
       {/* Clean Navigation */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-            <Link to="/" className="text-lg font-bold text-slate-950 flex items-center gap-2.5">
+            <a href="https://automindzdigitallabs.online" className="text-lg font-bold text-slate-950 flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
                     <Zap className="w-4 h-4 fill-white" />
                 </div>
-                AutoMindz
-            </Link>
+                AutoMindz <span className="text-xs font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">Blog</span>
+            </a>
             <div className="flex items-center gap-4">
-                <Link to="/" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Home</Link>
-                <Link to="/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
+                <a href="https://automindzdigitallabs.online" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Main App</a>
+                <a href="https://automindzdigitallabs.online/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
                     Start Free
-                </Link>
+                </a>
             </div>
         </div>
       </header>
@@ -40,13 +40,13 @@ export default function BlogIndex() {
         {/* Header */}
         <header className="mb-14 text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700 uppercase tracking-wider mb-4 shadow-2xs">
-                Resource Library
+                Resource Library & Guides
             </div>
             <h1 className="text-4xl md:text-5xl font-extrabold text-slate-950 tracking-tight leading-tight mb-4">
                 Cold Email & Outreach <span className="text-blue-600">Growth Guides</span>
             </h1>
             <p className="text-lg text-slate-600 leading-relaxed">
-                Actionable blueprints on deliverability, finding the best link building agency, AI personalization, and B2B sales automation.
+                Actionable blueprints on deliverability, finding the best link building agency, BuzzStream & Brevo alternatives, AI personalization, and B2B sales automation.
             </p>
         </header>
 
@@ -54,7 +54,7 @@ export default function BlogIndex() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
 
             {/* Featured Post: Top 10 Link Building Agencies */}
-            <Link to="/blog/top-link-building-agencies" className="group flex flex-col bg-white border border-blue-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/top-link-building-agencies" className="group flex flex-col bg-white border border-blue-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/top-link-building-agencies-india.svg"
@@ -86,7 +86,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 1: BuzzStream Alternative */}
-            <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/buzzstream-alternative-cold-outreach-link-building" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/buzzstream-alternative-guide.svg"
@@ -118,7 +118,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 2: Brevo Alternative */}
-            <Link to="/blog/brevo-alternative-cold-email-outreach" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/brevo-alternative-cold-email-outreach" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/brevo-alternative-cold-outreach.svg"
@@ -150,7 +150,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 3: B2B Email Finder */}
-            <Link to="/blog/how-to-find-business-emails-from-website" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/how-to-find-business-emails-from-website" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/b2b-email-finder-guide.jpg"
@@ -182,7 +182,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 4: AI Cold Email Outreach */}
-            <Link to="/blog/ai-cold-email-outreach-strategy" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/ai-cold-email-outreach-strategy" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/ai-cold-email-outreach.jpg"
@@ -214,7 +214,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 5: Multi-Inbox Rotation */}
-            <Link to="/blog/multi-inbox-cold-email-rotation" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/multi-inbox-cold-email-rotation" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/multi-inbox-rotation-guide.jpg"
@@ -245,6 +245,134 @@ export default function BlogIndex() {
                 </div>
             </Link>
 
+            {/* Post 6: Best Free Cold Email Software */}
+            <Link to="/best-free-cold-email-software" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+                <div className="h-48 overflow-hidden relative border-b border-slate-100">
+                    <img
+                        src="/blog/free-cold-email-tools.jpg"
+                        alt="Best Free Cold Email Software Comparison"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 left-3 bg-emerald-600 text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded shadow-sm">
+                        Free Tools
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                            <span className="font-semibold text-blue-600">Editorial Team</span>
+                            <span>•</span>
+                            <span>6 min read</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-950 mb-2.5 group-hover:text-blue-600 transition-colors leading-snug">
+                            Best Free Cold Email Software: Top Outbound Tools Without Credit Card
+                        </h3>
+                        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+                            Compare sending limits, deliverability features, and multi-inbox support across top free cold email software platforms.
+                        </p>
+                    </div>
+                    <div className="flex items-center text-blue-600 font-semibold text-xs group-hover:gap-1.5 transition-all pt-3 border-t border-slate-100">
+                        Read Article <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
+            {/* Post 7: Deliverability Hacks */}
+            <Link to="/deliverability-hacks" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+                <div className="h-48 overflow-hidden relative border-b border-slate-100">
+                    <img
+                        src="/blog/deliverability-hacks.jpg"
+                        alt="Cold Email Deliverability Hacks"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 left-3 bg-blue-600 text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded shadow-sm">
+                        Deliverability
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                            <span className="font-semibold text-blue-600">Editorial Team</span>
+                            <span>•</span>
+                            <span>7 min read</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-950 mb-2.5 group-hover:text-blue-600 transition-colors leading-snug">
+                            7 Cold Email Deliverability Hacks to Land in the Primary Inbox
+                        </h3>
+                        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+                            Master SPF, DKIM, DMARC, custom tracking domains, and warmup schedules to achieve 98%+ deliverability rates.
+                        </p>
+                    </div>
+                    <div className="flex items-center text-blue-600 font-semibold text-xs group-hover:gap-1.5 transition-all pt-3 border-t border-slate-100">
+                        Read Article <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
+            {/* Post 8: Solve B2B Sales Droughts */}
+            <Link to="/solve-b2b-sales-droughts" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+                <div className="h-48 overflow-hidden relative border-b border-slate-100">
+                    <img
+                        src="/blog/sales-droughts.jpg"
+                        alt="Solve B2B Sales Droughts"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 left-3 bg-slate-900 text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded shadow-sm">
+                        Growth Strategy
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                            <span className="font-semibold text-blue-600">Editorial Team</span>
+                            <span>•</span>
+                            <span>8 min read</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-950 mb-2.5 group-hover:text-blue-600 transition-colors leading-snug">
+                            How to End B2B Sales Droughts with High-Converting Cold Outbound
+                        </h3>
+                        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+                            A proven outbound framework for agency owners and SaaS founders to generate qualified sales calls predictably.
+                        </p>
+                    </div>
+                    <div className="flex items-center text-blue-600 font-semibold text-xs group-hover:gap-1.5 transition-all pt-3 border-t border-slate-100">
+                        Read Article <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
+            {/* Post 9: Escaping Spam Folder */}
+            <Link to="/escaping-spam-folder" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+                <div className="h-48 overflow-hidden relative border-b border-slate-100">
+                    <img
+                        src="/blog/spam-folder-recovery.jpg"
+                        alt="Escaping the Spam Folder"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 left-3 bg-rose-600 text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded shadow-sm">
+                        Troubleshooting
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                            <span className="font-semibold text-blue-600">Editorial Team</span>
+                            <span>•</span>
+                            <span>9 min read</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-950 mb-2.5 group-hover:text-blue-600 transition-colors leading-snug">
+                            How to Escape the Spam Folder & Restore Your Sender Reputation
+                        </h3>
+                        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+                            Step-by-step diagnostic to fix spam filter penalties, remove blacklists, and rebuild trust with Google and Outlook.
+                        </p>
+                    </div>
+                    <div className="flex items-center text-blue-600 font-semibold text-xs group-hover:gap-1.5 transition-all pt-3 border-t border-slate-100">
+                        Read Article <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
         </div>
       </main>
 
@@ -255,9 +383,9 @@ export default function BlogIndex() {
             <p className="text-sm text-slate-600 mb-6 max-w-lg mx-auto">
                 Join 2,500+ SDRs and link builders who generate qualified pipeline with AutoMindz.
             </p>
-            <Link to="/register" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-7 py-3.5 rounded-lg shadow-sm transition-colors">
+            <a href="https://automindzdigitallabs.online/register" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-7 py-3.5 rounded-lg shadow-sm transition-colors">
                 Start Free — 50 Emails/Day Forever <ArrowRight className="w-4 h-4" />
-            </Link>
+            </a>
         </div>
       </section>
 
@@ -270,14 +398,15 @@ export default function BlogIndex() {
             </div>
             <p>&copy; {new Date().getFullYear()} AutoMindz Digital Labs. All rights reserved.</p>
             <div className="flex items-center gap-4">
-                <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
-                <Link to="/blog/top-link-building-agencies" className="hover:text-blue-600 transition-colors">Top Link Agencies</Link>
-                <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</Link>
-                <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
+                <a href="https://automindzdigitallabs.online" className="hover:text-blue-600 transition-colors">Main App</a>
+                <Link to="/top-link-building-agencies" className="hover:text-blue-600 transition-colors">Top Link Agencies</Link>
+                <Link to="/buzzstream-alternative-cold-outreach-link-building" className="hover:text-blue-600 transition-colors">BuzzStream Alternative</Link>
+                <Link to="/brevo-alternative-cold-email-outreach" className="hover:text-blue-600 transition-colors">Brevo Alternative</Link>
+                <a href="https://automindzdigitallabs.online/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</a>
+                <a href="https://automindzdigitallabs.online/terms" className="hover:text-blue-600 transition-colors">Terms</a>
             </div>
         </div>
       </footer>
     </div>
   );
 }
-

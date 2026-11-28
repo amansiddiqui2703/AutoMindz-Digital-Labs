@@ -39,18 +39,18 @@ export default function BlogBuzzstreamAlternative() {
 
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/blog" className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+          <Link to="/" className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to Blog
           </Link>
-          <Link to="/" className="text-lg font-bold text-slate-950 flex items-center gap-2">
+          <a href="https://automindzdigitallabs.online" className="text-lg font-bold text-slate-950 flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white">
               <Zap className="w-4 h-4 fill-white" />
             </div>
             AutoMindz
-          </Link>
-          <Link to="/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
+          </a>
+          <a href="https://automindzdigitallabs.online/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
             Try Free
-          </Link>
+          </a>
         </div>
       </header>
 
@@ -174,9 +174,9 @@ export default function BlogBuzzstreamAlternative() {
             <p className="text-surface-600 dark:text-surface-400 mb-6 max-w-xl mx-auto">
               Get started with AutoMindz completely free. No credit card required, 50 emails/day included forever.
             </p>
-            <Link to="/register" className="btn-primary py-3 px-8 text-base shadow-lg inline-flex items-center gap-2">
+            <a href="https://automindzdigitallabs.online/register" className="btn-primary py-3 px-8 text-base shadow-lg inline-flex items-center gap-2">
               Start Free Trial <ArrowRight className="w-4 h-4" />
-            </Link>
+            </a>
           </div>
         </article>
       </main>

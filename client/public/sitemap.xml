@@ -1,5 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Blog Subdomain (blog.automindzdigitallabs.online) -->
+  <url>
+    <loc>https://blog.automindzdigitallabs.online/</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://blog.automindzdigitallabs.online/top-link-building-agencies</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://blog.automindzdigitallabs.online/buzzstream-alternative-cold-outreach-link-building</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://blog.automindzdigitallabs.online/brevo-alternative-cold-email-outreach</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://blog.automindzdigitallabs.online/how-to-find-business-emails-from-website</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://blog.automindzdigitallabs.online/ai-cold-email-outreach-strategy</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://blog.automindzdigitallabs.online/multi-inbox-cold-email-rotation</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://blog.automindzdigitallabs.online/best-free-cold-email-software</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://blog.automindzdigitallabs.online/deliverability-hacks</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://blog.automindzdigitallabs.online/solve-b2b-sales-droughts</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://blog.automindzdigitallabs.online/escaping-spam-folder</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Main Domain (automindzdigitallabs.online) -->
   <url>
     <loc>https://automindzdigitallabs.online/</loc>
     <lastmod>2026-11-28</lastmod>

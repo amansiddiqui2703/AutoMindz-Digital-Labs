@@ -71,7 +71,28 @@ app.use((req, res, next) => {
     res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
     next();
 });
-app.use(cors({ origin: env.APP_URL, credentials: true }));
+const allowedOrigins = [
+  env.APP_URL,
+  'https://automindzdigitallabs.online',
+  'https://blog.automindzdigitallabs.online',
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.automindzdigitallabs.online') ||
+      origin.endsWith('.onrender.com')
+    ) {
+      return callback(null, true);
+    }
+    callback(null, false);
+  },
+  credentials: true,
+}));
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   // Bug #26 Fix: Explicitly deny camera, microphone, geolocation permissions
@@ -282,6 +303,13 @@ app.use(errorHandler);
 
 // Dedicated SEO and Search Engine Discovery Endpoints
 app.get('/robots.txt', (req, res) => {
+  const host = req.headers.host || req.hostname || '';
+  if (host.startsWith('blog.')) {
+    res.setHeader('Content-Type', 'text/plain; charset=UTF-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.send('User-agent: *\nAllow: /\nAllow: /sitemap.xml\nDisallow: /api/\n\nSitemap: https://blog.automindzdigitallabs.online/sitemap.xml\n');
+  }
+
   const robotsDist = resolve(__dirname, '../../client/dist/robots.txt');
   const robotsPublic = resolve(__dirname, '../../client/public/robots.txt');
   const fileToServe = fs.existsSync(robotsDist) ? robotsDist : robotsPublic;
@@ -294,6 +322,27 @@ app.get('/robots.txt', (req, res) => {
 });
 
 app.get('/sitemap.xml', (req, res) => {
+  const host = req.headers.host || req.hostname || '';
+  if (host.startsWith('blog.')) {
+    const blogSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://blog.automindzdigitallabs.online/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://blog.automindzdigitallabs.online/top-link-building-agencies</loc><changefreq>daily</changefreq><priority>0.95</priority></url>
+  <url><loc>https://blog.automindzdigitallabs.online/buzzstream-alternative-cold-outreach-link-building</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://blog.automindzdigitallabs.online/brevo-alternative-cold-email-outreach</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://blog.automindzdigitallabs.online/how-to-find-business-emails-from-website</loc><changefreq>monthly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://blog.automindzdigitallabs.online/ai-cold-email-outreach-strategy</loc><changefreq>monthly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://blog.automindzdigitallabs.online/multi-inbox-cold-email-rotation</loc><changefreq>monthly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://blog.automindzdigitallabs.online/best-free-cold-email-software</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://blog.automindzdigitallabs.online/deliverability-hacks</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://blog.automindzdigitallabs.online/solve-b2b-sales-droughts</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://blog.automindzdigitallabs.online/escaping-spam-folder</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+</urlset>`;
+    res.setHeader('Content-Type', 'application/xml; charset=UTF-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.send(blogSitemap);
+  }
+
   const sitemapDist = resolve(__dirname, '../../client/dist/sitemap.xml');
   const sitemapPublic = resolve(__dirname, '../../client/public/sitemap.xml');
   const fileToServe = fs.existsSync(sitemapDist) ? sitemapDist : sitemapPublic;
@@ -303,6 +352,23 @@ app.get('/sitemap.xml', (req, res) => {
     return res.sendFile(fileToServe);
   }
   res.status(404).send('Not Found');
+});
+
+// 301 Permanent Redirects: /blog on main domain -> blog.automindzdigitallabs.online
+app.get('/blog', (req, res, next) => {
+  const host = req.headers.host || req.hostname || '';
+  if (host.includes('automindzdigitallabs.online') && !host.startsWith('blog.')) {
+    return res.redirect(301, 'https://blog.automindzdigitallabs.online/');
+  }
+  next();
+});
+
+app.get('/blog/:slug', (req, res, next) => {
+  const host = req.headers.host || req.hostname || '';
+  if (host.includes('automindzdigitallabs.online') && !host.startsWith('blog.')) {
+    return res.redirect(301, `https://blog.automindzdigitallabs.online/${req.params.slug}`);
+  }
+  next();
 });
 
 app.get('/llms.txt', (req, res) => {
