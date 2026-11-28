@@ -263,7 +263,7 @@ export default function BlogTopLinkBuildingAgenciesIndia() {
                 },
                 "datePublished": "2027-01-15",
                 "dateModified": "2027-01-15",
-                "mainEntityOfPage": "https://automindzdigitallabs.online/blog/top-link-building-agencies-in-india"
+                "mainEntityOfPage": "https://automindzdigitallabs.online/blog/top-link-building-agencies"
             },
             {
                 "@type": "ItemList",
@@ -296,7 +296,7 @@ export default function BlogTopLinkBuildingAgenciesIndia() {
             <SEO
                 title="Top 10 Link Building Agencies (2027 Review & Pricing) | Best Link Building Agency"
                 description="Looking for the best link building agency in 2027? In-depth review of the top 10 white hat link building companies, pricing models, DR 80+ editorial backlinks, and in-house outreach automation."
-                url="https://automindzdigitallabs.online/blog/top-link-building-agencies-in-india"
+                url="https://automindzdigitallabs.online/blog/top-link-building-agencies"
                 keywords="best link building agency, top link building agencies, best link building agency 2027, link building services, white hat link building agency, best link building company, b2b link building, saas link building, high authority backlinks, blogger outreach services"
                 customSchema={schema}
             />
@@ -610,7 +610,7 @@ export default function BlogTopLinkBuildingAgenciesIndia() {
                     <p>&copy; {new Date().getFullYear()} AutoMindz Digital Labs. All rights reserved.</p>
                     <div className="flex items-center gap-4">
                         <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
-                        <Link to="/blog/top-link-building-agencies-in-india" className="hover:text-blue-600 transition-colors">Top Link Agencies</Link>
+                        <Link to="/blog/top-link-building-agencies" className="hover:text-blue-600 transition-colors">Top Link Agencies</Link>
                         <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="hover:text-blue-600 transition-colors">BuzzStream Alternative</Link>
                         <Link to="/blog/brevo-alternative-cold-email-outreach" className="hover:text-blue-600 transition-colors">Brevo Alternative</Link>
                         <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</Link>

@@ -54,7 +54,7 @@ export default function BlogIndex() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
 
             {/* Featured Post: Top 10 Link Building Agencies */}
-            <Link to="/blog/top-link-building-agencies-in-india" className="group flex flex-col bg-white border border-blue-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/blog/top-link-building-agencies" className="group flex flex-col bg-white border border-blue-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/top-link-building-agencies-india.svg"
@@ -271,7 +271,7 @@ export default function BlogIndex() {
             <p>&copy; {new Date().getFullYear()} AutoMindz Digital Labs. All rights reserved.</p>
             <div className="flex items-center gap-4">
                 <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
-                <Link to="/blog/top-link-building-agencies-in-india" className="hover:text-blue-600 transition-colors">Top Link Agencies</Link>
+                <Link to="/blog/top-link-building-agencies" className="hover:text-blue-600 transition-colors">Top Link Agencies</Link>
                 <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</Link>
                 <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
             </div>

@@ -36,7 +36,7 @@ describe('SEO, AEO & GEO Verification Suite', () => {
     assert.ok(content.includes(`<loc>${CANONICAL_DOMAIN}/blog</loc>`), 'sitemap must include blog index');
     assert.ok(content.includes(`<loc>${CANONICAL_DOMAIN}/blog/buzzstream-alternative-cold-outreach-link-building</loc>`), 'sitemap must include BuzzStream alternative guide');
     assert.ok(content.includes(`<loc>${CANONICAL_DOMAIN}/blog/brevo-alternative-cold-email-outreach</loc>`), 'sitemap must include Brevo alternative guide');
-    assert.ok(content.includes(`<loc>${CANONICAL_DOMAIN}/blog/top-link-building-agencies-in-india</loc>`), 'sitemap must include Top 10 Link Building Agencies in India listicle');
+    assert.ok(content.includes(`<loc>${CANONICAL_DOMAIN}/blog/top-link-building-agencies</loc>`), 'sitemap must include Top 10 Link Building Agencies listicle');
 
     // Verify absence of outdated domain or private routes
     assert.ok(!content.includes('https://automindz.com'), 'sitemap.xml must not contain legacy automindz.com domain');
@@ -77,7 +77,7 @@ describe('SEO, AEO & GEO Verification Suite', () => {
     assert.ok(content.includes('Brevo'), 'Landing.jsx must reference Brevo comparison');
     assert.ok(content.includes('toggleFaq'), 'Landing.jsx must have interactive FAQ accordion state');
     assert.ok(content.includes('glass-panel'), 'Landing.jsx must implement Glass UI styling');
-    assert.ok(content.includes('top-link-building-agencies-in-india'), 'Landing.jsx must link to Indian agencies guide');
+    assert.ok(content.includes('top-link-building-agencies'), 'Landing.jsx must link to agencies guide');
   });
 
   it('Top 10 Link Building Agencies in India listicle contains 10 agencies, do-follow links, and ItemList schema', () => {

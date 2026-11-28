@@ -127,7 +127,7 @@ const PLANS = [
 const TESTIMONIALS = [
     {
         name: 'Priya Sharma',
-        role: 'Founder, GrowthLabs India',
+        role: 'Founder, GrowthLabs',
         text: 'AutoMindz completely transformed our outbound agency. We rotated 6 mailboxes sending 1,200 cold emails daily with a 99.4% inbox placement rate. No other tool offers this value.',
         metric: '340% Pipeline Increase'
     },
@@ -249,7 +249,7 @@ export default function Landing() {
                         <a href="#comparison" className="hover:text-blue-600 transition-colors">Benchmarks</a>
                         <a href="#pricing" className="hover:text-blue-600 transition-colors">Pricing</a>
                         <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
-                        <Link to="/blog/top-link-building-agencies-in-india" className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1">
+                        <Link to="/blog/top-link-building-agencies" className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1">
                             Top Agencies 2027
                         </Link>
                     </div>
@@ -630,18 +630,18 @@ export default function Landing() {
                     <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
                         <div className="max-w-2xl">
                             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 border border-blue-200 text-xs font-bold text-blue-800 uppercase tracking-wider mb-3">
-                                <Building2 className="w-3.5 h-3.5" /> Featured 2026 Industry Report
+                                <Building2 className="w-3.5 h-3.5" /> Featured 2027 Industry Report
                             </div>
                             <h3 className="text-2xl md:text-3xl font-extrabold text-slate-950 tracking-tight">
-                                Top 10 Link Building Agencies in India (and How to Scale In-House)
+                                Top 10 Link Building Agencies (and How to Scale In-House)
                             </h3>
                             <p className="text-sm md:text-base text-slate-600 mt-2.5 leading-relaxed">
-                                Evaluating link building vendors or planning to bring blogger outreach in-house? Read our comprehensive review comparing India's top 10 link building agencies, pricing models, and how to save $3,000+/month using automated cold outreach.
+                                Evaluating link building vendors or planning to bring blogger outreach in-house? Read our comprehensive 2027 review comparing the world's top 10 link building agencies, pricing models, and how to save $3,000+/month using automated cold outreach.
                             </p>
                         </div>
                         <div className="flex-shrink-0 w-full lg:w-auto">
                             <Link
-                                to="/blog/top-link-building-agencies-in-india"
+                                to="/blog/top-link-building-agencies"
                                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm w-full lg:w-auto"
                             >
                                 Read Top 10 Agencies Review <ArrowRight className="w-4 h-4" />
@@ -921,7 +921,7 @@ export default function Landing() {
 
                     <div className="flex flex-wrap items-center gap-5 text-xs text-slate-600 font-medium">
                         <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
-                        <Link to="/blog/top-link-building-agencies-in-india" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">Top Link Building Agencies India</Link>
+                        <Link to="/blog/top-link-building-agencies" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">Top Link Building Agencies 2027</Link>
                         <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="hover:text-blue-600 transition-colors">BuzzStream Alternative</Link>
                         <Link to="/blog/brevo-alternative-cold-email-outreach" className="hover:text-blue-600 transition-colors">Brevo Alternative</Link>
                         <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</Link>

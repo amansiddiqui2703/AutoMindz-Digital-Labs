@@ -106,7 +106,8 @@ export default function App() {
               <Route path="/blog/multi-inbox-cold-email-rotation" element={<BlogMultiInbox />} />
               <Route path="/blog/buzzstream-alternative-cold-outreach-link-building" element={<BlogBuzzstreamAlternative />} />
               <Route path="/blog/brevo-alternative-cold-email-outreach" element={<BlogBrevoAlternative />} />
-              <Route path="/blog/top-link-building-agencies-in-india" element={<BlogTopLinkBuildingAgenciesIndia />} />
+              <Route path="/blog/top-link-building-agencies" element={<BlogTopLinkBuildingAgenciesIndia />} />
+              <Route path="/blog/top-link-building-agencies-in-india" element={<Navigate to="/blog/top-link-building-agencies" replace />} />
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/pipeline" element={<Pipeline />} />
