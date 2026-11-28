@@ -1,59 +1,26 @@
 User-agent: *
 Allow: /
-Allow: /blog
-Allow: /blog/*
-Allow: /sitemap.xml
-Allow: /robots.txt
-Allow: /llms.txt
-Allow: /terms
-Allow: /privacy-policy
-Allow: /assets/
-
-# Disallow private application dashboard and authenticated endpoints
-Disallow: /dashboard
-Disallow: /campaigns
-Disallow: /contacts
-Disallow: /inbox
-Disallow: /settings
-Disallow: /billing
-Disallow: /accounts
-Disallow: /analytics
-Disallow: /tools
-Disallow: /sequences
-Disallow: /templates
 Disallow: /admin
-Disallow: /auth/
-Disallow: /verify/
-Disallow: /reset-password/
-Disallow: /api/
+Disallow: /api
+Disallow: /dashboard
 
-# AI Crawlers & Answer Engines (Permit public discovery for GEO & AEO)
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
 User-agent: GPTBot
 Allow: /
-Allow: /blog/
-Allow: /llms.txt
-Disallow: /dashboard
-Disallow: /campaigns
-Disallow: /admin
-Disallow: /api/
+
+User-agent: OAI-SearchBot
+Allow: /
 
 User-agent: PerplexityBot
 Allow: /
-Allow: /blog/
-Allow: /llms.txt
-Disallow: /dashboard
-Disallow: /campaigns
-Disallow: /admin
-Disallow: /api/
 
 User-agent: ClaudeBot
 Allow: /
-Allow: /blog/
-Allow: /llms.txt
-Disallow: /dashboard
-Disallow: /campaigns
-Disallow: /admin
-Disallow: /api/
 
 User-agent: Google-Extended
 Allow: /
