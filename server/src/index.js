@@ -337,10 +337,6 @@ app.get('/llms.txt', (req, res) => {
   }
   res.status(404).send('Not Found');
 });
-    return res.sendFile(fileToServe);
-  }
-  res.status(404).send('Not Found');
-});
 
 // Serve frontend in production
 const distPath = resolve(__dirname, '../../client/dist');
