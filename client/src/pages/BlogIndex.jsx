@@ -8,12 +8,12 @@ export default function BlogIndex() {
       <SEO
         title="Cold Email Outreach & B2B Lead Generation Blog | AutoMindz"
         description="Actionable strategies on B2B cold email outreach, best link building agency evaluations, BuzzStream & Brevo alternatives, multi-inbox deliverability, and sales automation."
-        url="https://blog.automindzdigitallabs.online/"
+        url="https://automindzdigitallabs.online/blog"
         customSchema={{
             "@context": "https://schema.org",
             "@type": "CollectionPage",
             "name": "AutoMindz Blog",
-            "url": "https://blog.automindzdigitallabs.online/",
+            "url": "https://automindzdigitallabs.online/blog",
             "description": "Actionable strategies on B2B cold email outreach, best link building agency evaluations, BuzzStream & Brevo alternatives, multi-inbox deliverability, and sales automation."
         }}
       />
@@ -21,17 +21,17 @@ export default function BlogIndex() {
       {/* Clean Navigation */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-            <a href="https://automindzdigitallabs.online" className="text-lg font-bold text-slate-950 flex items-center gap-2.5">
+            <Link to="/" className="text-lg font-bold text-slate-950 flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
                     <Zap className="w-4 h-4 fill-white" />
                 </div>
                 AutoMindz <span className="text-xs font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">Blog</span>
-            </a>
+            </Link>
             <div className="flex items-center gap-4">
-                <a href="https://automindzdigitallabs.online" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Main App</a>
-                <a href="https://automindzdigitallabs.online/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
+                <Link to="/" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Home</Link>
+                <Link to="/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
                     Start Free
-                </a>
+                </Link>
             </div>
         </div>
       </header>
@@ -54,7 +54,7 @@ export default function BlogIndex() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
 
             {/* Featured Post: Top 10 Link Building Agencies */}
-            <Link to="/top-link-building-agencies" className="group flex flex-col bg-white border border-blue-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/blog/top-link-building-agencies" className="group flex flex-col bg-white border border-blue-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/top-link-building-agencies-india.svg"
@@ -86,7 +86,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 1: BuzzStream Alternative */}
-            <Link to="/buzzstream-alternative-cold-outreach-link-building" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/buzzstream-alternative-guide.svg"
@@ -118,7 +118,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 2: Brevo Alternative */}
-            <Link to="/brevo-alternative-cold-email-outreach" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/blog/brevo-alternative-cold-email-outreach" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/brevo-alternative-cold-outreach.svg"
@@ -150,7 +150,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 3: B2B Email Finder */}
-            <Link to="/how-to-find-business-emails-from-website" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/blog/how-to-find-business-emails-from-website" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/b2b-email-finder-guide.jpg"
@@ -182,7 +182,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 4: AI Cold Email Outreach */}
-            <Link to="/ai-cold-email-outreach-strategy" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/blog/ai-cold-email-outreach-strategy" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/ai-cold-email-outreach.jpg"
@@ -214,7 +214,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 5: Multi-Inbox Rotation */}
-            <Link to="/multi-inbox-cold-email-rotation" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/blog/multi-inbox-cold-email-rotation" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/multi-inbox-rotation-guide.jpg"
@@ -246,7 +246,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 6: Best Free Cold Email Software */}
-            <Link to="/best-free-cold-email-software" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/blog/best-free-cold-email-software" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/free-cold-email-tools.jpg"
@@ -278,7 +278,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 7: Deliverability Hacks */}
-            <Link to="/deliverability-hacks" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/blog/deliverability-hacks" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/deliverability-hacks.jpg"
@@ -310,7 +310,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 8: Solve B2B Sales Droughts */}
-            <Link to="/solve-b2b-sales-droughts" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/blog/solve-b2b-sales-droughts" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/sales-droughts.jpg"
@@ -342,7 +342,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* Post 9: Escaping Spam Folder */}
-            <Link to="/escaping-spam-folder" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+            <Link to="/blog/escaping-spam-folder" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/spam-folder-recovery.jpg"
@@ -383,9 +383,9 @@ export default function BlogIndex() {
             <p className="text-sm text-slate-600 mb-6 max-w-lg mx-auto">
                 Join 2,500+ SDRs and link builders who generate qualified pipeline with AutoMindz.
             </p>
-            <a href="https://automindzdigitallabs.online/register" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-7 py-3.5 rounded-lg shadow-sm transition-colors">
+            <Link to="/register" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-7 py-3.5 rounded-lg shadow-sm transition-colors">
                 Start Free — 50 Emails/Day Forever <ArrowRight className="w-4 h-4" />
-            </a>
+            </Link>
         </div>
       </section>
 
@@ -398,12 +398,12 @@ export default function BlogIndex() {
             </div>
             <p>&copy; {new Date().getFullYear()} AutoMindz Digital Labs. All rights reserved.</p>
             <div className="flex items-center gap-4">
-                <a href="https://automindzdigitallabs.online" className="hover:text-blue-600 transition-colors">Main App</a>
-                <Link to="/top-link-building-agencies" className="hover:text-blue-600 transition-colors">Top Link Agencies</Link>
-                <Link to="/buzzstream-alternative-cold-outreach-link-building" className="hover:text-blue-600 transition-colors">BuzzStream Alternative</Link>
-                <Link to="/brevo-alternative-cold-email-outreach" className="hover:text-blue-600 transition-colors">Brevo Alternative</Link>
-                <a href="https://automindzdigitallabs.online/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</a>
-                <a href="https://automindzdigitallabs.online/terms" className="hover:text-blue-600 transition-colors">Terms</a>
+                <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
+                <Link to="/blog/top-link-building-agencies" className="hover:text-blue-600 transition-colors">Top Link Agencies</Link>
+                <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="hover:text-blue-600 transition-colors">BuzzStream Alternative</Link>
+                <Link to="/blog/brevo-alternative-cold-email-outreach" className="hover:text-blue-600 transition-colors">Brevo Alternative</Link>
+                <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</Link>
+                <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
             </div>
         </div>
       </footer>

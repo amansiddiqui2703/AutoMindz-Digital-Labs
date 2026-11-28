@@ -69,28 +69,11 @@ function PageLoader() {
 }
 
 function RootRoute() {
-  const isBlogSubdomain = typeof window !== 'undefined' && (
-    window.location.hostname.startsWith('blog.') ||
-    window.location.hostname.includes('blog.')
-  );
-
-  if (isBlogSubdomain) {
-    return <BlogIndex />;
-  }
-
   const { isAuthenticated, loading } = useAuth();
   if (loading) {
     return <PageLoader />;
   }
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />;
-}
-
-function SubdomainAwareRoute({ Component, redirectPath }) {
-  if (typeof window !== 'undefined' && window.location.hostname.startsWith('blog.')) {
-    window.location.href = `https://automindzdigitallabs.online${redirectPath}`;
-    return null;
-  }
-  return <Component />;
 }
 
 export default function App() {
@@ -105,48 +88,48 @@ export default function App() {
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<RootRoute />} />
-              <Route path="/login" element={<SubdomainAwareRoute Component={Login} redirectPath="/login" />} />
-              <Route path="/register" element={<SubdomainAwareRoute Component={Register} redirectPath="/register" />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               <Route path="/verify/:token" element={<VerifyEmail />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password/:token" element={<ResetPassword />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
+
+              {/* Blog Routes */}
               <Route path="/blog" element={<BlogIndex />} />
-
-              {/* Direct blog routes for blog.automindzdigitallabs.online and /blog/ fallback for main domain */}
-              <Route path="/top-link-building-agencies" element={<BlogTopLinkBuildingAgenciesIndia />} />
               <Route path="/blog/top-link-building-agencies" element={<BlogTopLinkBuildingAgenciesIndia />} />
-              <Route path="/top-link-building-agencies-in-india" element={<Navigate to="/top-link-building-agencies" replace />} />
-              <Route path="/blog/top-link-building-agencies-in-india" element={<Navigate to="/top-link-building-agencies" replace />} />
+              <Route path="/blog/top-link-building-agencies-in-india" element={<Navigate to="/blog/top-link-building-agencies" replace />} />
+              <Route path="/top-link-building-agencies" element={<Navigate to="/blog/top-link-building-agencies" replace />} />
+              <Route path="/top-link-building-agencies-in-india" element={<Navigate to="/blog/top-link-building-agencies" replace />} />
 
-              <Route path="/buzzstream-alternative-cold-outreach-link-building" element={<BlogBuzzstreamAlternative />} />
               <Route path="/blog/buzzstream-alternative-cold-outreach-link-building" element={<BlogBuzzstreamAlternative />} />
+              <Route path="/buzzstream-alternative-cold-outreach-link-building" element={<Navigate to="/blog/buzzstream-alternative-cold-outreach-link-building" replace />} />
 
-              <Route path="/brevo-alternative-cold-email-outreach" element={<BlogBrevoAlternative />} />
               <Route path="/blog/brevo-alternative-cold-email-outreach" element={<BlogBrevoAlternative />} />
+              <Route path="/brevo-alternative-cold-email-outreach" element={<Navigate to="/blog/brevo-alternative-cold-email-outreach" replace />} />
 
-              <Route path="/how-to-find-business-emails-from-website" element={<BlogEmailFinder />} />
               <Route path="/blog/how-to-find-business-emails-from-website" element={<BlogEmailFinder />} />
+              <Route path="/how-to-find-business-emails-from-website" element={<Navigate to="/blog/how-to-find-business-emails-from-website" replace />} />
 
-              <Route path="/ai-cold-email-outreach-strategy" element={<BlogAiOutreach />} />
               <Route path="/blog/ai-cold-email-outreach-strategy" element={<BlogAiOutreach />} />
+              <Route path="/ai-cold-email-outreach-strategy" element={<Navigate to="/blog/ai-cold-email-outreach-strategy" replace />} />
 
-              <Route path="/multi-inbox-cold-email-rotation" element={<BlogMultiInbox />} />
               <Route path="/blog/multi-inbox-cold-email-rotation" element={<BlogMultiInbox />} />
+              <Route path="/multi-inbox-cold-email-rotation" element={<Navigate to="/blog/multi-inbox-cold-email-rotation" replace />} />
 
-              <Route path="/best-free-cold-email-software" element={<BlogPost />} />
               <Route path="/blog/best-free-cold-email-software" element={<BlogPost />} />
+              <Route path="/best-free-cold-email-software" element={<Navigate to="/blog/best-free-cold-email-software" replace />} />
 
-              <Route path="/deliverability-hacks" element={<BlogDeliverability />} />
               <Route path="/blog/deliverability-hacks" element={<BlogDeliverability />} />
+              <Route path="/deliverability-hacks" element={<Navigate to="/blog/deliverability-hacks" replace />} />
 
-              <Route path="/solve-b2b-sales-droughts" element={<BlogSolveDroughts />} />
               <Route path="/blog/solve-b2b-sales-droughts" element={<BlogSolveDroughts />} />
+              <Route path="/solve-b2b-sales-droughts" element={<Navigate to="/blog/solve-b2b-sales-droughts" replace />} />
 
-              <Route path="/escaping-spam-folder" element={<BlogSpamIssues />} />
               <Route path="/blog/escaping-spam-folder" element={<BlogSpamIssues />} />
+              <Route path="/escaping-spam-folder" element={<Navigate to="/blog/escaping-spam-folder" replace />} />
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/pipeline" element={<Pipeline />} />

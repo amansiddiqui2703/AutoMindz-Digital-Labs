@@ -304,18 +304,18 @@ export default function BlogTopLinkBuildingAgenciesIndia() {
             {/* Navigation Header */}
             <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
                 <nav className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <Link to="/" className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                    <Link to="/blog" className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
                         <ArrowLeft className="w-4 h-4" /> Back to Blog
                     </Link>
-                    <a href="https://automindzdigitallabs.online" className="flex items-center gap-2 text-lg font-bold text-slate-950 group">
+                    <Link to="/" className="flex items-center gap-2 text-lg font-bold text-slate-950 group">
                         <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white">
                             <Zap className="w-4 h-4 fill-white" />
                         </div>
                         AutoMindz
-                    </a>
-                    <a href="https://automindzdigitallabs.online/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
+                    </Link>
+                    <Link to="/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
                         Try Free
-                    </a>
+                    </Link>
                 </nav>
             </header>
 
@@ -590,12 +590,12 @@ export default function BlogTopLinkBuildingAgenciesIndia() {
                     <p className="text-sm text-slate-600 max-w-xl mx-auto mt-2 mb-6 leading-relaxed">
                         Skip agency markups. Connect your Google Workspace accounts, scrape target industry blogs, and automate personalized link pitches with AutoMindz.
                     </p>
-                    <a
-                        href="https://automindzdigitallabs.online/register"
+                    <Link
+                        to="/register"
                         className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg font-bold text-sm text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors"
                     >
                         Start Free — No Credit Card Required <ArrowRight className="w-4 h-4" />
-                    </a>
+                    </Link>
                 </div>
 
             </main>

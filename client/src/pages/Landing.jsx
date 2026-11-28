@@ -248,10 +248,10 @@ export default function Landing() {
                         <a href="#cockpit" className="hover:text-blue-600 transition-colors">Cockpit</a>
                         <a href="#comparison" className="hover:text-blue-600 transition-colors">Benchmarks</a>
                         <a href="#pricing" className="hover:text-blue-600 transition-colors">Pricing</a>
-                        <a href="https://blog.automindzdigitallabs.online" className="hover:text-blue-600 transition-colors">Blog</a>
-                        <a href="https://blog.automindzdigitallabs.online/top-link-building-agencies" className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1">
+                        <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
+                        <Link to="/blog/top-link-building-agencies" className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1">
                             Top Agencies 2027
-                        </a>
+                        </Link>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -640,12 +640,12 @@ export default function Landing() {
                             </p>
                         </div>
                         <div className="flex-shrink-0 w-full lg:w-auto">
-                            <a
-                                href="https://blog.automindzdigitallabs.online/top-link-building-agencies"
+                            <Link
+                                to="/blog/top-link-building-agencies"
                                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm w-full lg:w-auto"
                             >
                                 Read Top 10 Agencies Review <ArrowRight className="w-4 h-4" />
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -920,10 +920,10 @@ export default function Landing() {
                     </p>
 
                     <div className="flex flex-wrap items-center gap-5 text-xs text-slate-600 font-medium">
-                        <a href="https://blog.automindzdigitallabs.online" className="hover:text-blue-600 transition-colors">Blog</a>
-                        <a href="https://blog.automindzdigitallabs.online/top-link-building-agencies" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">Top Link Building Agencies 2027</a>
-                        <a href="https://blog.automindzdigitallabs.online/buzzstream-alternative-cold-outreach-link-building" className="hover:text-blue-600 transition-colors">BuzzStream Alternative</a>
-                        <a href="https://blog.automindzdigitallabs.online/brevo-alternative-cold-email-outreach" className="hover:text-blue-600 transition-colors">Brevo Alternative</a>
+                        <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
+                        <Link to="/blog/top-link-building-agencies" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">Top Link Building Agencies 2027</Link>
+                        <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="hover:text-blue-600 transition-colors">BuzzStream Alternative</Link>
+                        <Link to="/blog/brevo-alternative-cold-email-outreach" className="hover:text-blue-600 transition-colors">Brevo Alternative</Link>
                         <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</Link>
                         <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
                         <a href="mailto:automindzdigitallabs@gmail.com" className="hover:text-blue-600 transition-colors">Contact</a>
