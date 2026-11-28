@@ -4,7 +4,6 @@
 <head>
   <!-- Google tag (gtag.js) -->
   <link rel="preconnect" href="https://www.googletagmanager.com" />
-  <link rel="preconnect" href="https://www.google-analytics.com" />
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-43EX1RZT7W"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -16,8 +15,9 @@
     gtag('config', 'G-43EX1RZT7W', { send_page_view: false });
   </script>
 
-  <!-- Ahrefs Analytics -->
-  <link rel="preconnect" href="https://analytics.ahrefs.com" />
+  <!-- Ahrefs Analytics & Google Analytics dns-prefetch (prevents socket exhaustion) -->
+  <link rel="dns-prefetch" href="https://analytics.ahrefs.com" />
+  <link rel="dns-prefetch" href="https://www.google-analytics.com" />
   <script src="https://analytics.ahrefs.com/analytics.js" data-key="jjKkag4Gcx50yc5mXfZ0Nw" async></script>
 
   <meta charset="UTF-8" />
@@ -40,7 +40,6 @@
   <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
 
   <!-- High-Performance Non-Blocking Font Loading for Core Web Vitals (LCP/FCP) -->
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
   <noscript>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />

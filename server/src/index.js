@@ -338,6 +338,31 @@ app.get('/llms.txt', (req, res) => {
   res.status(404).send('Not Found');
 });
 
+// Server-Side 301 Permanent Redirects for legacy routes to canonical /blog/ URLs
+const LEGACY_CANONICAL_REDIRECTS = {
+  '/how-to-find-business-emails-from-website': '/blog/how-to-find-business-emails-from-website',
+  '/ai-cold-email-outreach-strategy': '/blog/ai-cold-email-outreach-strategy',
+  '/multi-inbox-cold-email-rotation': '/blog/multi-inbox-cold-email-rotation',
+  '/best-free-cold-email-software': '/blog/best-free-cold-email-software',
+  '/deliverability-hacks': '/blog/deliverability-hacks',
+  '/solve-b2b-sales-droughts': '/blog/solve-b2b-sales-droughts',
+  '/escaping-spam-folder': '/blog/escaping-spam-folder',
+  '/top-link-building-agencies': '/blog/top-link-building-agencies',
+  '/top-link-building-agencies-in-india': '/blog/top-link-building-agencies',
+  '/blog/top-link-building-agencies-in-india': '/blog/top-link-building-agencies',
+  '/buzzstream-alternative-cold-outreach-link-building': '/blog/buzzstream-alternative-cold-outreach-link-building',
+  '/brevo-alternative-cold-email-outreach': '/blog/brevo-alternative-cold-email-outreach',
+  '/guest-posting-and-content-writing-firms': '/blog/guest-posting-and-content-writing-firms',
+  '/blog/top-guest-posting-content-writing-firms': '/blog/guest-posting-and-content-writing-firms',
+  '/blog/guest-posting-content-writing-firms-west-virginia': '/blog/guest-posting-and-content-writing-firms',
+};
+
+for (const [legacyPath, targetPath] of Object.entries(LEGACY_CANONICAL_REDIRECTS)) {
+  app.get(legacyPath, (req, res) => {
+    res.redirect(301, targetPath);
+  });
+}
+
 // Serve frontend in production
 const distPath = resolve(__dirname, '../../client/dist');
 if (fs.existsSync(distPath)) {
@@ -346,10 +371,17 @@ if (fs.existsSync(distPath)) {
     maxAge: '1y',
     immutable: true,
   }));
-  // Short cache for other static files (favicon, etc.)
+  // Long-term cache for images/fonts in root dist, no-cache for HTML
   app.use(express.static(distPath, {
-    maxAge: '1h',
+    maxAge: '7d',
     etag: true,
+    setHeaders: (res, filePath) => {
+      if (/\.(svg|png|jpg|jpeg|webp|ico|woff2?|ttf|eot)$/i.test(filePath)) {
+        res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+      } else if (/\.html$/i.test(filePath)) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      }
+    }
   }));
   app.get('*', (req, res) => {
     if (!req.path.startsWith('/api')) {

@@ -4,16 +4,21 @@ import * as Sentry from "@sentry/react";
 import './index.css'
 import App from './App.jsx'
 
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN || "",
-  integrations: [
-    Sentry.browserTracingIntegration(),
-    Sentry.replayIntegration(),
-  ],
-  tracesSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 1.0,
-  replaysSessionSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 0.1,
-  replaysOnErrorSampleRate: 1.0,
-});
+if (import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration({
+        maskAllText: true,
+        blockAllMedia: true,
+      }),
+    ],
+    tracesSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 1.0,
+    replaysSessionSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 0.1,
+    replaysOnErrorSampleRate: 1.0,
+  });
+}
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

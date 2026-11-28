@@ -3,13 +3,13 @@ import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary'; // BUG FIX #35
 import AnalyticsTracker from './components/AnalyticsTracker';
 import { lazy, Suspense } from 'react';
 
-// Lazy-loaded page components for code splitting
+// Lazy-loaded layout & page components for optimal code splitting & high PageSpeed
+const AppLayout = lazy(() => import('./components/layout/AppLayout'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));

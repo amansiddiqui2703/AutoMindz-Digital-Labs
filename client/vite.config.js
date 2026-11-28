@@ -14,13 +14,14 @@ export default defineConfig({
     },
   },
   build: {
-    target: 'es2020',
+    target: 'es2022',
     sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'ui-vendor': ['lucide-react', 'react-hot-toast'],
+          'sentry-vendor': ['@sentry/react', '@sentry/browser'],
           'chart-vendor': ['recharts'],
           'editor-vendor': [
             '@tiptap/react',

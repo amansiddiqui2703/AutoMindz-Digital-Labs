@@ -70,6 +70,7 @@ export default function Register() {
             <SEO 
                 title="Create Account | AutoMindz"
                 description="Sign up for AutoMindz to start your free trial. The ultimate AI-powered cold email outreach platform."
+                noIndex={true}
             />
             <div className="w-full max-w-md animate-in">
                 <div className="flex items-center gap-3 mb-8 justify-center">

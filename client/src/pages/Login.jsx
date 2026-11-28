@@ -73,6 +73,7 @@ export default function Login() {
             <SEO 
                 title="Login | AutoMindz"
                 description="Sign in to your AutoMindz account to launch and manage your cold email outreach campaigns."
+                noIndex={true}
             />
             {/* Left decorative panel */}
             <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600 relative overflow-hidden flex-col justify-center px-16">

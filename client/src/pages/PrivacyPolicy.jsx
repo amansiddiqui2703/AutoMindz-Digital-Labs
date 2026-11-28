@@ -198,7 +198,6 @@ export default function PrivacyPolicy() {
             />
             {/* Google Font */}
             <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #F8F9FF; }
         ::-webkit-scrollbar { width: 4px; }
