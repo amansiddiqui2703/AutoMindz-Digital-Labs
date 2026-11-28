@@ -79,7 +79,7 @@ export default function BlogAiOutreachCompleteGuide() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-100 selection:text-blue-900 font-sans">
+        <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-900 font-sans">
             <SEO
                 title="AI Cold Email Outreach: Complete 2027 Strategy Guide"
                 description="Discover how AI-powered cold email outreach transforms B2B prospecting. Learn prompt engineering, dynamic icebreakers, sequence branching, and setup."
@@ -92,27 +92,27 @@ export default function BlogAiOutreachCompleteGuide() {
 
             {/* Navigation Header */}
             <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
-                <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <Link to="/blog" className="text-slate-600 hover:text-blue-600 flex items-center gap-2 text-sm font-medium transition-colors">
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Blog
+                <nav className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <Link to="/blog" className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                        <ArrowLeft className="w-4 h-4" /> Back to Blog
                     </Link>
-                    <div className="flex items-center gap-4">
-                        <Link to="/" className="text-sm font-semibold text-slate-800 hover:text-blue-600 transition-colors">
-                            Home
-                        </Link>
-                        <Link to="/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
-                            Start Free Trial
-                        </Link>
-                    </div>
-                </div>
+                    <Link to="/" className="flex items-center gap-2 text-lg font-bold text-slate-950 group">
+                        <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+                            <Zap className="w-4 h-4 fill-white" />
+                        </div>
+                        AutoMindz
+                    </Link>
+                    <Link to="/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
+                        Try Free
+                    </Link>
+                </nav>
             </header>
 
             <main className="max-w-4xl mx-auto px-6 py-12 md:py-16">
                 {/* Article Header */}
                 <header className="mb-12">
-                    <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-600 mb-4">
-                        <span className="px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-md">AI Outbound Architecture</span>
+                    <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-700 mb-4">
+                        <span className="px-3.5 py-1.5 bg-blue-50 border border-blue-200 rounded-full font-bold">AI Outbound Architecture</span>
                         <span>•</span>
                         <span className="text-slate-500">Updated: 2027 Edition</span>
                         <span>•</span>
@@ -318,10 +318,10 @@ export default function BlogAiOutreachCompleteGuide() {
                 </section>
 
                 {/* Bottom CTA Banner */}
-                <div className="bg-slate-900 rounded-2xl p-8 text-center text-white relative overflow-hidden border border-slate-800">
+                <div className="bg-slate-900 rounded-2xl p-8 sm:p-10 text-center text-white relative overflow-hidden border border-slate-800 shadow-xl my-14">
                     <div className="max-w-xl mx-auto">
-                        <h3 className="text-2xl font-bold mb-3">Scale Your Outbound with Google Gemini AI</h3>
-                        <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+                        <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">Scale Your Outbound with Google Gemini AI</h3>
+                        <p className="text-slate-300 text-sm sm:text-base mb-6 leading-relaxed">
                             Connect your Google accounts in 2 minutes. AutoMindz discovers verified decision-maker emails, writes custom AI openers, and sends sequences that automatically stop on reply.
                         </p>
                         <Link
@@ -333,6 +333,25 @@ export default function BlogAiOutreachCompleteGuide() {
                     </div>
                 </div>
             </main>
+
+            {/* Footer */}
+            <footer className="border-t border-slate-200 bg-slate-50 py-10 text-xs text-slate-500">
+                <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center text-white">
+                            <Zap className="w-3.5 h-3.5 fill-white" />
+                        </div>
+                        <span className="font-bold text-slate-900">AutoMindz Digital Labs</span>
+                    </div>
+                    <p>&copy; {new Date().getFullYear()} AutoMindz Digital Labs. All rights reserved.</p>
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600">
+                        <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
+                        <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
+                        <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy</Link>
+                        <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 }

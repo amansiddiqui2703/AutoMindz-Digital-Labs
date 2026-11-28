@@ -267,7 +267,7 @@ export default function BlogGuestPostingFirms() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-100 selection:text-blue-900 font-sans">
+        <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-900 font-sans">
             <SEO
                 title="Top 8 Firms Combining Guest Posting & Content Writing Excellence (2027)"
                 description="Comprehensive 2027 review of the top 8 guest posting and content writing agencies. Compare Domain Authority, content originality, zero-PBN standards, and outreach methodologies."
@@ -279,20 +279,20 @@ export default function BlogGuestPostingFirms() {
 
             {/* Navigation Header */}
             <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
-                <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <Link to="/blog" className="text-slate-600 hover:text-blue-600 flex items-center gap-2 text-sm font-medium transition-colors">
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Blog
+                <nav className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <Link to="/blog" className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                        <ArrowLeft className="w-4 h-4" /> Back to Blog
                     </Link>
-                    <div className="flex items-center gap-4">
-                        <Link to="/" className="text-sm font-semibold text-slate-800 hover:text-blue-600 transition-colors">
-                            Home
-                        </Link>
-                        <Link to="/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
-                            Start Free Trial
-                        </Link>
-                    </div>
-                </div>
+                    <Link to="/" className="flex items-center gap-2 text-lg font-bold text-slate-950 group">
+                        <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs">
+                            <Zap className="w-4 h-4 fill-white" />
+                        </div>
+                        AutoMindz
+                    </Link>
+                    <Link to="/register" className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors">
+                        Try Free
+                    </Link>
+                </nav>
             </header>
 
             <main className="max-w-4xl mx-auto px-6 py-12 md:py-16">
@@ -612,10 +612,10 @@ export default function BlogGuestPostingFirms() {
                 </section>
 
                 {/* Bottom CTA Banner */}
-                <div className="bg-slate-900 rounded-2xl p-8 text-center text-white relative overflow-hidden border border-slate-800">
+                <div className="bg-slate-950 rounded-2xl p-8 sm:p-12 text-center text-white relative overflow-hidden border border-slate-800 my-16">
                     <div className="relative z-10 max-w-xl mx-auto">
-                        <h3 className="text-2xl font-bold mb-3">Scale Your High-DA Editorial Outreach</h3>
-                        <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+                        <h3 className="text-2xl sm:text-3xl font-bold mb-3 tracking-tight text-white">Scale Your High-DA Editorial Outreach</h3>
+                        <p className="text-slate-400 text-sm mb-6 leading-relaxed">
                             Stop overpaying for third-party link brokers. Discover decision-maker emails, automate personalized pitches, and land editorial guest placements in-house.
                         </p>
                         <div className="flex flex-wrap items-center justify-center gap-3">
@@ -635,6 +635,24 @@ export default function BlogGuestPostingFirms() {
                     </div>
                 </div>
             </main>
+
+            {/* Footer */}
+            <footer className="border-t border-slate-200 bg-slate-50 py-10 text-xs text-slate-500">
+                <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded bg-blue-600 flex items-center justify-center text-white">
+                            <Zap className="w-3 h-3 fill-white" />
+                        </div>
+                        <span className="font-bold text-slate-800">AutoMindz</span> &copy; 2026. All rights reserved.
+                    </div>
+                    <div className="flex gap-6">
+                        <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
+                        <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
+                        <Link to="/email-finder" className="hover:text-blue-600 transition-colors">Email Finder</Link>
+                        <Link to="/register" className="hover:text-blue-600 transition-colors">Start Free</Link>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 }
