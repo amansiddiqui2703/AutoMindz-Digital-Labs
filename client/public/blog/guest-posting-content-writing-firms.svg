@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#020617" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="450" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle Grid Pattern -->
+  <g opacity="0.07" stroke="#ffffff" stroke-width="1">
+    <line x1="0" y1="50" x2="800" y2="50"/>
+    <line x1="0" y1="100" x2="800" y2="100"/>
+    <line x1="0" y1="150" x2="800" y2="150"/>
+    <line x1="0" y1="200" x2="800" y2="200"/>
+    <line x1="0" y1="250" x2="800" y2="250"/>
+    <line x1="0" y1="300" x2="800" y2="300"/>
+    <line x1="0" y1="350" x2="800" y2="350"/>
+    <line x1="0" y1="400" x2="800" y2="400"/>
+    <line x1="100" y1="0" x2="100" y2="450"/>
+    <line x1="200" y1="0" x2="200" y2="450"/>
+    <line x1="300" y1="0" x2="300" y2="450"/>
+    <line x1="400" y1="0" x2="400" y2="450"/>
+    <line x1="500" y1="0" x2="500" y2="450"/>
+    <line x1="600" y1="0" x2="600" y2="450"/>
+    <line x1="700" y1="0" x2="700" y2="450"/>
+  </g>
+
+  <!-- Header Badge -->
+  <rect x="50" y="45" width="240" height="28" rx="14" fill="#eff6ff" opacity="0.95"/>
+  <text x="65" y="64" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="700" fill="#1d4ed8" letter-spacing="1">★ 2027 EDITORIAL BENCHMARK</text>
+
+  <!-- Title & Subtitle -->
+  <text x="50" y="115" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="800" fill="#ffffff">Top Guest Posting &amp; Content Writing Firms</text>
+  <text x="50" y="150" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#60a5fa">High-DA Editorial Outreach &amp; SEO Excellence</text>
+
+  <!-- Cards Container -->
+  <g filter="url(#shadow)">
+    <!-- Main Highlight Card -->
+    <rect x="50" y="180" width="340" height="220" rx="16" fill="url(#cardGrad)"/>
+    <rect x="50" y="180" width="340" height="42" rx="16" fill="#1e293b"/>
+    <text x="70" y="206" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#38bdf8">#1 AutoMindz Digital Labs</text>
+    <text x="315" y="206" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="700" fill="#22c55e">DR 55-90+</text>
+    
+    <text x="70" y="245" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" fill="#0f172a">✓ Automated Multi-Inbox Outreach</text>
+    <text x="70" y="270" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" fill="#0f172a">✓ Direct Verified Webmaster Contacts</text>
+    <text x="70" y="295" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" fill="#0f172a">✓ 100% Zero-PBN &amp; Real Traffic Sites</text>
+    <text x="70" y="320" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" fill="#0f172a">✓ AI-Resilient Human Editorial Standards</text>
+
+    <rect x="70" y="345" width="300" height="34" rx="8" fill="#2563eb"/>
+    <text x="135" y="367" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700" fill="#ffffff">Scale Guest Outreach ➔</text>
+
+    <!-- Side Comparison Card -->
+    <rect x="420" y="180" width="330" height="220" rx="16" fill="url(#cardGrad)"/>
+    <rect x="420" y="180" width="330" height="42" rx="16" fill="#0f172a"/>
+    <text x="440" y="206" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#cbd5e1">Agency Evaluation Standards</text>
+
+    <circle cx="445" cy="245" r="5" fill="#2563eb"/>
+    <text x="460" y="249" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" fill="#334155">Editorial Integrity (Zero-GPT &amp; Human Craft)</text>
+
+    <circle cx="445" cy="280" r="5" fill="#2563eb"/>
+    <text x="460" y="284" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" fill="#334155">Real Organic Traffic (Ahrefs &amp; Semrush Vetted)</text>
+
+    <circle cx="445" cy="315" r="5" fill="#2563eb"/>
+    <text x="460" y="319" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" fill="#334155">Contextual Dofollow Placements</text>
+
+    <circle cx="445" cy="350" r="5" fill="#2563eb"/>
+    <text x="460" y="354" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" fill="#334155">Sustainable Rankings in Google 2027</text>
+  </g>
+</svg>
+

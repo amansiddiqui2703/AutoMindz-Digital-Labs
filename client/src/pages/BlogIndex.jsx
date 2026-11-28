@@ -85,6 +85,38 @@ export default function BlogIndex() {
                 </div>
             </Link>
 
+            {/* Featured Post 2: Top Guest Posting & Content Writing Firms */}
+            <Link to="/blog/guest-posting-and-content-writing-firms" className="group flex flex-col bg-white border border-blue-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
+                <div className="h-48 overflow-hidden relative border-b border-slate-100">
+                    <img
+                        src="/blog/guest-posting-content-writing-firms.svg"
+                        alt="Top 8 Firms Combining Guest Posting and Content Writing Excellence (2027 Review)"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 left-3 bg-indigo-600 text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded shadow-sm">
+                        Editorial Review
+                    </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                            <span className="font-semibold text-blue-600">Editorial Team</span>
+                            <span>•</span>
+                            <span>14 min read</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-950 mb-2.5 group-hover:text-blue-600 transition-colors leading-snug">
+                            Top 8 Firms Combining Guest Posting & Content Writing Excellence
+                        </h3>
+                        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+                            In-depth comparison of top guest posting firms combining high-DA outreach, human editorial writing, zero-PBN standards, and automated workflows.
+                        </p>
+                    </div>
+                    <div className="flex items-center text-blue-600 font-semibold text-xs group-hover:gap-1.5 transition-all pt-3 border-t border-slate-100">
+                        Read Review <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                </div>
+            </Link>
+
             {/* Post 1: BuzzStream Alternative */}
             <Link to="/blog/buzzstream-alternative-cold-outreach-link-building" className="group flex flex-col bg-white border border-slate-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">

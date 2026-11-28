@@ -55,6 +55,7 @@ const BlogMultiInbox = lazy(() => import('./pages/BlogMultiInbox'));
 const BlogBuzzstreamAlternative = lazy(() => import('./pages/BlogBuzzstreamAlternative'));
 const BlogBrevoAlternative = lazy(() => import('./pages/BlogBrevoAlternative'));
 const BlogTopLinkBuildingAgenciesIndia = lazy(() => import('./pages/BlogTopLinkBuildingAgenciesIndia'));
+const BlogGuestPostingFirms = lazy(() => import('./pages/BlogGuestPostingFirms'));
 
 // Loading spinner for lazy-loaded routes
 function PageLoader() {
@@ -103,6 +104,11 @@ export default function App() {
               <Route path="/blog/top-link-building-agencies-in-india" element={<Navigate to="/blog/top-link-building-agencies" replace />} />
               <Route path="/top-link-building-agencies" element={<Navigate to="/blog/top-link-building-agencies" replace />} />
               <Route path="/top-link-building-agencies-in-india" element={<Navigate to="/blog/top-link-building-agencies" replace />} />
+
+              <Route path="/blog/guest-posting-and-content-writing-firms" element={<BlogGuestPostingFirms />} />
+              <Route path="/blog/top-guest-posting-content-writing-firms" element={<Navigate to="/blog/guest-posting-and-content-writing-firms" replace />} />
+              <Route path="/blog/guest-posting-content-writing-firms-west-virginia" element={<Navigate to="/blog/guest-posting-and-content-writing-firms" replace />} />
+              <Route path="/guest-posting-and-content-writing-firms" element={<Navigate to="/blog/guest-posting-and-content-writing-firms" replace />} />
 
               <Route path="/blog/buzzstream-alternative-cold-outreach-link-building" element={<BlogBuzzstreamAlternative />} />
               <Route path="/buzzstream-alternative-cold-outreach-link-building" element={<Navigate to="/blog/buzzstream-alternative-cold-outreach-link-building" replace />} />
