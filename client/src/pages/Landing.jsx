@@ -250,7 +250,7 @@ export default function Landing() {
                         <a href="#pricing" className="hover:text-blue-600 transition-colors">Pricing</a>
                         <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
                         <Link to="/blog/top-link-building-agencies-in-india" className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1">
-                            Top Agencies 2026
+                            Top Agencies 2027
                         </Link>
                     </div>
 

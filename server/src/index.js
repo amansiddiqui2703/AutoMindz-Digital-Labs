@@ -280,6 +280,43 @@ Sentry.setupExpressErrorHandler(app);
 // Global Error Handler
 app.use(errorHandler);
 
+// Dedicated SEO and Search Engine Discovery Endpoints
+app.get('/robots.txt', (req, res) => {
+  const robotsDist = resolve(__dirname, '../../client/dist/robots.txt');
+  const robotsPublic = resolve(__dirname, '../../client/public/robots.txt');
+  const fileToServe = fs.existsSync(robotsDist) ? robotsDist : robotsPublic;
+  if (fs.existsSync(fileToServe)) {
+    res.setHeader('Content-Type', 'text/plain; charset=UTF-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.sendFile(fileToServe);
+  }
+  res.status(200).type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://automindzdigitallabs.online/sitemap.xml\n');
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  const sitemapDist = resolve(__dirname, '../../client/dist/sitemap.xml');
+  const sitemapPublic = resolve(__dirname, '../../client/public/sitemap.xml');
+  const fileToServe = fs.existsSync(sitemapDist) ? sitemapDist : sitemapPublic;
+  if (fs.existsSync(fileToServe)) {
+    res.setHeader('Content-Type', 'application/xml; charset=UTF-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.sendFile(fileToServe);
+  }
+  res.status(404).send('Not Found');
+});
+
+app.get('/llms.txt', (req, res) => {
+  const llmsDist = resolve(__dirname, '../../client/dist/llms.txt');
+  const llmsPublic = resolve(__dirname, '../../client/public/llms.txt');
+  const fileToServe = fs.existsSync(llmsDist) ? llmsDist : llmsPublic;
+  if (fs.existsSync(fileToServe)) {
+    res.setHeader('Content-Type', 'text/plain; charset=UTF-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.sendFile(fileToServe);
+  }
+  res.status(404).send('Not Found');
+});
+
 // Serve frontend in production
 const distPath = resolve(__dirname, '../../client/dist');
 if (fs.existsSync(distPath)) {

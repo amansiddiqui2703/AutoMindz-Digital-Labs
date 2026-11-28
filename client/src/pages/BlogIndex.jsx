@@ -53,16 +53,16 @@ export default function BlogIndex() {
         {/* Blog Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
 
-            {/* Featured Post: Top 10 Link Building Agencies in India */}
+            {/* Featured Post: Top 10 Link Building Agencies */}
             <Link to="/blog/top-link-building-agencies-in-india" className="group flex flex-col bg-white border border-blue-200 hover:border-blue-400 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all">
                 <div className="h-48 overflow-hidden relative border-b border-slate-100">
                     <img
                         src="/blog/top-link-building-agencies-india.svg"
-                        alt="Top 10 Link Building Agencies in India - Best Link Building Agency Review"
+                        alt="Top 10 Link Building Agencies in 2027 - Best Link Building Agency Review"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute top-3 left-3 bg-blue-600 text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded shadow-sm">
-                        2026 Audit Listicle
+                        2027 Audit Listicle
                     </div>
                 </div>
                 <div className="p-6 flex-1 flex flex-col justify-between">
@@ -70,13 +70,13 @@ export default function BlogIndex() {
                         <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
                             <span className="font-semibold text-blue-600">Editorial Team</span>
                             <span>•</span>
-                            <span>12 min read</span>
+                            <span>14 min read</span>
                         </div>
                         <h3 className="text-lg font-bold text-slate-950 mb-2.5 group-hover:text-blue-600 transition-colors leading-snug">
-                            Top 10 Link Building Agencies in India: Finding the Best Link Building Agency in 2026
+                            Top 10 Link Building Agencies (2027 Review & Pricing): Best Link Building Agency
                         </h3>
                         <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
-                            Detailed review of India's premier link building companies, digital PR services, and how the best link building agency compares to in-house outreach automation.
+                            Detailed review of the top 10 white-hat link building companies, digital PR services, backlink pricing models, and how to automate outreach in-house.
                         </p>
                     </div>
                     <div className="flex items-center text-blue-600 font-semibold text-xs group-hover:gap-1.5 transition-all pt-3 border-t border-slate-100">
